@@ -11,11 +11,11 @@ interface TaskCardProps {
     duration: number;
     isActive: boolean;
     isCompleted: boolean;
+    timeLeft?: number;
   };
   onComplete: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
-  timeLeft?: number;
   isRoutineStarted: boolean;
 }
 
@@ -24,12 +24,17 @@ const TaskCard = ({
   onComplete, 
   onEdit, 
   onDelete, 
-  timeLeft, 
   isRoutineStarted 
 }: TaskCardProps) => {
-  const progressPercentage = timeLeft !== undefined 
-    ? ((task.duration * 60 - timeLeft) / (task.duration * 60)) * 100
+  const progressPercentage = task.timeLeft !== undefined 
+    ? ((task.duration * 60 - task.timeLeft) / (task.duration * 60)) * 100
     : 0;
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div
@@ -58,16 +63,14 @@ const TaskCard = ({
           <div>
             <h3 className="text-lg font-semibold text-ninja-text">{task.title}</h3>
             <p className="text-sm text-gray-500">
-              {timeLeft !== undefined
-                ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60)
-                    .toString()
-                    .padStart(2, "0")} left`
+              {task.timeLeft !== undefined && isRoutineStarted
+                ? `${formatTime(task.timeLeft)} left`
                 : `${task.duration} minutes`}
             </p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          {task.isActive && !task.isCompleted && (
+          {task.isActive && !task.isCompleted && isRoutineStarted && (
             <Button
               onClick={onComplete}
               className="flex items-center space-x-2 bg-ninja-primary text-white hover:bg-ninja-primary/90"
@@ -79,7 +82,7 @@ const TaskCard = ({
         </div>
       </div>
       
-      {task.isActive && !task.isCompleted && timeLeft !== undefined && (
+      {task.isActive && !task.isCompleted && task.timeLeft !== undefined && isRoutineStarted && (
         <div className="mt-4">
           <Progress value={progressPercentage} className="h-2" />
         </div>

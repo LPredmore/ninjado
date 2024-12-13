@@ -26,12 +26,25 @@ export const AddRewardDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create rewards",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { error } = await supabase.from("rewards").insert({
       title,
       base_time: baseTime,
+      user_id: user.id
     });
 
     if (error) {
+      console.error("Error creating reward:", error);
       toast({
         title: "Error",
         description: "Failed to create reward",

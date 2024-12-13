@@ -36,6 +36,7 @@ const Index = ({ user, supabase }: IndexProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isRoutineStarted, setIsRoutineStarted] = useState(false);
   const [totalTimeSaved, setTotalTimeSaved] = useState(0);
+  const [timers, setTimers] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     fetchRoutines();
@@ -47,6 +48,25 @@ const Index = ({ user, supabase }: IndexProps) => {
       fetchRoutineTasks(selectedRoutineId);
     }
   }, [selectedRoutineId]);
+
+  useEffect(() => {
+    let intervals: NodeJS.Timeout[] = [];
+
+    if (isRoutineStarted) {
+      const activeTask = tasks.find(t => t.isActive && !t.isCompleted);
+      if (activeTask) {
+        const interval = setInterval(() => {
+          setTimers(prev => ({
+            ...prev,
+            [activeTask.id]: (prev[activeTask.id] || activeTask.duration * 60) - 1
+          }));
+        }, 1000);
+        intervals.push(interval);
+      }
+    }
+
+    return () => intervals.forEach(clearInterval);
+  }, [isRoutineStarted, tasks]);
 
   const fetchRoutines = async () => {
     const { data, error } = await supabase
@@ -73,15 +93,22 @@ const Index = ({ user, supabase }: IndexProps) => {
       return;
     }
 
-    const formattedTasks: Task[] = data.map(task => ({
+    const formattedTasks: Task[] = data.map((task, index) => ({
       id: task.id,
       title: task.title,
       duration: task.duration,
-      isActive: false,
+      isActive: index === 0,
       isCompleted: false
     }));
 
     setTasks(formattedTasks);
+    
+    // Initialize timers for all tasks
+    const initialTimers: { [key: string]: number } = {};
+    formattedTasks.forEach(task => {
+      initialTimers[task.id] = task.duration * 60;
+    });
+    setTimers(initialTimers);
   };
 
   const fetchTotalTimeSaved = async () => {
@@ -107,12 +134,18 @@ const Index = ({ user, supabase }: IndexProps) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    const updatedTasks = tasks.map(t =>
-      t.id === taskId ? { ...t, isCompleted: true } : t
-    );
-    setTasks(updatedTasks);
+    const timeLeft = timers[taskId] || 0;
+    const timeSaved = Math.max(0, (task.duration * 60 - timeLeft) / 60);
 
-    const timeSaved = task.duration;
+    // Mark current task as completed and activate next task
+    const currentIndex = tasks.findIndex(t => t.id === taskId);
+    const updatedTasks = tasks.map((t, index) => ({
+      ...t,
+      isCompleted: t.id === taskId ? true : t.isCompleted,
+      isActive: index === currentIndex + 1
+    }));
+
+    setTasks(updatedTasks);
     setTotalTimeSaved(prev => prev + timeSaved);
 
     const { error } = await supabase
@@ -121,7 +154,7 @@ const Index = ({ user, supabase }: IndexProps) => {
         {
           user_id: user.id,
           task_title: task.title,
-          time_saved: timeSaved
+          time_saved: Math.round(timeSaved)
         }
       ]);
 
@@ -131,11 +164,23 @@ const Index = ({ user, supabase }: IndexProps) => {
       return;
     }
 
-    toast.success(`Task completed! Time saved: ${timeSaved} minutes.`);
+    toast.success(`Task completed! Time saved: ${Math.round(timeSaved)} minutes.`);
   };
 
   const handleStartRoutine = () => {
     setIsRoutineStarted(true);
+    // Reset tasks to ensure first task is active
+    setTasks(tasks.map((task, index) => ({
+      ...task,
+      isActive: index === 0,
+      isCompleted: false
+    })));
+    // Reset timers
+    const initialTimers: { [key: string]: number } = {};
+    tasks.forEach(task => {
+      initialTimers[task.id] = task.duration * 60;
+    });
+    setTimers(initialTimers);
     toast("Routine started! Let's get productive!");
   };
 
@@ -168,7 +213,10 @@ const Index = ({ user, supabase }: IndexProps) => {
 
         {selectedRoutineId && (
           <RoutineContainer
-            tasks={tasks}
+            tasks={tasks.map(task => ({
+              ...task,
+              timeLeft: timers[task.id]
+            }))}
             completedTasks={completedTasks}
             isRoutineStarted={isRoutineStarted}
             onStartRoutine={handleStartRoutine}
