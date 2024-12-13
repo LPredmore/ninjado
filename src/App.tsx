@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Routines from "./pages/Routines";
+import Rewards from "./pages/Rewards";
 import { User } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -55,6 +56,16 @@ const App = () => {
               element={
                 user ? (
                   <Routines user={user} supabase={supabase} />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
+            <Route
+              path="/rewards"
+              element={
+                user ? (
+                  <Rewards user={user} supabase={supabase} />
                 ) : (
                   <Navigate to="/login" replace />
                 )
