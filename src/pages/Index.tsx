@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Plus } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { User, SupabaseClient } from '@supabase/supabase-js';
 import TaskList from '@/components/TaskList';
-import ProgressBar from '@/components/ProgressBar';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import TaskDialog from '@/components/TaskDialog';
+import Header from '@/components/Header';
+import RoutineProgress from '@/components/RoutineProgress';
 
 interface IndexProps {
   user: User;
@@ -148,37 +141,15 @@ const Index = ({ user, supabase }: IndexProps) => {
   return (
     <div className="min-h-screen bg-ninja-background p-6">
       <div className="max-w-2xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-ninja-text">Task Ninja</h1>
-            <p className="text-gray-600">Complete your morning routine like a ninja!</p>
-          </div>
-          <Button onClick={handleSignOut} variant="outline">
-            Sign Out
-          </Button>
-        </div>
+        <Header onSignOut={handleSignOut} />
 
         <div className="bg-white rounded-2xl p-6 shadow-lg space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-xl font-semibold text-ninja-text">
-                Morning Routine Progress
-              </h2>
-              <p className="text-sm text-gray-500">
-                {completedTasks} of {tasks.length} tasks completed
-              </p>
-            </div>
-            {!isRoutineStarted && (
-              <Button
-                onClick={startRoutine}
-                className="bg-ninja-primary text-white hover:bg-ninja-primary/90"
-              >
-                Start Routine
-              </Button>
-            )}
-          </div>
-
-          <ProgressBar current={completedTasks} total={tasks.length} />
+          <RoutineProgress
+            completedTasks={completedTasks}
+            totalTasks={tasks.length}
+            isRoutineStarted={isRoutineStarted}
+            onStartRoutine={startRoutine}
+          />
 
           <TaskList
             tasks={tasks}
@@ -191,46 +162,15 @@ const Index = ({ user, supabase }: IndexProps) => {
           />
 
           {!isRoutineStarted && (
-            <div className="space-y-4">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="w-full bg-ninja-accent text-white hover:bg-ninja-accent/90">
-                    <Plus className="w-4 h-4 mr-2" /> Add New Task
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Task Name</label>
-                      <Input
-                        value={newTaskTitle}
-                        onChange={(e) => setNewTaskTitle(e.target.value)}
-                        placeholder="Enter task name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Duration (minutes)</label>
-                      <Input
-                        type="number"
-                        value={newTaskDuration}
-                        onChange={(e) => setNewTaskDuration(e.target.value)}
-                        placeholder="Enter duration in minutes"
-                        min="1"
-                      />
-                    </div>
-                    <Button
-                      className="w-full bg-ninja-primary text-white hover:bg-ninja-primary/90"
-                      onClick={editingTask ? handleUpdateTask : handleAddTask}
-                    >
-                      {editingTask ? 'Update Task' : 'Add Task'}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+            <TaskDialog
+              editingTask={editingTask}
+              newTaskTitle={newTaskTitle}
+              newTaskDuration={newTaskDuration}
+              onTitleChange={setNewTaskTitle}
+              onDurationChange={setNewTaskDuration}
+              onSubmit={editingTask ? handleUpdateTask : handleAddTask}
+              isRoutineStarted={isRoutineStarted}
+            />
           )}
 
           {completedTasks === tasks.length && tasks.length > 0 && (
