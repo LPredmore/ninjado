@@ -13,9 +13,9 @@ interface IndexProps {
 
 const Index = ({ user, supabase }: IndexProps) => {
   const [tasks, setTasks] = useState<Task[]>([
-    { id: '1', title: 'Task 1', completed: false },
-    { id: '2', title: 'Task 2', completed: false },
-    { id: '3', title: 'Task 3', completed: false },
+    { id: '1', title: 'Task 1', duration: 5, isActive: false, isCompleted: false },
+    { id: '2', title: 'Task 2', duration: 10, isActive: false, isCompleted: false },
+    { id: '3', title: 'Task 3', duration: 15, isActive: false, isCompleted: false },
   ]);
 
   const [isRoutineStarted, setIsRoutineStarted] = useState(false);
@@ -44,13 +44,37 @@ const Index = ({ user, supabase }: IndexProps) => {
     await supabase.auth.signOut();
   };
 
-  const handleTaskComplete = async (taskId: string, timeTaken: number) => {
-    const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, completed: true } : task
+  const handleTaskComplete = async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const updatedTasks = tasks.map(t =>
+      t.id === taskId ? { ...t, isCompleted: true } : t
     );
     setTasks(updatedTasks);
-    setTotalTimeSaved(prev => prev + timeTaken);
-    toast.success(`Task completed! Time saved: ${timeTaken} minutes.`);
+
+    // Update total time saved
+    const timeSaved = task.duration;
+    setTotalTimeSaved(prev => prev + timeSaved);
+
+    // Record task completion in Supabase
+    const { error } = await supabase
+      .from('task_completions')
+      .insert([
+        {
+          user_id: user.id,
+          task_title: task.title,
+          time_saved: timeSaved
+        }
+      ]);
+
+    if (error) {
+      console.error('Error recording task completion:', error);
+      toast.error("Failed to save task completion");
+      return;
+    }
+
+    toast.success(`Task completed! Time saved: ${timeSaved} minutes.`);
   };
 
   const handleStartRoutine = () => {
@@ -58,7 +82,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     toast("Routine started! Let's get productive!");
   };
 
-  const completedTasks = tasks.filter(task => task.completed).length;
+  const completedTasks = tasks.filter(task => task.isCompleted).length;
 
   return (
     <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
