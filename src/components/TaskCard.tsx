@@ -13,11 +13,20 @@ interface TaskCardProps {
     isCompleted: boolean;
   };
   onComplete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
   timeLeft?: number;
   isRoutineStarted: boolean;
 }
 
-const TaskCard = ({ task, onComplete, timeLeft, isRoutineStarted }: TaskCardProps) => {
+const TaskCard = ({ 
+  task, 
+  onComplete, 
+  onEdit, 
+  onDelete, 
+  timeLeft, 
+  isRoutineStarted 
+}: TaskCardProps) => {
   const progressPercentage = timeLeft !== undefined 
     ? ((task.duration * 60 - timeLeft) / (task.duration * 60)) * 100
     : 0;
