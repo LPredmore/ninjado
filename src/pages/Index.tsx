@@ -27,17 +27,17 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   const fetchTotalTimeSaved = async () => {
     const { data, error } = await supabase
-      .from('time_saved')
-      .select('total_time')
-      .eq('user_id', user.id)
-      .single();
+      .from('task_completions')
+      .select('time_saved')
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error fetching total time saved:', error);
       return;
     }
 
-    setTotalTimeSaved(data.total_time || 0);
+    const total = data.reduce((sum, record) => sum + record.time_saved, 0);
+    setTotalTimeSaved(total);
   };
 
   const handleSignOut = async () => {
