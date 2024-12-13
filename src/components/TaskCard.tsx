@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, CheckCircle, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
 interface TaskCardProps {
   task: {
@@ -19,6 +20,11 @@ interface TaskCardProps {
 }
 
 const TaskCard = ({ task, onComplete, onEdit, onDelete, timeLeft, isRoutineStarted }: TaskCardProps) => {
+  // Calculate progress percentage
+  const progressPercentage = timeLeft !== undefined 
+    ? ((task.duration * 60 - timeLeft) / (task.duration * 60)) * 100
+    : 0;
+
   return (
     <div
       className={cn(
@@ -86,6 +92,12 @@ const TaskCard = ({ task, onComplete, onEdit, onDelete, timeLeft, isRoutineStart
           )}
         </div>
       </div>
+      
+      {task.isActive && !task.isCompleted && timeLeft !== undefined && (
+        <div className="mt-4">
+          <Progress value={progressPercentage} className="h-2" />
+        </div>
+      )}
     </div>
   );
 };
