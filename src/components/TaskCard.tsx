@@ -1,6 +1,7 @@
 import React from 'react';
-import { Clock, CheckCircle } from 'lucide-react';
+import { Clock, CheckCircle, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface TaskCardProps {
   task: {
@@ -11,10 +12,13 @@ interface TaskCardProps {
     isCompleted: boolean;
   };
   onComplete: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
   timeLeft?: number;
+  isRoutineStarted: boolean;
 }
 
-const TaskCard = ({ task, onComplete, timeLeft }: TaskCardProps) => {
+const TaskCard = ({ task, onComplete, onEdit, onDelete, timeLeft, isRoutineStarted }: TaskCardProps) => {
   return (
     <div
       className={cn(
@@ -50,15 +54,37 @@ const TaskCard = ({ task, onComplete, timeLeft }: TaskCardProps) => {
             </p>
           </div>
         </div>
-        {task.isActive && !task.isCompleted && (
-          <button
-            onClick={onComplete}
-            className="flex items-center space-x-2 px-4 py-2 rounded-full bg-ninja-primary text-white font-medium hover:bg-ninja-primary/90 transition-colors"
-          >
-            <CheckCircle className="w-5 h-5" />
-            <span>Complete</span>
-          </button>
-        )}
+        <div className="flex items-center space-x-2">
+          {!isRoutineStarted && !task.isCompleted && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onEdit}
+                className="hover:bg-gray-100"
+              >
+                <Pencil className="w-4 h-4 text-gray-500" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onDelete}
+                className="hover:bg-gray-100"
+              >
+                <Trash2 className="w-4 h-4 text-gray-500" />
+              </Button>
+            </>
+          )}
+          {task.isActive && !task.isCompleted && (
+            <Button
+              onClick={onComplete}
+              className="flex items-center space-x-2 bg-ninja-primary text-white hover:bg-ninja-primary/90"
+            >
+              <CheckCircle className="w-5 h-5" />
+              <span>Complete</span>
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

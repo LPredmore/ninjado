@@ -14,9 +14,20 @@ interface TaskListProps {
   activeTaskIndex: number;
   timeLeft: number;
   onTaskComplete: (taskId: string) => void;
+  onEditTask: (task: Task) => void;
+  onDeleteTask: (taskId: string) => void;
+  isRoutineStarted: boolean;
 }
 
-const TaskList = ({ tasks, activeTaskIndex, timeLeft, onTaskComplete }: TaskListProps) => {
+const TaskList = ({ 
+  tasks, 
+  activeTaskIndex, 
+  timeLeft, 
+  onTaskComplete,
+  onEditTask,
+  onDeleteTask,
+  isRoutineStarted
+}: TaskListProps) => {
   return (
     <div className="space-y-4 animate-slide-up">
       {tasks.map((task, index) => (
@@ -25,6 +36,9 @@ const TaskList = ({ tasks, activeTaskIndex, timeLeft, onTaskComplete }: TaskList
           task={task}
           timeLeft={index === activeTaskIndex ? timeLeft : undefined}
           onComplete={() => onTaskComplete(task.id)}
+          onEdit={() => onEditTask(task)}
+          onDelete={() => onDeleteTask(task.id)}
+          isRoutineStarted={isRoutineStarted}
         />
       ))}
     </div>

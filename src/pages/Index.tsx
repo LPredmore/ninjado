@@ -1,22 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy } from 'lucide-react';
+import { Trophy, Plus, Pencil, Trash2 } from 'lucide-react';
 import TaskList from '@/components/TaskList';
 import ProgressBar from '@/components/ProgressBar';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-const INITIAL_TASKS = [
-  { id: '1', title: 'Get out of bed', duration: 2, isActive: false, isCompleted: false },
-  { id: '2', title: 'Brush teeth', duration: 3, isActive: false, isCompleted: false },
-  { id: '3', title: 'Get dressed', duration: 5, isActive: false, isCompleted: false },
-  { id: '4', title: 'Pack backpack', duration: 3, isActive: false, isCompleted: false },
-];
+interface Task {
+  id: string;
+  title: string;
+  duration: number;
+  isActive: boolean;
+  isCompleted: boolean;
+}
 
 const Index = () => {
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [tasks, setTasks] = useState<Task[]>([
+    { id: '1', title: 'Get out of bed', duration: 2, isActive: false, isCompleted: false },
+    { id: '2', title: 'Brush teeth', duration: 3, isActive: false, isCompleted: false },
+    { id: '3', title: 'Get dressed', duration: 5, isActive: false, isCompleted: false },
+    { id: '4', title: 'Pack backpack', duration: 3, isActive: false, isCompleted: false },
+  ]);
   const [isRoutineStarted, setIsRoutineStarted] = useState(false);
   const [activeTaskIndex, setActiveTaskIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const { toast } = useToast();
+
+  // Task editing state
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDuration, setNewTaskDuration] = useState('');
 
   useEffect(() => {
     let timer: number;
@@ -38,7 +58,7 @@ const Index = () => {
       }))
     );
     setActiveTaskIndex(0);
-    setTimeLeft(INITIAL_TASKS[0].duration * 60);
+    setTimeLeft(tasks[0].duration * 60);
   };
 
   const handleTaskComplete = (taskId: string) => {
@@ -63,6 +83,56 @@ const Index = () => {
     setTasks(newTasks);
   };
 
+  const handleAddTask = () => {
+    if (newTaskTitle && newTaskDuration) {
+      const newTask: Task = {
+        id: Date.now().toString(),
+        title: newTaskTitle,
+        duration: parseInt(newTaskDuration),
+        isActive: false,
+        isCompleted: false,
+      };
+      setTasks([...tasks, newTask]);
+      setNewTaskTitle('');
+      setNewTaskDuration('');
+      toast({
+        title: "Task Added",
+        description: "New task has been added to your routine!",
+      });
+    }
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setNewTaskTitle(task.title);
+    setNewTaskDuration(task.duration.toString());
+  };
+
+  const handleUpdateTask = () => {
+    if (editingTask && newTaskTitle && newTaskDuration) {
+      setTasks(tasks.map(task => 
+        task.id === editingTask.id 
+          ? { ...task, title: newTaskTitle, duration: parseInt(newTaskDuration) }
+          : task
+      ));
+      setEditingTask(null);
+      setNewTaskTitle('');
+      setNewTaskDuration('');
+      toast({
+        title: "Task Updated",
+        description: "Task has been successfully updated!",
+      });
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(tasks.filter(task => task.id !== taskId));
+    toast({
+      title: "Task Deleted",
+      description: "Task has been removed from your routine.",
+    });
+  };
+
   const completedTasks = tasks.filter((task) => task.isCompleted).length;
 
   return (
@@ -84,12 +154,12 @@ const Index = () => {
               </p>
             </div>
             {!isRoutineStarted && (
-              <button
+              <Button
                 onClick={startRoutine}
-                className="px-6 py-3 bg-ninja-primary text-white rounded-full font-medium hover:bg-ninja-primary/90 transition-colors"
+                className="bg-ninja-primary text-white hover:bg-ninja-primary/90"
               >
                 Start Routine
-              </button>
+              </Button>
             )}
           </div>
 
@@ -100,9 +170,55 @@ const Index = () => {
             activeTaskIndex={activeTaskIndex}
             timeLeft={timeLeft}
             onTaskComplete={handleTaskComplete}
+            onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
+            isRoutineStarted={isRoutineStarted}
           />
 
-          {completedTasks === tasks.length && (
+          {!isRoutineStarted && (
+            <div className="space-y-4">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full bg-ninja-accent text-white hover:bg-ninja-accent/90">
+                    <Plus className="w-4 h-4 mr-2" /> Add New Task
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Task Name</label>
+                      <Input
+                        value={newTaskTitle}
+                        onChange={(e) => setNewTaskTitle(e.target.value)}
+                        placeholder="Enter task name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Duration (minutes)</label>
+                      <Input
+                        type="number"
+                        value={newTaskDuration}
+                        onChange={(e) => setNewTaskDuration(e.target.value)}
+                        placeholder="Enter duration in minutes"
+                        min="1"
+                      />
+                    </div>
+                    <Button
+                      className="w-full bg-ninja-primary text-white hover:bg-ninja-primary/90"
+                      onClick={editingTask ? handleUpdateTask : handleAddTask}
+                    >
+                      {editingTask ? 'Update Task' : 'Add Task'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+
+          {completedTasks === tasks.length && tasks.length > 0 && (
             <div className="flex items-center justify-center space-x-4 p-6 bg-ninja-primary/10 rounded-xl animate-task-complete">
               <Trophy className="w-8 h-8 text-ninja-primary" />
               <p className="text-lg font-semibold text-ninja-primary">
