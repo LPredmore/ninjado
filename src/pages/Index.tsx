@@ -179,8 +179,10 @@ const Index = ({ user, supabase }: IndexProps) => {
   return (
     <div className="min-h-screen bg-ninja-background p-6">
       <div className="max-w-2xl mx-auto space-y-8">
-        <Header onSignOut={handleSignOut} />
-        <TimeTracker totalTimeSaved={totalTimeSaved} />
+        <div className="space-y-4">
+          <Header onSignOut={handleSignOut} />
+          <TimeTracker totalTimeSaved={totalTimeSaved} />
+        </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-lg space-y-6">
           <RoutineProgress
