@@ -8,7 +8,7 @@ interface RoutineContainerProps {
   completedTasks: number;
   isRoutineStarted: boolean;
   onStartRoutine: () => void;
-  onTaskComplete: (taskId: string, timeTaken: number) => Promise<void>;
+  onTaskComplete: (taskId: string) => void;
 }
 
 const RoutineContainer = ({
