@@ -6,6 +6,8 @@ import { useToast } from '@/components/ui/use-toast';
 import TaskDialog from '@/components/TaskDialog';
 import Header from '@/components/Header';
 import RoutineProgress from '@/components/RoutineProgress';
+import TimeTracker from '@/components/TimeTracker';
+import { useQuery } from '@tanstack/react-query';
 
 interface IndexProps {
   user: User;
@@ -37,6 +39,20 @@ const Index = ({ user, supabase }: IndexProps) => {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDuration, setNewTaskDuration] = useState('');
 
+  // Fetch total time saved
+  const { data: totalTimeSaved = 0 } = useQuery({
+    queryKey: ['totalTimeSaved', user.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('task_completions')
+        .select('time_saved')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data.reduce((total, record) => total + record.time_saved, 0);
+    },
+  });
+
   useEffect(() => {
     let timer: number;
     if (isRoutineStarted && timeLeft > 0) {
@@ -60,7 +76,29 @@ const Index = ({ user, supabase }: IndexProps) => {
     setTimeLeft(tasks[0].duration * 60);
   };
 
-  const handleTaskComplete = (taskId: string) => {
+  const handleTaskComplete = async (taskId: string) => {
+    const currentTask = tasks[activeTaskIndex];
+    const timeSaved = (currentTask.duration * 60) - (currentTask.duration * 60 - timeLeft);
+    
+    // Save completion to database
+    const { error } = await supabase
+      .from('task_completions')
+      .insert({
+        user_id: user.id,
+        task_title: currentTask.title,
+        time_saved: timeSaved,
+      });
+
+    if (error) {
+      console.error('Error saving task completion:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save task completion.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newTasks = tasks.map((task) =>
       task.id === taskId ? { ...task, isCompleted: true, isActive: false } : task
     );
@@ -142,6 +180,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     <div className="min-h-screen bg-ninja-background p-6">
       <div className="max-w-2xl mx-auto space-y-8">
         <Header onSignOut={handleSignOut} />
+        <TimeTracker totalTimeSaved={totalTimeSaved} />
 
         <div className="bg-white rounded-2xl p-6 shadow-lg space-y-6">
           <RoutineProgress

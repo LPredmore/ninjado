@@ -30,6 +30,38 @@ export type Database = {
         }
         Relationships: []
       }
+      task_completions: {
+        Row: {
+          completed_at: string
+          id: string
+          task_title: string
+          time_saved: number
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          task_title: string
+          time_saved: number
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          task_title?: string
+          time_saved?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_completions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
