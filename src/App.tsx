@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import Routines from "./pages/Routines";
 import { User } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,13 +17,11 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Listen for changes on auth state (sign in, sign out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -46,6 +45,16 @@ const App = () => {
               element={
                 user ? (
                   <Index user={user} supabase={supabase} />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
+            <Route
+              path="/routines"
+              element={
+                user ? (
+                  <Routines user={user} supabase={supabase} />
                 ) : (
                   <Navigate to="/login" replace />
                 )

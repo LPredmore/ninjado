@@ -1,5 +1,6 @@
 import React from 'react';
 import { Menu } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,8 @@ interface HeaderProps {
 }
 
 const Header = ({ onSignOut }: HeaderProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -24,9 +27,8 @@ const Header = ({ onSignOut }: HeaderProps) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Routines</DropdownMenuItem>
-            <DropdownMenuItem>Rewards</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/')}>Dashboard</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/routines')}>Routines</DropdownMenuItem>
             <DropdownMenuItem onClick={onSignOut}>Sign Out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

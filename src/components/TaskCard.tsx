@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, CheckCircle, Pencil, Trash2 } from 'lucide-react';
+import { Clock, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -13,14 +13,11 @@ interface TaskCardProps {
     isCompleted: boolean;
   };
   onComplete: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
   timeLeft?: number;
   isRoutineStarted: boolean;
 }
 
-const TaskCard = ({ task, onComplete, onEdit, onDelete, timeLeft, isRoutineStarted }: TaskCardProps) => {
-  // Calculate progress percentage
+const TaskCard = ({ task, onComplete, timeLeft, isRoutineStarted }: TaskCardProps) => {
   const progressPercentage = timeLeft !== undefined 
     ? ((task.duration * 60 - timeLeft) / (task.duration * 60)) * 100
     : 0;
@@ -61,26 +58,6 @@ const TaskCard = ({ task, onComplete, onEdit, onDelete, timeLeft, isRoutineStart
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          {!isRoutineStarted && !task.isCompleted && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onEdit}
-                className="hover:bg-gray-100"
-              >
-                <Pencil className="w-4 h-4 text-gray-500" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onDelete}
-                className="hover:bg-gray-100"
-              >
-                <Trash2 className="w-4 h-4 text-gray-500" />
-              </Button>
-            </>
-          )}
           {task.isActive && !task.isCompleted && (
             <Button
               onClick={onComplete}

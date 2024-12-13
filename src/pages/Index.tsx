@@ -5,25 +5,84 @@ import Layout from '@/components/Layout';
 import RoutineContainer from '@/components/RoutineContainer';
 import { Task } from '@/types';
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface IndexProps {
   user: User;
   supabase: SupabaseClient;
 }
 
-const Index = ({ user, supabase }: IndexProps) => {
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: '1', title: 'Task 1', duration: 5, isActive: false, isCompleted: false },
-    { id: '2', title: 'Task 2', duration: 10, isActive: false, isCompleted: false },
-    { id: '3', title: 'Task 3', duration: 15, isActive: false, isCompleted: false },
-  ]);
+interface Routine {
+  id: string;
+  title: string;
+}
 
+interface RoutineTask {
+  id: string;
+  title: string;
+  duration: number;
+  position: number;
+}
+
+const Index = ({ user, supabase }: IndexProps) => {
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isRoutineStarted, setIsRoutineStarted] = useState(false);
   const [totalTimeSaved, setTotalTimeSaved] = useState(0);
 
   useEffect(() => {
+    fetchRoutines();
     fetchTotalTimeSaved();
   }, []);
+
+  useEffect(() => {
+    if (selectedRoutineId) {
+      fetchRoutineTasks(selectedRoutineId);
+    }
+  }, [selectedRoutineId]);
+
+  const fetchRoutines = async () => {
+    const { data, error } = await supabase
+      .from('routines')
+      .select('id, title');
+
+    if (error) {
+      console.error('Error fetching routines:', error);
+      return;
+    }
+
+    setRoutines(data);
+  };
+
+  const fetchRoutineTasks = async (routineId: string) => {
+    const { data, error } = await supabase
+      .from('routine_tasks')
+      .select('*')
+      .eq('routine_id', routineId)
+      .order('position', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching routine tasks:', error);
+      return;
+    }
+
+    const formattedTasks: Task[] = data.map(task => ({
+      id: task.id,
+      title: task.title,
+      duration: task.duration,
+      isActive: false,
+      isCompleted: false
+    }));
+
+    setTasks(formattedTasks);
+  };
 
   const fetchTotalTimeSaved = async () => {
     const { data, error } = await supabase
@@ -53,11 +112,9 @@ const Index = ({ user, supabase }: IndexProps) => {
     );
     setTasks(updatedTasks);
 
-    // Update total time saved
     const timeSaved = task.duration;
     setTotalTimeSaved(prev => prev + timeSaved);
 
-    // Record task completion in Supabase
     const { error } = await supabase
       .from('task_completions')
       .insert([
@@ -86,13 +143,39 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   return (
     <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
-      <RoutineContainer
-        tasks={tasks}
-        completedTasks={completedTasks}
-        isRoutineStarted={isRoutineStarted}
-        onStartRoutine={handleStartRoutine}
-        onTaskComplete={handleTaskComplete}
-      />
+      <div className="space-y-6">
+        <div className="w-full">
+          <Select
+            value={selectedRoutineId || ''}
+            onValueChange={(value) => {
+              setSelectedRoutineId(value);
+              setIsRoutineStarted(false);
+              setTasks(tasks.map(t => ({ ...t, isCompleted: false, isActive: false })));
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a routine" />
+            </SelectTrigger>
+            <SelectContent>
+              {routines.map((routine) => (
+                <SelectItem key={routine.id} value={routine.id}>
+                  {routine.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {selectedRoutineId && (
+          <RoutineContainer
+            tasks={tasks}
+            completedTasks={completedTasks}
+            isRoutineStarted={isRoutineStarted}
+            onStartRoutine={handleStartRoutine}
+            onTaskComplete={handleTaskComplete}
+          />
+        )}
+      </div>
     </Layout>
   );
 };

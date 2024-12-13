@@ -30,6 +30,70 @@ export type Database = {
         }
         Relationships: []
       }
+      routine_tasks: {
+        Row: {
+          created_at: string
+          duration: number
+          id: string
+          position: number
+          routine_id: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          duration: number
+          id?: string
+          position: number
+          routine_id?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          duration?: number
+          id?: string
+          position?: number
+          routine_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_tasks_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routines: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routines_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_completions: {
         Row: {
           completed_at: string
