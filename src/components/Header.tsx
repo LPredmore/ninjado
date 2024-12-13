@@ -19,7 +19,7 @@ const Header = ({ onSignOut }: HeaderProps) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-4xl font-bold text-ninja-text">Task Ninja</h1>
+        <h1 className="text-4xl font-bold text-ninja-text">NinjaDo</h1>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
