@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Trophy, Plus } from 'lucide-react';
+import { User, SupabaseClient } from '@supabase/supabase-js';
 import TaskList from '@/components/TaskList';
 import ProgressBar from '@/components/ProgressBar';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,6 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+interface IndexProps {
+  user: User;
+  supabase: SupabaseClient;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -21,7 +27,7 @@ interface Task {
   isCompleted: boolean;
 }
 
-const Index = () => {
+const Index = ({ user, supabase }: IndexProps) => {
   const [tasks, setTasks] = useState<Task[]>([
     { id: '1', title: 'Get out of bed', duration: 2, isActive: false, isCompleted: false },
     { id: '2', title: 'Brush teeth', duration: 3, isActive: false, isCompleted: false },
@@ -133,14 +139,23 @@ const Index = () => {
     });
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   const completedTasks = tasks.filter((task) => task.isCompleted).length;
 
   return (
     <div className="min-h-screen bg-ninja-background p-6">
       <div className="max-w-2xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-ninja-text">Task Ninja</h1>
-          <p className="text-gray-600">Complete your morning routine like a ninja!</p>
+        <div className="flex justify-between items-center">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-bold text-ninja-text">Task Ninja</h1>
+            <p className="text-gray-600">Complete your morning routine like a ninja!</p>
+          </div>
+          <Button onClick={handleSignOut} variant="outline">
+            Sign Out
+          </Button>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-lg space-y-6">
