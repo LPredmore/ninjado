@@ -29,6 +29,7 @@ const Header = ({ onSignOut }: HeaderProps) => {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => navigate('/')}>Dashboard</DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/routines')}>Routines</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/rewards')}>Rewards</DropdownMenuItem>
             <DropdownMenuItem onClick={onSignOut}>Sign Out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
