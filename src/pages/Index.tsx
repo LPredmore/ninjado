@@ -108,7 +108,8 @@ const Index = ({ user, supabase }: IndexProps) => {
     if (!task) return;
 
     const timeLeft = timers[taskId] || 0;
-    const timeSaved = Math.max(0, Math.floor((task.duration * 60 - timeLeft) / 60));
+    const timeSpent = task.duration * 60 - timeLeft;
+    const pointsEarned = Math.floor(timeSpent); // Convert time spent to points (1 second = 1 point)
 
     const currentIndex = tasks.findIndex(t => t.id === taskId);
     const updatedTasks = tasks.map((t, index) => ({
@@ -118,11 +119,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     }));
 
     setTasks(updatedTasks);
-    await recordTaskCompletion(task.title, timeSaved);
-
-    if (timeSaved > 0) {
-      toast.success(`Saved ${timeSaved} minutes on this task!`);
-    }
+    await recordTaskCompletion(task.title, pointsEarned);
 
     if (updatedTasks.every(t => t.isCompleted)) {
       setIsRoutineStarted(false);

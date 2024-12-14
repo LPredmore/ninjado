@@ -13,7 +13,7 @@ export const useTimeTracking = (user: User) => {
       .eq('user_id', user.id);
 
     if (error) {
-      toast.error('Failed to fetch time saved');
+      toast.error('Failed to fetch points');
       return;
     }
 
@@ -21,22 +21,26 @@ export const useTimeTracking = (user: User) => {
     setTotalTimeSaved(total);
   };
 
-  const recordTaskCompletion = async (taskTitle: string, timeSaved: number) => {
+  const recordTaskCompletion = async (taskTitle: string, timeSpent: number) => {
+    // Convert the time spent to points (1 second = 1 point)
+    const pointsEarned = Math.max(0, timeSpent);
+
     const { error } = await supabase
       .from('task_completions')
       .insert([
         {
           user_id: user.id,
           task_title: taskTitle,
-          time_saved: timeSaved
+          time_saved: pointsEarned
         }
       ]);
 
     if (error) {
-      toast.error('Failed to record task completion');
+      toast.error('Failed to record points');
       return;
     }
 
+    toast.success(`Earned ${pointsEarned} points!`);
     await fetchTotalTimeSaved();
   };
 
