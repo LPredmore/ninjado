@@ -23,13 +23,6 @@ interface Routine {
   title: string;
 }
 
-interface RoutineTask {
-  id: string;
-  title: string;
-  duration: number;
-  position: number;
-}
-
 const Index = ({ user, supabase }: IndexProps) => {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
@@ -58,7 +51,7 @@ const Index = ({ user, supabase }: IndexProps) => {
         const interval = setInterval(() => {
           setTimers(prev => ({
             ...prev,
-            [activeTask.id]: (prev[activeTask.id] || activeTask.duration * 60) - 1
+            [activeTask.id]: Math.max(0, (prev[activeTask.id] || activeTask.duration * 60) - 1)
           }));
         }, 1000);
         intervals.push(interval);
@@ -103,7 +96,6 @@ const Index = ({ user, supabase }: IndexProps) => {
 
     setTasks(formattedTasks);
     
-    // Initialize timers for all tasks
     const initialTimers: { [key: string]: number } = {};
     formattedTasks.forEach(task => {
       initialTimers[task.id] = task.duration * 60;
@@ -137,7 +129,6 @@ const Index = ({ user, supabase }: IndexProps) => {
     const timeLeft = timers[taskId] || 0;
     const timeSaved = Math.max(0, (task.duration * 60 - timeLeft) / 60);
 
-    // Mark current task as completed and activate next task
     const currentIndex = tasks.findIndex(t => t.id === taskId);
     const updatedTasks = tasks.map((t, index) => ({
       ...t,
@@ -165,17 +156,22 @@ const Index = ({ user, supabase }: IndexProps) => {
     }
 
     toast.success(`Task completed! Time saved: ${Math.round(timeSaved)} minutes.`);
+
+    // Check if all tasks are completed
+    if (updatedTasks.every(t => t.isCompleted)) {
+      setIsRoutineStarted(false);
+      toast.success("Routine completed! Great job!");
+    }
   };
 
   const handleStartRoutine = () => {
     setIsRoutineStarted(true);
-    // Reset tasks to ensure first task is active
     setTasks(tasks.map((task, index) => ({
       ...task,
       isActive: index === 0,
       isCompleted: false
     })));
-    // Reset timers
+
     const initialTimers: { [key: string]: number } = {};
     tasks.forEach(task => {
       initialTimers[task.id] = task.duration * 60;

@@ -9,7 +9,7 @@ const TimeTracker = ({ totalTimeSaved }: TimeTrackerProps) => {
   const formatTime = (seconds: number) => {
     const hours = Math.floor(Math.abs(seconds) / 3600);
     const minutes = Math.floor((Math.abs(seconds) % 3600) / 60);
-    const remainingSeconds = Math.abs(seconds) % 60;
+    const remainingSeconds = Math.floor(Math.abs(seconds) % 60);
     const sign = seconds < 0 ? '-' : '+';
     
     if (hours > 0) {
