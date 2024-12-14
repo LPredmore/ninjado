@@ -21,17 +21,14 @@ export const useTimeTracking = (user: User) => {
     setTotalTimeSaved(total);
   };
 
-  const recordTaskCompletion = async (taskTitle: string, timeSpent: number) => {
-    // Convert the time spent to points (1 second = 1 point)
-    const pointsEarned = Math.max(0, timeSpent);
-
+  const recordTaskCompletion = async (taskTitle: string, timeSaved: number) => {
     const { error } = await supabase
       .from('task_completions')
       .insert([
         {
           user_id: user.id,
           task_title: taskTitle,
-          time_saved: pointsEarned
+          time_saved: timeSaved
         }
       ]);
 
@@ -40,7 +37,7 @@ export const useTimeTracking = (user: User) => {
       return;
     }
 
-    toast.success(`Earned ${pointsEarned} points!`);
+    toast.success(`Saved ${timeSaved} seconds - Earned ${timeSaved} points!`);
     await fetchTotalTimeSaved();
   };
 

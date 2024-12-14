@@ -108,8 +108,9 @@ const Index = ({ user, supabase }: IndexProps) => {
     if (!task) return;
 
     const timeLeft = timers[taskId] || 0;
-    const timeSpent = task.duration * 60 - timeLeft;
-    const pointsEarned = Math.floor(timeSpent); // Convert time spent to points (1 second = 1 point)
+    const allocatedTime = task.duration * 60; // Total allocated time in seconds
+    const actualTimeSpent = allocatedTime - timeLeft; // Time actually spent
+    const timeSaved = Math.max(0, allocatedTime - actualTimeSpent); // Time saved in seconds = points earned
 
     const currentIndex = tasks.findIndex(t => t.id === taskId);
     const updatedTasks = tasks.map((t, index) => ({
@@ -119,7 +120,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     }));
 
     setTasks(updatedTasks);
-    await recordTaskCompletion(task.title, pointsEarned);
+    await recordTaskCompletion(task.title, timeSaved);
 
     if (updatedTasks.every(t => t.isCompleted)) {
       setIsRoutineStarted(false);
