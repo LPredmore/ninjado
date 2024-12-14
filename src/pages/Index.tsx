@@ -5,6 +5,7 @@ import Layout from '@/components/Layout';
 import RoutineContainer from '@/components/RoutineContainer';
 import { Task } from '@/types';
 import { toast } from "sonner";
+import { useTimeTracking } from '@/hooks/useTimeTracking';
 import {
   Select,
   SelectContent,
@@ -18,22 +19,16 @@ interface IndexProps {
   supabase: SupabaseClient;
 }
 
-interface Routine {
-  id: string;
-  title: string;
-}
-
 const Index = ({ user, supabase }: IndexProps) => {
-  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [routines, setRoutines] = useState<{ id: string; title: string; }[]>([]);
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isRoutineStarted, setIsRoutineStarted] = useState(false);
-  const [totalTimeSaved, setTotalTimeSaved] = useState(0);
   const [timers, setTimers] = useState<{ [key: string]: number }>({});
+  const { totalTimeSaved, recordTaskCompletion } = useTimeTracking(user);
 
   useEffect(() => {
     fetchRoutines();
-    fetchTotalTimeSaved();
   }, []);
 
   useEffect(() => {
@@ -64,14 +59,15 @@ const Index = ({ user, supabase }: IndexProps) => {
   const fetchRoutines = async () => {
     const { data, error } = await supabase
       .from('routines')
-      .select('id, title');
+      .select('id, title')
+      .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error fetching routines:', error);
+      toast.error('Failed to fetch routines');
       return;
     }
 
-    setRoutines(data);
+    setRoutines(data || []);
   };
 
   const fetchRoutineTasks = async (routineId: string) => {
@@ -82,7 +78,7 @@ const Index = ({ user, supabase }: IndexProps) => {
       .order('position', { ascending: true });
 
     if (error) {
-      console.error('Error fetching routine tasks:', error);
+      toast.error('Failed to fetch routine tasks');
       return;
     }
 
@@ -103,21 +99,6 @@ const Index = ({ user, supabase }: IndexProps) => {
     setTimers(initialTimers);
   };
 
-  const fetchTotalTimeSaved = async () => {
-    const { data, error } = await supabase
-      .from('task_completions')
-      .select('time_saved')
-      .eq('user_id', user.id);
-
-    if (error) {
-      console.error('Error fetching total time saved:', error);
-      return;
-    }
-
-    const total = data.reduce((sum, record) => sum + record.time_saved, 0);
-    setTotalTimeSaved(total);
-  };
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
@@ -127,7 +108,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     if (!task) return;
 
     const timeLeft = timers[taskId] || 0;
-    const timeSaved = Math.max(0, (task.duration * 60 - timeLeft) / 60);
+    const timeSaved = Math.max(0, Math.floor((task.duration * 60 - timeLeft) / 60));
 
     const currentIndex = tasks.findIndex(t => t.id === taskId);
     const updatedTasks = tasks.map((t, index) => ({
@@ -137,27 +118,12 @@ const Index = ({ user, supabase }: IndexProps) => {
     }));
 
     setTasks(updatedTasks);
-    setTotalTimeSaved(prev => prev + timeSaved);
+    await recordTaskCompletion(task.title, timeSaved);
 
-    const { error } = await supabase
-      .from('task_completions')
-      .insert([
-        {
-          user_id: user.id,
-          task_title: task.title,
-          time_saved: Math.round(timeSaved)
-        }
-      ]);
-
-    if (error) {
-      console.error('Error recording task completion:', error);
-      toast.error("Failed to save task completion");
-      return;
+    if (timeSaved > 0) {
+      toast.success(`Saved ${timeSaved} minutes on this task!`);
     }
 
-    toast.success(`Task completed! Time saved: ${Math.round(timeSaved)} minutes.`);
-
-    // Check if all tasks are completed
     if (updatedTasks.every(t => t.isCompleted)) {
       setIsRoutineStarted(false);
       toast.success("Routine completed! Great job!");
@@ -177,7 +143,7 @@ const Index = ({ user, supabase }: IndexProps) => {
       initialTimers[task.id] = task.duration * 60;
     });
     setTimers(initialTimers);
-    toast("Routine started! Let's get productive!");
+    toast.success("Routine started! Let's get productive!");
   };
 
   const completedTasks = tasks.filter(task => task.isCompleted).length;

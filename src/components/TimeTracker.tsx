@@ -6,16 +6,15 @@ interface TimeTrackerProps {
 }
 
 const TimeTracker = ({ totalTimeSaved }: TimeTrackerProps) => {
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(Math.abs(seconds) / 3600);
-    const minutes = Math.floor((Math.abs(seconds) % 3600) / 60);
-    const remainingSeconds = Math.floor(Math.abs(seconds) % 60);
-    const sign = seconds < 0 ? '-' : '+';
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(Math.abs(minutes) / 60);
+    const remainingMinutes = Math.abs(minutes) % 60;
+    const sign = minutes < 0 ? '-' : '+';
     
     if (hours > 0) {
-      return `${sign}${hours}h ${minutes}m ${remainingSeconds}s`;
+      return `${sign}${hours}h ${remainingMinutes}m`;
     }
-    return `${sign}${minutes}m ${remainingSeconds}s`;
+    return `${sign}${remainingMinutes}m`;
   };
 
   return (
