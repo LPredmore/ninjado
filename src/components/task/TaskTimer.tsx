@@ -13,7 +13,7 @@ const TaskTimer = ({ timeLeft, duration, isActive, isRoutineStarted }: TaskTimer
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}m ${remainingSeconds}s`;
   };
 
   return (
@@ -32,10 +32,10 @@ const TaskTimer = ({ timeLeft, duration, isActive, isRoutineStarted }: TaskTimer
         />
       </div>
       <div>
-        <h3 className="text-lg font-semibold text-ninja-text">{duration} minutes</h3>
+        <h3 className="text-lg font-semibold text-ninja-text">Duration: {formatTime(duration * 60)}</h3>
         {timeLeft !== undefined && isRoutineStarted && (
           <p className="text-sm text-gray-500">
-            {formatTime(timeLeft)} left
+            Time remaining: {formatTime(timeLeft)}
           </p>
         )}
       </div>

@@ -34,12 +34,15 @@ const TaskCard = ({
       )}
     >
       <div className="flex items-center justify-between">
-        <TaskTimer
-          timeLeft={task.timeLeft}
-          duration={task.duration}
-          isActive={task.isActive}
-          isRoutineStarted={isRoutineStarted}
-        />
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold mb-2">{task.title}</h3>
+          <TaskTimer
+            timeLeft={task.timeLeft}
+            duration={task.duration}
+            isActive={task.isActive}
+            isRoutineStarted={isRoutineStarted}
+          />
+        </div>
         <div className="flex items-center space-x-2">
           {task.isActive && !task.isCompleted && isRoutineStarted && (
             <TaskCompleteButton onComplete={onComplete} />
