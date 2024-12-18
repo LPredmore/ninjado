@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit2, Trash2, Gift } from "lucide-react";
 import { EditRewardDialog } from "./EditRewardDialog";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -17,77 +17,70 @@ interface RewardCardProps {
 export const RewardCard = ({ reward, onRewardChange, supabase }: RewardCardProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [redeemTime, setRedeemTime] = useState(reward.base_time);
-  const { toast } = useToast();
 
   const handleDelete = async () => {
     const { error } = await supabase.from("rewards").delete().eq("id", reward.id);
 
     if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete reward",
-        variant: "destructive",
-      });
+      toast.error("Failed to delete reward");
       return;
     }
 
-    toast({
-      title: "Success",
-      description: "Reward deleted successfully",
-    });
+    toast.success("Reward deleted successfully");
     onRewardChange();
   };
 
   const handleRedeem = async () => {
+    // Get total time saved from task completions
     const { data: timeData, error: timeError } = await supabase
       .from("task_completions")
       .select("time_saved")
       .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
 
     if (timeError) {
-      toast({
-        title: "Error",
-        description: "Failed to check available time",
-        variant: "destructive",
-      });
+      toast.error("Failed to check available time");
       return;
     }
 
-    const totalTime = timeData.reduce((acc, curr) => acc + curr.time_saved, 0);
-    const { data: redemptionsData } = await supabase
+    const totalTimeSaved = timeData.reduce((acc, curr) => acc + curr.time_saved, 0);
+
+    // Get total time already spent on rewards
+    const { data: redemptionsData, error: redemptionsError } = await supabase
       .from("reward_redemptions")
-      .select("time_spent");
+      .select("time_spent")
+      .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
 
-    const spentTime = redemptionsData?.reduce((acc, curr) => acc + curr.time_spent, 0) || 0;
-    const availableTime = totalTime - spentTime;
-
-    if (redeemTime > availableTime) {
-      toast({
-        title: "Error",
-        description: "Not enough time available",
-        variant: "destructive",
-      });
+    if (redemptionsError) {
+      toast.error("Failed to check redemption history");
       return;
     }
 
-    const { error: redemptionError } = await supabase.from("reward_redemptions").insert({
-      reward_id: reward.id,
-      time_spent: redeemTime,
-    });
+    const totalTimeSpent = redemptionsData.reduce((acc, curr) => acc + curr.time_spent, 0);
+    const availableTime = totalTimeSaved - totalTimeSpent;
+
+    // Convert minutes to seconds for comparison
+    const redeemTimeInSeconds = redeemTime * 60;
+
+    if (redeemTimeInSeconds > availableTime) {
+      toast.error(`Not enough time available. You have ${Math.floor(availableTime / 60)} minutes available.`);
+      return;
+    }
+
+    const { error: redemptionError } = await supabase
+      .from("reward_redemptions")
+      .insert({
+        reward_id: reward.id,
+        time_spent: redeemTimeInSeconds,
+        user_id: (await supabase.auth.getUser()).data.user?.id
+      });
 
     if (redemptionError) {
-      toast({
-        title: "Error",
-        description: "Failed to redeem reward",
-        variant: "destructive",
-      });
+      toast.error("Failed to redeem reward");
       return;
     }
 
-    toast({
-      title: "Success",
-      description: "Reward redeemed successfully",
-    });
+    toast.success(`Successfully redeemed ${redeemTime} minutes for "${reward.title}"`);
+    onRewardChange();
   };
 
   return (
