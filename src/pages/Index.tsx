@@ -92,6 +92,7 @@ const Index = ({ user, supabase }: IndexProps) => {
 
     setTasks(formattedTasks);
     
+    // Initialize timers with duration in seconds
     const initialTimers: { [key: string]: number } = {};
     formattedTasks.forEach(task => {
       initialTimers[task.id] = task.duration * 60;
@@ -117,6 +118,15 @@ const Index = ({ user, supabase }: IndexProps) => {
     setTasks(updatedTasks);
     await recordTaskCompletion(task.title, timeSaved);
 
+    // Initialize timer for next task if there is one
+    if (currentIndex + 1 < tasks.length) {
+      const nextTaskId = tasks[currentIndex + 1].id;
+      setTimers(prev => ({
+        ...prev,
+        [nextTaskId]: tasks[currentIndex + 1].duration * 60
+      }));
+    }
+
     if (updatedTasks.every(t => t.isCompleted)) {
       setIsRoutineStarted(false);
       toast.success("Routine completed! Great job!");
@@ -131,6 +141,7 @@ const Index = ({ user, supabase }: IndexProps) => {
       isCompleted: false
     })));
 
+    // Initialize timers with duration in seconds
     const initialTimers: { [key: string]: number } = {};
     tasks.forEach(task => {
       initialTimers[task.id] = task.duration * 60;
