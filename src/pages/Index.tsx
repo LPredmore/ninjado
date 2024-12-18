@@ -57,10 +57,6 @@ const Index = ({ user, supabase }: IndexProps) => {
     },
   });
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
-
   const handleTaskComplete = async (taskId: string, timeSaved: number) => {
     const task = tasks?.find(t => t.id === taskId);
     if (!task) return;

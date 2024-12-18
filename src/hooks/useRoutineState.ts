@@ -29,6 +29,31 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
     }
   }, [selectedRoutineId]);
 
+  // Timer countdown effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isRoutineStarted) {
+      interval = setInterval(() => {
+        setTimers(prevTimers => {
+          const newTimers = { ...prevTimers };
+          Object.keys(newTimers).forEach(taskId => {
+            if (!completedTaskIds.includes(taskId)) {
+              newTimers[taskId] = Math.max(0, newTimers[taskId] - 1);
+            }
+          });
+          return newTimers;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isRoutineStarted, completedTaskIds]);
+
   // Save state to localStorage whenever it changes
   useEffect(() => {
     if (selectedRoutineId && isRoutineStarted) {
