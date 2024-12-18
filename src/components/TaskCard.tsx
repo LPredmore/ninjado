@@ -26,9 +26,8 @@ const TaskCard = ({
 }: TaskCardProps) => {
   const handleComplete = () => {
     if (task.timeLeft !== undefined) {
-      // Calculate time saved (or lost if negative)
-      const timeSaved = task.timeLeft;
-      onComplete(timeSaved);
+      // Pass the actual time left (can be negative)
+      onComplete(task.timeLeft);
     }
   };
 

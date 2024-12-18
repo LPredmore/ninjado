@@ -46,7 +46,7 @@ const Index = ({ user, supabase }: IndexProps) => {
         const interval = setInterval(() => {
           setTimers(prev => ({
             ...prev,
-            [activeTask.id]: Math.max(0, (prev[activeTask.id] || activeTask.duration * 60) - 1)
+            [activeTask.id]: (prev[activeTask.id] || activeTask.duration * 60) - 1
           }));
         }, 1000);
         intervals.push(interval);
