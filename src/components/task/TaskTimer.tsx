@@ -11,11 +11,9 @@ interface TaskTimerProps {
 
 const TaskTimer = ({ timeLeft, duration, isActive, isRoutineStarted }: TaskTimerProps) => {
   const formatTime = (seconds: number) => {
-    const isNegative = seconds < 0;
-    const absoluteSeconds = Math.abs(seconds);
-    const minutes = Math.floor(absoluteSeconds / 60);
-    const remainingSeconds = absoluteSeconds % 60;
-    return `${isNegative ? '-' : ''}${minutes}m ${remainingSeconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
   };
 
   return (
@@ -36,10 +34,7 @@ const TaskTimer = ({ timeLeft, duration, isActive, isRoutineStarted }: TaskTimer
       <div>
         <h3 className="text-lg font-semibold text-ninja-text">Duration: {formatTime(duration * 60)}</h3>
         {timeLeft !== undefined && isRoutineStarted && (
-          <p className={cn(
-            "text-sm",
-            timeLeft < 0 ? "text-red-500" : "text-gray-500"
-          )}>
+          <p className="text-sm text-gray-500">
             Time remaining: {formatTime(timeLeft)}
           </p>
         )}

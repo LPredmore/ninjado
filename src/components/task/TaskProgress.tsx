@@ -7,7 +7,7 @@ interface TaskProgressProps {
 }
 
 const TaskProgress = ({ timeLeft, duration }: TaskProgressProps) => {
-  const progressPercentage = Math.min(100, ((duration * 60 - timeLeft) / (duration * 60)) * 100);
+  const progressPercentage = ((duration * 60 - timeLeft) / (duration * 60)) * 100;
 
   return (
     <div className="mt-4">

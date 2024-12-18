@@ -26,8 +26,7 @@ const TaskCard = ({
 }: TaskCardProps) => {
   const handleComplete = () => {
     if (task.timeLeft !== undefined) {
-      // Pass the actual time left (can be negative)
-      onComplete(task.timeLeft);
+      onComplete(task.duration * 60 - task.timeLeft);
     }
   };
 

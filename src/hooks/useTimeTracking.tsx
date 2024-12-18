@@ -22,7 +22,6 @@ export const useTimeTracking = (user: User) => {
   };
 
   const recordTaskCompletion = async (taskTitle: string, timeSaved: number) => {
-    // timeSaved can now be negative if task took longer than allocated time
     const { error } = await supabase
       .from('task_completions')
       .insert([
@@ -38,12 +37,7 @@ export const useTimeTracking = (user: User) => {
       return;
     }
 
-    if (timeSaved > 0) {
-      toast.success(`You saved ${timeSaved} seconds!`);
-    } else {
-      toast.warning(`You went over by ${Math.abs(timeSaved)} seconds`);
-    }
-    
+    toast.success(`You saved ${timeSaved} seconds!`);
     await fetchTotalTimeSaved();
   };
 
