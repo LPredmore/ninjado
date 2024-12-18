@@ -37,7 +37,7 @@ export const useTimeTracking = (user: User) => {
       return;
     }
 
-    toast.success(`Saved ${timeSaved} seconds - Earned ${timeSaved} points!`);
+    toast.success(`You saved ${timeSaved} seconds - Earned ${timeSaved} points!`);
     await fetchTotalTimeSaved();
   };
 

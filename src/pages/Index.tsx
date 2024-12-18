@@ -110,7 +110,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     const timeLeft = timers[taskId] || 0;
     const allocatedTime = task.duration * 60; // Total allocated time in seconds
     const actualTimeSpent = allocatedTime - timeLeft; // Time actually spent
-    const timeSaved = Math.max(0, allocatedTime - actualTimeSpent); // Time saved in seconds = points earned
+    const timeSaved = Math.max(0, timeLeft); // Time saved is the time remaining when task is completed
 
     const currentIndex = tasks.findIndex(t => t.id === taskId);
     const updatedTasks = tasks.map((t, index) => ({
