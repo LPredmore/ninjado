@@ -6,6 +6,7 @@ import { toast } from "sonner";
 interface TimeTrackingContextType {
   totalTimeSaved: number;
   recordTaskCompletion: (taskTitle: string, timeSaved: number) => Promise<void>;
+  refreshTotalTimeSaved: () => Promise<void>;
 }
 
 const TimeTrackingContext = createContext<TimeTrackingContextType | undefined>(undefined);
@@ -14,18 +15,33 @@ export function TimeTrackingProvider({ children, user }: { children: React.React
   const [totalTimeSaved, setTotalTimeSaved] = useState(0);
 
   const fetchTotalTimeSaved = async () => {
-    const { data, error } = await supabase
+    const { data: timeData, error: timeError } = await supabase
       .from('task_completions')
       .select('time_saved')
       .eq('user_id', user.id);
 
-    if (error) {
-      console.error('Error fetching total time saved:', error);
+    if (timeError) {
+      console.error('Error fetching total time saved:', timeError);
       return;
     }
 
-    const total = data.reduce((sum, record) => sum + record.time_saved, 0);
-    setTotalTimeSaved(total);
+    const totalSaved = timeData.reduce((sum, record) => sum + record.time_saved, 0);
+
+    // Get total time spent on rewards
+    const { data: redemptionsData, error: redemptionsError } = await supabase
+      .from('reward_redemptions')
+      .select('time_spent')
+      .eq('user_id', user.id);
+
+    if (redemptionsError) {
+      console.error('Error fetching reward redemptions:', redemptionsError);
+      return;
+    }
+
+    const totalSpent = redemptionsData.reduce((sum, record) => sum + record.time_spent, 0);
+
+    // Set the net time saved (total saved minus total spent)
+    setTotalTimeSaved(totalSaved - totalSpent);
   };
 
   const recordTaskCompletion = async (taskTitle: string, timeSaved: number) => {
@@ -59,7 +75,11 @@ export function TimeTrackingProvider({ children, user }: { children: React.React
   }, [user.id]);
 
   return (
-    <TimeTrackingContext.Provider value={{ totalTimeSaved, recordTaskCompletion }}>
+    <TimeTrackingContext.Provider value={{ 
+      totalTimeSaved, 
+      recordTaskCompletion,
+      refreshTotalTimeSaved: fetchTotalTimeSaved 
+    }}>
       {children}
     </TimeTrackingContext.Provider>
   );

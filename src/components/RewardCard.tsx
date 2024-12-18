@@ -7,6 +7,7 @@ import { EditRewardDialog } from "./EditRewardDialog";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 
 interface RewardCardProps {
   reward: Database["public"]["Tables"]["rewards"]["Row"];
@@ -17,6 +18,7 @@ interface RewardCardProps {
 export const RewardCard = ({ reward, onRewardChange, supabase }: RewardCardProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [redeemTime, setRedeemTime] = useState(reward.base_time);
+  const { totalTimeSaved, refreshTotalTimeSaved } = useTimeTracking();
 
   const handleDelete = async () => {
     const { error } = await supabase.from("rewards").delete().eq("id", reward.id);
@@ -81,6 +83,7 @@ export const RewardCard = ({ reward, onRewardChange, supabase }: RewardCardProps
 
     toast.success(`Successfully redeemed ${redeemTime} minutes for "${reward.title}"`);
     onRewardChange();
+    refreshTotalTimeSaved(); // Refresh the total time saved display
   };
 
   return (
