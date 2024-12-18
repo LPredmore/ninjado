@@ -101,32 +101,6 @@ export type Database = {
           },
         ]
       }
-      routine_pins: {
-        Row: {
-          created_at: string
-          pin: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          pin: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          pin?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "routine_pins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       routine_tasks: {
         Row: {
           created_at: string
