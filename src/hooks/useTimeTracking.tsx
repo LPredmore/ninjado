@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
 import { User } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 
 export const useTimeTracking = (user: User) => {
@@ -13,7 +13,7 @@ export const useTimeTracking = (user: User) => {
       .eq('user_id', user.id);
 
     if (error) {
-      toast.error('Failed to fetch points');
+      console.error('Error fetching total time saved:', error);
       return;
     }
 
@@ -33,11 +33,17 @@ export const useTimeTracking = (user: User) => {
       ]);
 
     if (error) {
-      toast.error('Failed to record time');
+      console.error('Error recording task completion:', error);
+      toast.error('Failed to record task completion');
       return;
     }
 
-    toast.success(`You saved ${timeSaved} seconds!`);
+    if (timeSaved > 0) {
+      toast.success(`You saved ${timeSaved} seconds!`);
+    } else {
+      toast.warning(`You went over by ${Math.abs(timeSaved)} seconds`);
+    }
+    
     await fetchTotalTimeSaved();
   };
 
@@ -45,8 +51,5 @@ export const useTimeTracking = (user: User) => {
     fetchTotalTimeSaved();
   }, [user.id]);
 
-  return {
-    totalTimeSaved,
-    recordTaskCompletion
-  };
+  return { totalTimeSaved, recordTaskCompletion };
 };

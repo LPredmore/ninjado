@@ -11,7 +11,10 @@ const TaskProgress = ({ timeLeft, duration }: TaskProgressProps) => {
 
   return (
     <div className="mt-4">
-      <Progress value={progressPercentage} className="h-2" />
+      <Progress 
+        value={progressPercentage} 
+        className={`h-2 ${timeLeft < 0 ? 'bg-red-200' : ''}`}
+      />
     </div>
   );
 };
