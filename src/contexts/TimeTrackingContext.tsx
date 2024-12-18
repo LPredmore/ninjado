@@ -1,9 +1,16 @@
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 
-export const useTimeTracking = (user: User) => {
+interface TimeTrackingContextType {
+  totalTimeSaved: number;
+  recordTaskCompletion: (taskTitle: string, timeSaved: number) => Promise<void>;
+}
+
+const TimeTrackingContext = createContext<TimeTrackingContextType | undefined>(undefined);
+
+export function TimeTrackingProvider({ children, user }: { children: React.ReactNode; user: User }) {
   const [totalTimeSaved, setTotalTimeSaved] = useState(0);
 
   const fetchTotalTimeSaved = async () => {
@@ -51,5 +58,17 @@ export const useTimeTracking = (user: User) => {
     fetchTotalTimeSaved();
   }, [user.id]);
 
-  return { totalTimeSaved, recordTaskCompletion };
-};
+  return (
+    <TimeTrackingContext.Provider value={{ totalTimeSaved, recordTaskCompletion }}>
+      {children}
+    </TimeTrackingContext.Provider>
+  );
+}
+
+export function useTimeTracking() {
+  const context = useContext(TimeTrackingContext);
+  if (context === undefined) {
+    throw new Error('useTimeTracking must be used within a TimeTrackingProvider');
+  }
+  return context;
+}

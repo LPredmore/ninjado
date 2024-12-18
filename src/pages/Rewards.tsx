@@ -7,6 +7,7 @@ import { AddRewardDialog } from "@/components/AddRewardDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 
 interface RewardsProps {
   user: User;
@@ -15,6 +16,7 @@ interface RewardsProps {
 
 const Rewards = ({ user, supabase }: RewardsProps) => {
   const [isAddRewardOpen, setIsAddRewardOpen] = useState(false);
+  const { totalTimeSaved } = useTimeTracking();
 
   const { data: rewards, refetch: refetchRewards } = useQuery({
     queryKey: ["rewards"],
@@ -32,8 +34,6 @@ const Rewards = ({ user, supabase }: RewardsProps) => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
-
-  const totalTimeSaved = 0; // This should be calculated based on task completions
 
   return (
     <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>

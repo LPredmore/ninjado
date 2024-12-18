@@ -5,7 +5,7 @@ import Layout from '@/components/Layout';
 import RoutineContainer from '@/components/RoutineContainer';
 import { Task } from '@/types';
 import { toast } from "sonner";
-import { useTimeTracking } from '@/hooks/useTimeTracking';
+import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 import {
   Select,
   SelectContent,
@@ -25,7 +25,7 @@ const Index = ({ user, supabase }: IndexProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isRoutineStarted, setIsRoutineStarted] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: number }>({});
-  const { totalTimeSaved, recordTaskCompletion } = useTimeTracking(user);
+  const { totalTimeSaved, recordTaskCompletion } = useTimeTracking();
 
   useEffect(() => {
     fetchRoutines();

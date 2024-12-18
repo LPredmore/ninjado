@@ -1,184 +1,100 @@
-import React, { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
-import { SupabaseClient } from '@supabase/supabase-js';
-import Layout from '@/components/Layout';
-import { Plus } from 'lucide-react';
+import { useState } from "react";
+import { User } from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
+import Layout from "@/components/Layout";
+import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import RoutineItem from '@/components/RoutineItem';
+import { Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AddRoutineDialog } from "@/components/AddRoutineDialog";
+import RoutineItem from "@/components/RoutineItem";
 
 interface RoutinesProps {
   user: User;
   supabase: SupabaseClient;
 }
 
-interface Routine {
-  id: string;
-  title: string;
-  created_at: string;
-}
-
-interface RoutineTask {
-  id: string;
-  title: string;
-  duration: number;
-  position: number;
-}
-
 const Routines = ({ user, supabase }: RoutinesProps) => {
-  const [routines, setRoutines] = useState<Routine[]>([]);
-  const [selectedRoutine, setSelectedRoutine] = useState<string | null>(null);
-  const [routineTasks, setRoutineTasks] = useState<{ [key: string]: RoutineTask[] }>({});
-  const [newRoutineTitle, setNewRoutineTitle] = useState('');
+  const { totalTimeSaved } = useTimeTracking();
+  const [isAddRoutineOpen, setIsAddRoutineOpen] = useState(false);
+  const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRoutines();
-  }, []);
-
-  useEffect(() => {
-    if (routines.length > 0) {
-      fetchAllRoutineTasks();
-    }
-  }, [routines]);
-
-  const fetchRoutines = async () => {
-    const { data, error } = await supabase
-      .from('routines')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('Failed to fetch routines');
-      return;
-    }
-
-    setRoutines(data);
-  };
-
-  const fetchAllRoutineTasks = async () => {
-    const tasks: { [key: string]: RoutineTask[] } = {};
-    
-    for (const routine of routines) {
+  const { data: routines, refetch: refetchRoutines } = useQuery({
+    queryKey: ["routines"],
+    queryFn: async () => {
       const { data, error } = await supabase
-        .from('routine_tasks')
-        .select('*')
-        .eq('routine_id', routine.id)
-        .order('position', { ascending: true });
+        .from("routines")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-      if (!error && data) {
-        tasks[routine.id] = data;
-      }
-    }
+      if (error) throw error;
+      return data;
+    },
+  });
 
-    setRoutineTasks(tasks);
-  };
+  const { data: tasks, refetch: refetchTasks } = useQuery({
+    queryKey: ["tasks", selectedRoutineId],
+    enabled: !!selectedRoutineId,
+    queryFn: async () => {
+      if (!selectedRoutineId) return [];
+      const { data, error } = await supabase
+        .from("routine_tasks")
+        .select("*")
+        .eq("routine_id", selectedRoutineId)
+        .order("position", { ascending: true });
 
-  const handleCreateRoutine = async () => {
-    if (!newRoutineTitle.trim()) {
-      toast.error('Please enter a routine title');
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from('routines')
-      .insert([
-        {
-          title: newRoutineTitle,
-          user_id: user.id
-        }
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      toast.error('Failed to create routine');
-      return;
-    }
-
-    setRoutines([...routines, data]);
-    setNewRoutineTitle('');
-    toast.success('Routine created successfully');
-  };
-
-  const handleDeleteRoutine = async (routineId: string) => {
-    const { error } = await supabase
-      .from('routines')
-      .delete()
-      .eq('id', routineId);
-
-    if (error) {
-      toast.error('Failed to delete routine');
-      return;
-    }
-
-    setRoutines(routines.filter(r => r.id !== routineId));
-    if (selectedRoutine === routineId) {
-      setSelectedRoutine(null);
-    }
-    toast.success('Routine deleted successfully');
-  };
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
+  const handleDeleteRoutine = async (routineId: string) => {
+    const { error } = await supabase.from("routines").delete().eq("id", routineId);
+    if (!error) {
+      refetchRoutines();
+      if (selectedRoutineId === routineId) {
+        setSelectedRoutineId(null);
+      }
+    }
+  };
+
   return (
-    <Layout onSignOut={handleSignOut} totalTimeSaved={0}>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">My Routines</h2>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="bg-ninja-accent text-white hover:bg-ninja-accent/90">
-                <Plus className="w-4 h-4 mr-2" /> New Routine
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Routine</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Routine Name</label>
-                  <Input
-                    value={newRoutineTitle}
-                    onChange={(e) => setNewRoutineTitle(e.target.value)}
-                    placeholder="Enter routine name"
-                  />
-                </div>
-                <Button
-                  className="w-full bg-ninja-primary text-white hover:bg-ninja-primary/90"
-                  onClick={handleCreateRoutine}
-                >
-                  Create Routine
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+    <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
+      <div className="container mx-auto p-4">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Routines</h1>
+          <Button onClick={() => setIsAddRoutineOpen(true)}>
+            <Plus className="mr-2" />
+            Add Routine
+          </Button>
         </div>
 
-        <div className="space-y-4">
-          {routines.map((routine) => (
+        <div className="grid gap-4">
+          {routines?.map((routine) => (
             <RoutineItem
               key={routine.id}
               routine={routine}
-              tasks={routineTasks[routine.id] || []}
+              tasks={tasks?.filter((task) => task.routine_id === routine.id) || []}
               onDelete={handleDeleteRoutine}
               supabase={supabase}
-              onTasksUpdate={fetchAllRoutineTasks}
-              isSelected={selectedRoutine === routine.id}
-              onSelect={() => setSelectedRoutine(routine.id)}
+              onTasksUpdate={refetchTasks}
+              isSelected={selectedRoutineId === routine.id}
+              onSelect={() => setSelectedRoutineId(routine.id)}
             />
           ))}
         </div>
+
+        <AddRoutineDialog
+          open={isAddRoutineOpen}
+          onOpenChange={setIsAddRoutineOpen}
+          supabase={supabase}
+          onRoutineAdded={refetchRoutines}
+        />
       </div>
     </Layout>
   );
