@@ -103,14 +103,9 @@ const Index = ({ user, supabase }: IndexProps) => {
     await supabase.auth.signOut();
   };
 
-  const handleTaskComplete = async (taskId: string) => {
+  const handleTaskComplete = async (taskId: string, timeSaved: number) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
-
-    const timeLeft = timers[taskId] || 0;
-    const allocatedTime = task.duration * 60; // Total allocated time in seconds
-    const actualTimeSpent = allocatedTime - timeLeft; // Time actually spent
-    const timeSaved = Math.max(0, timeLeft); // Time saved is the time remaining when task is completed
 
     const currentIndex = tasks.findIndex(t => t.id === taskId);
     const updatedTasks = tasks.map((t, index) => ({
