@@ -4,7 +4,7 @@ import { Task } from '@/types';
 
 interface TaskListProps {
   tasks: Task[];
-  onTaskComplete: (taskId: string) => void;
+  onTaskComplete: (taskId: string, timeSaved: number) => void;
   isRoutineStarted: boolean;
 }
 
@@ -19,7 +19,7 @@ const TaskList = ({
         <TaskCard
           key={task.id}
           task={task}
-          onComplete={() => onTaskComplete(task.id)}
+          onComplete={(timeSaved) => onTaskComplete(task.id, timeSaved)}
           onEdit={() => {}}
           onDelete={() => {}}
           isRoutineStarted={isRoutineStarted}

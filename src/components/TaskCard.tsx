@@ -13,7 +13,7 @@ interface TaskCardProps {
     isCompleted: boolean;
     timeLeft?: number;
   };
-  onComplete: () => void;
+  onComplete: (timeSaved: number) => void;
   onEdit?: () => void;
   onDelete?: () => void;
   isRoutineStarted: boolean;
@@ -24,6 +24,14 @@ const TaskCard = ({
   onComplete, 
   isRoutineStarted 
 }: TaskCardProps) => {
+  const handleComplete = () => {
+    if (task.timeLeft !== undefined) {
+      // Calculate time saved (or lost if negative)
+      const timeSaved = task.timeLeft;
+      onComplete(timeSaved);
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -45,7 +53,7 @@ const TaskCard = ({
         </div>
         <div className="flex items-center space-x-2">
           {task.isActive && !task.isCompleted && isRoutineStarted && (
-            <TaskCompleteButton onComplete={onComplete} />
+            <TaskCompleteButton onComplete={handleComplete} />
           )}
         </div>
       </div>
