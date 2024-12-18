@@ -56,7 +56,7 @@ const PinDialog = ({ isOpen, onClose, onPinVerified, mode, currentPin }: PinDial
             </label>
             <Input
               type="password"
-              placeholder="Enter PIN"
+              placeholder="Enter PIN (minimum 4 digits)"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
               maxLength={6}
