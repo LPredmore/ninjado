@@ -37,23 +37,27 @@ const Index = ({ user, supabase }: IndexProps) => {
     }
   }, [selectedRoutineId]);
 
+  // Single interval effect to handle all active timers
   useEffect(() => {
-    let intervals: NodeJS.Timeout[] = [];
+    let intervalId: NodeJS.Timeout | null = null;
 
     if (isRoutineStarted) {
-      const activeTask = tasks.find(t => t.isActive && !t.isCompleted);
-      if (activeTask) {
-        const interval = setInterval(() => {
-          setTimers(prev => ({
-            ...prev,
-            [activeTask.id]: (prev[activeTask.id] || activeTask.duration * 60) - 1
-          }));
-        }, 1000);
-        intervals.push(interval);
-      }
+      intervalId = setInterval(() => {
+        setTimers(prevTimers => {
+          const activeTask = tasks.find(t => t.isActive && !t.isCompleted);
+          if (!activeTask) return prevTimers;
+
+          return {
+            ...prevTimers,
+            [activeTask.id]: (prevTimers[activeTask.id] || 0) - 1
+          };
+        });
+      }, 1000);
     }
 
-    return () => intervals.forEach(clearInterval);
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [isRoutineStarted, tasks]);
 
   const fetchRoutines = async () => {
@@ -92,12 +96,16 @@ const Index = ({ user, supabase }: IndexProps) => {
 
     setTasks(formattedTasks);
     
-    // Initialize timers with duration in seconds
-    const initialTimers: { [key: string]: number } = {};
-    formattedTasks.forEach(task => {
-      initialTimers[task.id] = task.duration * 60;
+    // Initialize timers only for tasks that don't have a timer yet
+    setTimers(prevTimers => {
+      const newTimers = { ...prevTimers };
+      formattedTasks.forEach(task => {
+        if (newTimers[task.id] === undefined) {
+          newTimers[task.id] = task.duration * 60;
+        }
+      });
+      return newTimers;
     });
-    setTimers(initialTimers);
   };
 
   const handleSignOut = async () => {
@@ -105,10 +113,12 @@ const Index = ({ user, supabase }: IndexProps) => {
   };
 
   const handleTaskComplete = async (taskId: string, timeSaved: number) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-
     const currentIndex = tasks.findIndex(t => t.id === taskId);
+    if (currentIndex === -1) return;
+
+    const task = tasks[currentIndex];
+    
+    // Update tasks array with completion status and next active task
     const updatedTasks = tasks.map((t, index) => ({
       ...t,
       isCompleted: t.id === taskId ? true : t.isCompleted,
@@ -118,9 +128,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     setTasks(updatedTasks);
     await recordTaskCompletion(task.title, timeSaved);
 
-    // No need to reinitialize the timer for the next task
-    // The existing timer will continue running
-
+    // Check if all tasks are completed
     if (updatedTasks.every(t => t.isCompleted)) {
       setIsRoutineStarted(false);
       toast.success("Routine completed! Great job!");
@@ -128,25 +136,26 @@ const Index = ({ user, supabase }: IndexProps) => {
   };
 
   const handleStartRoutine = () => {
-    setIsRoutineStarted(true);
+    // Reset completion status but preserve timer values
     setTasks(tasks.map((task, index) => ({
       ...task,
       isActive: index === 0,
       isCompleted: false
     })));
 
-    // Initialize timers with duration in seconds only if they don't exist
-    setTimers(prev => {
-      const initialTimers: { [key: string]: number } = {};
+    // Only initialize timers that don't exist yet
+    setTimers(prevTimers => {
+      const newTimers = { ...prevTimers };
       tasks.forEach(task => {
-        if (prev[task.id] === undefined) {
-          initialTimers[task.id] = task.duration * 60;
-        } else {
-          initialTimers[task.id] = prev[task.id];
+        if (newTimers[task.id] === undefined) {
+          newTimers[task.id] = task.duration * 60;
         }
       });
-      return initialTimers;
+      return newTimers;
     });
+
+    setIsRoutineStarted(true);
+    toast.success("Routine started! Let's get productive!");
   };
 
   const completedTasks = tasks.filter(task => task.isCompleted).length;
@@ -160,7 +169,8 @@ const Index = ({ user, supabase }: IndexProps) => {
             onValueChange={(value) => {
               setSelectedRoutineId(value);
               setIsRoutineStarted(false);
-              setTasks(tasks.map(t => ({ ...t, isCompleted: false, isActive: false })));
+              setTimers({}); // Clear timers when switching routines
+              setTasks([]); // Clear tasks when switching routines
             }}
           >
             <SelectTrigger>
