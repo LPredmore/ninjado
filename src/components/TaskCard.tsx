@@ -8,12 +8,16 @@ import { Task } from '@/types';
 interface TaskCardProps {
   task: Task & { timeLeft?: number };
   onComplete: (timeSaved: number) => void;
+  onEdit: () => void;
+  onDelete: () => void;
   isRoutineStarted: boolean;
 }
 
 const TaskCard = ({
   task,
   onComplete,
+  onEdit,
+  onDelete,
   isRoutineStarted,
 }: TaskCardProps) => {
   const handleComplete = () => {

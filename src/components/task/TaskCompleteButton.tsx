@@ -3,13 +3,13 @@ import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface TaskCompleteButtonProps {
-  onComplete: () => void;
+  onClick: () => void;
 }
 
-const TaskCompleteButton = ({ onComplete }: TaskCompleteButtonProps) => {
+const TaskCompleteButton = ({ onClick }: TaskCompleteButtonProps) => {
   return (
     <Button
-      onClick={onComplete}
+      onClick={onClick}
       className="flex items-center space-x-2 bg-ninja-primary text-white hover:bg-ninja-primary/90"
     >
       <CheckCircle className="w-5 h-5" />
