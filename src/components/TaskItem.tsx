@@ -1,17 +1,9 @@
 import React from 'react';
-import { Clock, Trash2, ArrowUp, ArrowDown, Edit } from 'lucide-react';
+import { ArrowUpIcon, ArrowDownIcon, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { SupabaseClient } from '@supabase/supabase-js';
+import { toast } from "sonner";
 
 interface TaskItemProps {
   task: {
@@ -19,6 +11,7 @@ interface TaskItemProps {
     title: string;
     duration: number;
     position: number;
+    type?: 'regular' | 'focus';
   };
   isFirst: boolean;
   isLast: boolean;
@@ -26,44 +19,34 @@ interface TaskItemProps {
   supabase: SupabaseClient;
 }
 
-const TaskItem = ({ 
-  task, 
-  isFirst, 
-  isLast, 
-  onTaskUpdate,
-  supabase 
-}: TaskItemProps) => {
-  const [editingTask, setEditingTask] = React.useState<{
-    id: string;
-    title: string;
-    duration: number;
-  } | null>(null);
-
-  const handleEditTask = async () => {
-    if (!editingTask || !editingTask.title.trim()) {
-      toast.error('Please fill in all task details');
-      return;
-    }
-
+const TaskItem = ({ task, isFirst, isLast, onTaskUpdate, supabase }: TaskItemProps) => {
+  const handleMove = async (direction: 'up' | 'down') => {
+    const newPosition = direction === 'up' ? task.position - 1 : task.position + 1;
+    
     const { error } = await supabase
       .from('routine_tasks')
-      .update({
-        title: editingTask.title,
-        duration: editingTask.duration
-      })
-      .eq('id', editingTask.id);
+      .update({ position: task.position })
+      .eq('position', newPosition);
 
     if (error) {
-      toast.error('Failed to update task');
+      toast.error('Failed to move task');
       return;
     }
 
-    setEditingTask(null);
+    const { error: error2 } = await supabase
+      .from('routine_tasks')
+      .update({ position: newPosition })
+      .eq('id', task.id);
+
+    if (error2) {
+      toast.error('Failed to move task');
+      return;
+    }
+
     onTaskUpdate();
-    toast.success('Task updated successfully');
   };
 
-  const handleDeleteTask = async () => {
+  const handleDelete = async () => {
     const { error } = await supabase
       .from('routine_tasks')
       .delete()
@@ -78,101 +61,46 @@ const TaskItem = ({
     toast.success('Task deleted successfully');
   };
 
-  const handleMoveTask = async (direction: 'up' | 'down') => {
-    const newPosition = direction === 'up' 
-      ? task.position - 1
-      : task.position + 1;
-
-    const { error } = await supabase
-      .from('routine_tasks')
-      .update({ position: newPosition })
-      .eq('id', task.id);
-
-    if (error) {
-      toast.error('Failed to reorder task');
-      return;
-    }
-
-    onTaskUpdate();
-  };
-
   return (
-    <div className="p-3 rounded-lg border border-gray-200 flex justify-between items-center">
-      <div className="flex items-center space-x-2">
-        <Clock className="w-4 h-4 text-ninja-primary" />
-        <span>{task.title}</span>
-        <span className="text-sm text-gray-500">{task.duration} min</span>
+    <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{task.title}</span>
+        {task.type === 'focus' && (
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+            Focus
+          </Badge>
+        )}
+        <span className="text-sm text-gray-500">({task.duration} min)</span>
       </div>
-      <div className="flex items-center space-x-2">
+      
+      <div className="flex items-center gap-2">
+        {!isFirst && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleMove('up')}
+            className="h-8 w-8"
+          >
+            <ArrowUpIcon className="h-4 w-4" />
+          </Button>
+        )}
+        {!isLast && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleMove('down')}
+            className="h-8 w-8"
+          >
+            <ArrowDownIcon className="h-4 w-4" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => handleMoveTask('up')}
-          disabled={isFirst}
+          onClick={handleDelete}
+          className="h-8 w-8 text-red-500 hover:text-red-600"
         >
-          <ArrowUp className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => handleMoveTask('down')}
-          disabled={isLast}
-        >
-          <ArrowDown className="w-4 h-4" />
-        </Button>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setEditingTask({
-                id: task.id,
-                title: task.title,
-                duration: task.duration
-              })}
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Task</DialogTitle>
-              <DialogDescription>Make changes to your task here.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Task Name</label>
-                <Input
-                  value={editingTask?.title ?? ''}
-                  onChange={(e) => setEditingTask(prev => prev ? {...prev, title: e.target.value} : null)}
-                  placeholder="Enter task name"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Duration (minutes)</label>
-                <Input
-                  type="number"
-                  value={editingTask?.duration ?? ''}
-                  onChange={(e) => setEditingTask(prev => prev ? {...prev, duration: parseInt(e.target.value)} : null)}
-                  placeholder="Enter duration in minutes"
-                  min="1"
-                />
-              </div>
-              <Button
-                className="w-full bg-ninja-primary text-white hover:bg-ninja-primary/90"
-                onClick={handleEditTask}
-              >
-                Update Task
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleDeleteTask}
-        >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
     </div>
