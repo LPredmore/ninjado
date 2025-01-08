@@ -4,4 +4,6 @@ export interface Task {
   duration: number;
   isActive: boolean;
   isCompleted: boolean;
+  isSkipped?: boolean;
+  position?: number;
 }
