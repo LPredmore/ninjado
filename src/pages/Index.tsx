@@ -6,6 +6,7 @@ import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 import { useQuery } from "@tanstack/react-query";
 import RoutineSelector from '@/components/RoutineSelector';
 import { Task } from '@/types';
+import { useRoutineState } from '@/hooks/useRoutineState';
 
 interface IndexProps {
   user: User;
@@ -16,7 +17,12 @@ const Index = ({ user, supabase }: IndexProps) => {
   const { totalTimeSaved, recordTaskCompletion } = useTimeTracking();
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
-  const [isRoutineStarted, setIsRoutineStarted] = useState(false);
+  const { 
+    isRoutineStarted, 
+    setIsRoutineStarted,
+    timers,
+    setTimers,
+  } = useRoutineState(selectedRoutineId);
 
   const { data: routines } = useQuery({
     queryKey: ["routines"],
@@ -64,6 +70,14 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   const handleStartRoutine = () => {
     setIsRoutineStarted(true);
+    // Initialize timers for all tasks
+    if (tasks) {
+      const initialTimers = tasks.reduce((acc, task) => ({
+        ...acc,
+        [task.id]: task.duration * 60
+      }), {});
+      setTimers(initialTimers);
+    }
   };
 
   const handleRoutineSelect = (routineId: string) => {
@@ -90,6 +104,7 @@ const Index = ({ user, supabase }: IndexProps) => {
             isRoutineStarted={isRoutineStarted}
             onStartRoutine={handleStartRoutine}
             onTaskComplete={handleTaskComplete}
+            timers={timers}
           />
         )}
       </div>
