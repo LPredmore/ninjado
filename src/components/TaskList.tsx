@@ -10,12 +10,14 @@ interface TaskListProps {
   tasks: Task[];
   onTaskComplete: (taskId: string, timeSaved: number) => void;
   isRoutineStarted: boolean;
+  timers: { [key: string]: number };
 }
 
 const TaskList = ({ 
   tasks: initialTasks,
   onTaskComplete,
-  isRoutineStarted
+  isRoutineStarted,
+  timers
 }: TaskListProps) => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -68,7 +70,12 @@ const TaskList = ({
       {tasks.map((task, index) => (
         <div key={task.id} className="relative group">
           <TaskCard
-            task={task}
+            task={{
+              ...task,
+              timeLeft: timers[task.id],
+              isActive: isRoutineStarted && !task.isCompleted && 
+                (index === 0 || tasks[index - 1]?.isCompleted)
+            }}
             onComplete={(timeSaved) => onTaskComplete(task.id, timeSaved)}
             onEdit={() => {}}
             onDelete={() => {}}
