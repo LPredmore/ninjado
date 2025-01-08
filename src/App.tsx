@@ -38,77 +38,29 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {user && (
-          <TimeTrackingProvider user={user}>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+        <BrowserRouter>
+          {user ? (
+            <TimeTrackingProvider user={user}>
+              <Toaster />
+              <Sonner />
               <Routes>
-                <Route
-                  path="/"
-                  element={
-                    user ? (
-                      <Index user={user} supabase={supabase} />
-                    ) : (
-                      <Navigate to="/login" replace />
-                    )
-                  }
-                />
-                <Route
-                  path="/routines"
-                  element={
-                    user ? (
-                      <Routines user={user} supabase={supabase} />
-                    ) : (
-                      <Navigate to="/login" replace />
-                    )
-                  }
-                />
-                <Route
-                  path="/rewards"
-                  element={
-                    user ? (
-                      <Rewards user={user} supabase={supabase} />
-                    ) : (
-                      <Navigate to="/login" replace />
-                    )
-                  }
-                />
-                <Route
-                  path="/login"
-                  element={
-                    !user ? (
-                      <Login supabase={supabase} />
-                    ) : (
-                      <Navigate to="/" replace />
-                    )
-                  }
-                />
+                <Route path="/" element={<Index user={user} supabase={supabase} />} />
+                <Route path="/routines" element={<Routines user={user} supabase={supabase} />} />
+                <Route path="/rewards" element={<Rewards user={user} supabase={supabase} />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-            </BrowserRouter>
-          </TimeTrackingProvider>
-        )}
-        {!user && (
-          <>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+            </TimeTrackingProvider>
+          ) : (
+            <>
+              <Toaster />
+              <Sonner />
               <Routes>
-                <Route
-                  path="/login"
-                  element={
-                    !user ? (
-                      <Login supabase={supabase} />
-                    ) : (
-                      <Navigate to="/" replace />
-                    )
-                  }
-                />
+                <Route path="/login" element={<Login supabase={supabase} />} />
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </Routes>
-            </BrowserRouter>
-          </>
-        )}
+            </>
+          )}
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
