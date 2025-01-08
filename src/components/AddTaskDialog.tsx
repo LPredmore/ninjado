@@ -12,6 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from '@supabase/supabase-js';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AddTaskDialogProps {
   routineId: string;
@@ -30,6 +37,7 @@ const AddTaskDialog = ({
 }: AddTaskDialogProps) => {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDuration, setNewTaskDuration] = useState('');
+  const [taskType, setTaskType] = useState<'regular' | 'focus'>('regular');
 
   const handleCreateTask = async () => {
     if (!newTaskTitle.trim() || !newTaskDuration) {
@@ -44,7 +52,8 @@ const AddTaskDialog = ({
           routine_id: routineId,
           title: newTaskTitle,
           duration: parseInt(newTaskDuration),
-          position: tasksCount
+          position: tasksCount,
+          type: taskType
         }
       ]);
 
@@ -55,6 +64,7 @@ const AddTaskDialog = ({
 
     setNewTaskTitle('');
     setNewTaskDuration('');
+    setTaskType('regular');
     onTasksUpdate();
     toast.success('Task added successfully');
   };
@@ -91,6 +101,21 @@ const AddTaskDialog = ({
               placeholder="Enter duration in minutes"
               min="1"
             />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Task Type</label>
+            <Select
+              value={taskType}
+              onValueChange={(value: 'regular' | 'focus') => setTaskType(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select task type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="regular">Regular Task</SelectItem>
+                <SelectItem value="focus">Focus Task</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Button
             className="w-full bg-ninja-primary text-white hover:bg-ninja-primary/90"

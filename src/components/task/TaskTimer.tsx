@@ -7,9 +7,16 @@ interface TaskTimerProps {
   duration: number;
   isActive: boolean;
   isRoutineStarted: boolean;
+  isFocusTask?: boolean;
 }
 
-const TaskTimer = ({ timeLeft, duration, isActive, isRoutineStarted }: TaskTimerProps) => {
+const TaskTimer = ({ 
+  timeLeft, 
+  duration, 
+  isActive, 
+  isRoutineStarted,
+  isFocusTask 
+}: TaskTimerProps) => {
   const formatTime = (seconds: number) => {
     const isNegative = seconds < 0;
     const absoluteSeconds = Math.abs(seconds);
@@ -23,13 +30,13 @@ const TaskTimer = ({ timeLeft, duration, isActive, isRoutineStarted }: TaskTimer
       <div
         className={cn(
           "p-3 rounded-full",
-          isActive ? "bg-ninja-primary/10" : "bg-gray-100"
+          isActive ? (isFocusTask ? "bg-purple-100" : "bg-ninja-primary/10") : "bg-gray-100"
         )}
       >
         <Clock
           className={cn(
             "w-6 h-6",
-            isActive ? "text-ninja-primary" : "text-gray-400"
+            isActive ? (isFocusTask ? "text-purple-600" : "text-ninja-primary") : "text-gray-400"
           )}
         />
       </div>
@@ -38,7 +45,7 @@ const TaskTimer = ({ timeLeft, duration, isActive, isRoutineStarted }: TaskTimer
         {timeLeft !== undefined && isRoutineStarted && (
           <p className={cn(
             "text-sm",
-            timeLeft < 0 ? "text-red-500" : "text-gray-500"
+            timeLeft < 0 ? "text-red-500" : (isFocusTask ? "text-purple-600" : "text-gray-500")
           )}>
             Time remaining: {formatTime(timeLeft)}
           </p>

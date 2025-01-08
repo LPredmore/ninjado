@@ -4,4 +4,5 @@ export interface Task {
   duration: number;
   isActive: boolean;
   isCompleted: boolean;
+  type?: 'regular' | 'focus';
 }

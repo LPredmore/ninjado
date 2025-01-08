@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import TaskTimer from './task/TaskTimer';
 import TaskCompleteButton from './task/TaskCompleteButton';
 import TaskProgress from './task/TaskProgress';
@@ -22,8 +23,12 @@ const TaskCard = ({
 }: TaskCardProps) => {
   const handleComplete = () => {
     if (task.timeLeft !== undefined) {
-      // Calculate time saved (positive means saved time, negative means overtime)
-      onComplete(task.timeLeft);
+      // For focus tasks, only record negative time (time over the limit)
+      if (task.type === 'focus' && task.timeLeft > 0) {
+        onComplete(0); // No time saved for focus tasks completed early
+      } else {
+        onComplete(task.timeLeft); // Regular tasks save time, focus tasks only lose time when over
+      }
     }
   };
 
@@ -31,7 +36,14 @@ const TaskCard = ({
     <Card className={task.isCompleted ? "opacity-50" : ""}>
       <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-ninja-text">{task.title}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-ninja-text">{task.title}</h2>
+            {task.type === 'focus' && (
+              <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                Focus
+              </Badge>
+            )}
+          </div>
           {task.isActive && !task.isCompleted && isRoutineStarted && (
             <TaskCompleteButton onClick={handleComplete} />
           )}
@@ -42,10 +54,15 @@ const TaskCard = ({
           duration={task.duration}
           isActive={task.isActive}
           isRoutineStarted={isRoutineStarted}
+          isFocusTask={task.type === 'focus'}
         />
 
         {task.isActive && isRoutineStarted && task.timeLeft !== undefined && (
-          <TaskProgress timeLeft={task.timeLeft} duration={task.duration} />
+          <TaskProgress 
+            timeLeft={task.timeLeft} 
+            duration={task.duration}
+            isFocusTask={task.type === 'focus'}
+          />
         )}
       </div>
     </Card>
