@@ -7,22 +7,20 @@ interface RoutineProgressProps {
   totalTasks: number;
   isRoutineStarted: boolean;
   onStartRoutine: () => void;
-  routineTitle: string;
 }
 
 const RoutineProgress = ({
   completedTasks,
   totalTasks,
   isRoutineStarted,
-  onStartRoutine,
-  routineTitle
+  onStartRoutine
 }: RoutineProgressProps) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold text-ninja-text">
-            {routineTitle}
+            Morning Routine Progress
           </h2>
           <p className="text-sm text-gray-500">
             {completedTasks} of {totalTasks} tasks completed

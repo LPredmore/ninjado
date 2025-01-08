@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { User, SupabaseClient } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import Layout from '@/components/Layout';
 import RoutineContainer from '@/components/RoutineContainer';
+import { Task } from '@/types';
 import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 import { useQuery } from "@tanstack/react-query";
 import RoutineSelector from '@/components/RoutineSelector';
-import { Task } from '@/types';
 import { useRoutineState } from '@/hooks/useRoutineState';
 
 interface IndexProps {
@@ -16,12 +17,15 @@ interface IndexProps {
 const Index = ({ user, supabase }: IndexProps) => {
   const { totalTimeSaved, recordTaskCompletion } = useTimeTracking();
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
-  const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
-  const { 
-    isRoutineStarted, 
+  
+  const {
+    isRoutineStarted,
     setIsRoutineStarted,
     timers,
     setTimers,
+    completedTaskIds,
+    setCompletedTaskIds,
+    resetRoutineState
   } = useRoutineState(selectedRoutineId);
 
   const { data: routines } = useQuery({
@@ -49,43 +53,56 @@ const Index = ({ user, supabase }: IndexProps) => {
         .order('position', { ascending: true });
 
       if (error) throw error;
-
-      return data.map(task => ({
-        ...task,
-        isActive: false,
-        isCompleted: false,
-        isSkipped: false
-      })) as Task[];
+      return data;
     },
   });
 
+  // Add back the handleSignOut function
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
   const handleTaskComplete = async (taskId: string, timeSaved: number) => {
-    setCompletedTaskIds(prev => [...prev, taskId]);
-    await recordTaskCompletion(tasks?.find(t => t.id === taskId)?.title || '', timeSaved);
-  };
+    const task = tasks?.find(t => t.id === taskId);
+    if (!task) return;
 
-  const handleStartRoutine = () => {
-    setIsRoutineStarted(true);
-    if (tasks) {
-      const initialTimers = tasks.reduce((acc, task) => ({
-        ...acc,
-        [task.id]: task.duration * 60
-      }), {});
-      setTimers(initialTimers);
+    setCompletedTaskIds(prev => [...prev, taskId]);
+    await recordTaskCompletion(task.title, timeSaved);
+
+    // Check if all tasks are completed
+    const updatedCompletedTasks = [...completedTaskIds, taskId];
+    if (tasks && updatedCompletedTasks.length === tasks.length) {
+      resetRoutineState();
     }
   };
 
-  const handleRoutineSelect = (routineId: string) => {
-    setSelectedRoutineId(routineId);
-    setCompletedTaskIds([]);
-    setIsRoutineStarted(false);
+  const handleStartRoutine = () => {
+    if (!tasks) return;
+    
+    // Initialize timers for all tasks
+    const initialTimers: { [key: string]: number } = {};
+    tasks.forEach(task => {
+      initialTimers[task.id] = task.duration * 60;
+    });
+    
+    setTimers(initialTimers);
+    setIsRoutineStarted(true);
   };
 
-  const selectedRoutine = routines?.find(r => r.id === selectedRoutineId);
+  const handleRoutineSelect = (routineId: string) => {
+    resetRoutineState();
+    setSelectedRoutineId(routineId);
+  };
+
+  // Transform tasks to include completion status and active state
+  const processedTasks: Task[] = tasks?.map((task, index) => ({
+    ...task,
+    isCompleted: completedTaskIds.includes(task.id),
+    isActive: isRoutineStarted && 
+              !completedTaskIds.includes(task.id) && 
+              completedTaskIds.length === index,
+    timeLeft: timers[task.id]
+  })) || [];
 
   return (
     <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
@@ -98,15 +115,13 @@ const Index = ({ user, supabase }: IndexProps) => {
           />
         </div>
 
-        {selectedRoutineId && tasks && (
+        {selectedRoutineId && (
           <RoutineContainer
-            tasks={tasks}
+            tasks={processedTasks}
             completedTasks={completedTaskIds.length}
             isRoutineStarted={isRoutineStarted}
             onStartRoutine={handleStartRoutine}
             onTaskComplete={handleTaskComplete}
-            timers={timers}
-            routineTitle={selectedRoutine?.title || 'Routine'}
           />
         )}
       </div>
