@@ -83,12 +83,13 @@ const TaskList = ({
           />
           
           {!task.isCompleted && (
-            <div className="absolute right-2 top-2 flex space-x-2">
+            <div className="absolute right-2 top-2 flex space-x-2 z-10">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => handleMoveTask(index, 'up')}
                 disabled={index === 0}
+                className="bg-white/80 hover:bg-white"
               >
                 <ArrowUp className="h-4 w-4" />
               </Button>
@@ -97,6 +98,7 @@ const TaskList = ({
                 size="icon"
                 onClick={() => handleMoveTask(index, 'down')}
                 disabled={index === tasks.length - 1}
+                className="bg-white/80 hover:bg-white"
               >
                 <ArrowDown className="h-4 w-4" />
               </Button>
@@ -104,6 +106,7 @@ const TaskList = ({
                 variant="ghost"
                 size="icon"
                 onClick={() => handleSkipTask(task.id)}
+                className="bg-white/80 hover:bg-white"
               >
                 <SkipForward className="h-4 w-4" />
               </Button>
