@@ -22,8 +22,6 @@ const TaskList = ({
   const [newTaskDuration, setNewTaskDuration] = useState('');
 
   const handleMoveTask = (index: number, direction: 'up' | 'down') => {
-    if (!isRoutineStarted) return;
-    
     const newTasks = [...tasks];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     
@@ -35,8 +33,6 @@ const TaskList = ({
   };
 
   const handleSkipTask = (taskId: string) => {
-    if (!isRoutineStarted) return;
-    
     setTasks(prevTasks => 
       prevTasks.map(task => 
         task.id === taskId 
@@ -79,7 +75,7 @@ const TaskList = ({
             isRoutineStarted={isRoutineStarted}
           />
           
-          {isRoutineStarted && !task.isCompleted && (
+          {!task.isCompleted && (
             <div className="absolute right-2 top-2 flex space-x-2">
               <Button
                 variant="ghost"
@@ -109,17 +105,15 @@ const TaskList = ({
         </div>
       ))}
 
-      {isRoutineStarted && (
-        <TaskDialog
-          editingTask={null}
-          newTaskTitle={newTaskTitle}
-          newTaskDuration={newTaskDuration}
-          onTitleChange={setNewTaskTitle}
-          onDurationChange={setNewTaskDuration}
-          onSubmit={handleAddTask}
-          isRoutineStarted={isRoutineStarted}
-        />
-      )}
+      <TaskDialog
+        editingTask={null}
+        newTaskTitle={newTaskTitle}
+        newTaskDuration={newTaskDuration}
+        onTitleChange={setNewTaskTitle}
+        onDurationChange={setNewTaskDuration}
+        onSubmit={handleAddTask}
+        isRoutineStarted={isRoutineStarted}
+      />
     </div>
   );
 };
