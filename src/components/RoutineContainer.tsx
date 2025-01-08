@@ -10,6 +10,7 @@ interface RoutineContainerProps {
   onStartRoutine: () => void;
   onTaskComplete: (taskId: string, timeSaved: number) => Promise<void>;
   timers: { [key: string]: number };
+  routineTitle: string;
 }
 
 const RoutineContainer = ({
@@ -19,6 +20,7 @@ const RoutineContainer = ({
   onStartRoutine,
   onTaskComplete,
   timers,
+  routineTitle,
 }: RoutineContainerProps) => {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg space-y-6">
@@ -27,6 +29,7 @@ const RoutineContainer = ({
         totalTasks={tasks.length}
         isRoutineStarted={isRoutineStarted}
         onStartRoutine={onStartRoutine}
+        routineTitle={routineTitle}
       />
       <TaskList
         tasks={tasks}

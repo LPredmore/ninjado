@@ -70,7 +70,6 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   const handleStartRoutine = () => {
     setIsRoutineStarted(true);
-    // Initialize timers for all tasks
     if (tasks) {
       const initialTimers = tasks.reduce((acc, task) => ({
         ...acc,
@@ -85,6 +84,8 @@ const Index = ({ user, supabase }: IndexProps) => {
     setCompletedTaskIds([]);
     setIsRoutineStarted(false);
   };
+
+  const selectedRoutine = routines?.find(r => r.id === selectedRoutineId);
 
   return (
     <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
@@ -105,6 +106,7 @@ const Index = ({ user, supabase }: IndexProps) => {
             onStartRoutine={handleStartRoutine}
             onTaskComplete={handleTaskComplete}
             timers={timers}
+            routineTitle={selectedRoutine?.title || 'Routine'}
           />
         )}
       </div>
