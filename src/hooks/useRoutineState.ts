@@ -37,12 +37,16 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
       interval = setInterval(() => {
         setTimers(prevTimers => {
           const newTimers = { ...prevTimers };
+          let hasChanges = false;
+
           Object.keys(newTimers).forEach(taskId => {
             if (!completedTaskIds.includes(taskId)) {
-              newTimers[taskId] = Math.max(0, newTimers[taskId] - 1);
+              newTimers[taskId] = newTimers[taskId] - 1;
+              hasChanges = true;
             }
           });
-          return newTimers;
+
+          return hasChanges ? newTimers : prevTimers;
         });
       }, 1000);
     }
@@ -56,7 +60,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
-    if (selectedRoutineId && isRoutineStarted) {
+    if (selectedRoutineId) {
       const state: RoutineState = {
         isRoutineStarted,
         timers,
