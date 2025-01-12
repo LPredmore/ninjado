@@ -30,6 +30,7 @@ const Header = ({ onSignOut }: HeaderProps) => {
             <DropdownMenuItem onClick={() => navigate('/')}>Dashboard</DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/routines')}>Routines</DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/rewards')}>Rewards</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/how-to-use')}>How to Use</DropdownMenuItem>
             <DropdownMenuItem onClick={onSignOut}>Sign Out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

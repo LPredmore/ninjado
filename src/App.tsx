@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Routines from "./pages/Routines";
 import Rewards from "./pages/Rewards";
+import HowToUse from "./pages/HowToUse";
 import { User } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 import { TimeTrackingProvider } from "./contexts/TimeTrackingContext";
@@ -47,6 +48,7 @@ const App = () => {
                 <Route path="/" element={<Index user={user} supabase={supabase} />} />
                 <Route path="/routines" element={<Routines user={user} supabase={supabase} />} />
                 <Route path="/rewards" element={<Rewards user={user} supabase={supabase} />} />
+                <Route path="/how-to-use" element={<HowToUse />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </TimeTrackingProvider>
