@@ -37,11 +37,19 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
       interval = setInterval(() => {
         setTimers(prevTimers => {
           const newTimers = { ...prevTimers };
-          Object.keys(newTimers).forEach(taskId => {
-            if (!completedTaskIds.includes(taskId)) {
-              newTimers[taskId] = Math.max(0, newTimers[taskId] - 1);
+          let activeTaskFound = false;
+
+          // Find the first non-completed task
+          Object.keys(newTimers).some(taskId => {
+            if (!completedTaskIds.includes(taskId) && !activeTaskFound) {
+              activeTaskFound = true;
+              // For focus tasks, continue counting into negative
+              newTimers[taskId] = newTimers[taskId] - 1;
+              return false;
             }
+            return false;
           });
+
           return newTimers;
         });
       }, 1000);

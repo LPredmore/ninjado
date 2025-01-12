@@ -57,7 +57,6 @@ const Index = ({ user, supabase }: IndexProps) => {
     },
   });
 
-  // Add back the handleSignOut function
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
@@ -69,7 +68,6 @@ const Index = ({ user, supabase }: IndexProps) => {
     setCompletedTaskIds(prev => [...prev, taskId]);
     await recordTaskCompletion(task.title, timeSaved);
 
-    // Check if all tasks are completed
     const updatedCompletedTasks = [...completedTaskIds, taskId];
     if (tasks && updatedCompletedTasks.length === tasks.length) {
       resetRoutineState();
