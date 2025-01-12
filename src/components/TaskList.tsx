@@ -24,7 +24,12 @@ const TaskList = ({
 
   // Update local tasks when parent tasks change
   React.useEffect(() => {
-    setLocalTasks(tasks);
+    // Ensure only one task is active at a time
+    const updatedTasks = tasks.map((task, index) => ({
+      ...task,
+      isActive: !task.isCompleted && tasks.slice(0, index).every(t => t.isCompleted)
+    }));
+    setLocalTasks(updatedTasks);
   }, [tasks]);
 
   const handleMoveTask = (index: number, direction: 'up' | 'down') => {
@@ -59,7 +64,8 @@ const TaskList = ({
       title: newTaskTitle,
       duration: parseInt(newTaskDuration),
       isActive: false,
-      isCompleted: false
+      isCompleted: false,
+      type: 'regular'
     };
 
     setLocalTasks(prev => [...prev, newTask]);

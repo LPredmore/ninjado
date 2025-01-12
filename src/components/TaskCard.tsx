@@ -23,11 +23,13 @@ const TaskCard = ({
 }: TaskCardProps) => {
   const handleComplete = () => {
     if (task.timeLeft !== undefined) {
-      // For focus tasks, only record negative time (time over the limit)
-      if (task.type === 'focus' && task.timeLeft > 0) {
-        onComplete(0); // No time saved for focus tasks completed early
+      if (task.type === 'focus') {
+        // For focus tasks, only record negative time when over the limit
+        const timeSaved = task.timeLeft < 0 ? task.timeLeft : 0;
+        onComplete(timeSaved);
       } else {
-        onComplete(task.timeLeft); // Regular tasks save time, focus tasks only lose time when over
+        // For regular tasks, record any remaining time as saved
+        onComplete(task.timeLeft);
       }
     }
   };
@@ -52,7 +54,7 @@ const TaskCard = ({
         <TaskTimer
           timeLeft={task.timeLeft}
           duration={task.duration}
-          isActive={task.isActive}
+          isActive={task.isActive && isRoutineStarted}
           isRoutineStarted={isRoutineStarted}
           isFocusTask={task.type === 'focus'}
         />
