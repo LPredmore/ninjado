@@ -109,6 +109,7 @@ export type Database = {
           position: number
           routine_id: string | null
           title: string
+          type: Database["public"]["Enums"]["task_type"] | null
         }
         Insert: {
           created_at?: string
@@ -117,6 +118,7 @@ export type Database = {
           position: number
           routine_id?: string | null
           title: string
+          type?: Database["public"]["Enums"]["task_type"] | null
         }
         Update: {
           created_at?: string
@@ -125,6 +127,7 @@ export type Database = {
           position?: number
           routine_id?: string | null
           title?: string
+          type?: Database["public"]["Enums"]["task_type"] | null
         }
         Relationships: [
           {
@@ -205,7 +208,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      task_type: "regular" | "focus"
     }
     CompositeTypes: {
       [_ in never]: never
