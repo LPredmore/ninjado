@@ -35,14 +35,22 @@ const HowToUse = () => {
                 <p className="text-gray-600">
                   Regular tasks are standard tasks where any time saved from completing them early counts as time earned.
                   For example, if you have a 10-minute task and complete it in 8 minutes, you earn 2 minutes.
+                  However, if you go over on your time, then it will deduct time from your Time Saved. For example,
+                  if you have a 10-minute task and complete it in 12 minutes, you will lose 2 minutes.
                 </p>
               </div>
               <div>
                 <h4 className="font-medium text-ninja-text">Focus Tasks</h4>
                 <p className="text-gray-600">
-                  Focus tasks are designed for activities that require your full attention for a specific duration.
-                  Going over time will subtract from your saved time, while completing them exactly on time is ideal.
-                  These are perfect for study sessions or focused work periods.
+                  Focus Tasks are tasks that you don't want to be rushed on, but you also want to make sure you don't get distracted.
+                  You don't get any time added bonus for completing these tasks early. But it will deduct from your time if you go over.
+                </p>
+                <p className="text-gray-600 mt-2">
+                  Example: Your child needs to do a mindfulness activity, such as deep breathing, to calm themselves down in the middle
+                  of their routine. They need to do 10 deep slow breaths. You don't want them to feel rushed. So you create a Focus Task
+                  for Deep Breathing. I decide that it should take them no more than a minute and a half to get that done, and I put 3
+                  minutes as the time. This way, they have plenty of time so that they don't feel rushed. But if they get distracted and
+                  go start playing, then they will start losing time due to the distraction.
                 </p>
               </div>
             </div>
