@@ -8,6 +8,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -18,26 +19,32 @@ serve(async (req) => {
   )
 
   try {
+    // Get the user's JWT from the request headers
     const authHeader = req.headers.get('Authorization')!
     const token = authHeader.replace('Bearer ', '')
-    const { data } = await supabaseClient.auth.getUser(token)
-    const user = data.user
-    const email = user?.email
-
-    if (!email) {
+    
+    // Get the user's email from their JWT
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    
+    if (userError || !user?.email) {
       throw new Error('No email found')
     }
 
+    // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     })
 
+    console.log('Checking subscription for email:', user.email)
+
+    // Find customer by email
     const customers = await stripe.customers.list({
-      email: email,
+      email: user.email,
       limit: 1
     })
 
     if (customers.data.length === 0) {
+      console.log('No customer found for email:', user.email)
       return new Response(
         JSON.stringify({ subscribed: false }),
         {
@@ -47,12 +54,15 @@ serve(async (req) => {
       )
     }
 
+    // Check for active subscription
     const subscriptions = await stripe.subscriptions.list({
       customer: customers.data[0].id,
       status: 'active',
       price: 'price_1QgR91DYSfbOmyKLcwYN99y6',
       limit: 1
     })
+
+    console.log('Found subscription status:', subscriptions.data.length > 0)
 
     return new Response(
       JSON.stringify({ 

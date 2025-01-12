@@ -8,6 +8,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -18,30 +19,37 @@ serve(async (req) => {
   )
 
   try {
+    // Get the user's JWT from the request headers
     const authHeader = req.headers.get('Authorization')!
     const token = authHeader.replace('Bearer ', '')
-    const { data } = await supabaseClient.auth.getUser(token)
-    const user = data.user
-    const email = user?.email
-
-    if (!email) {
+    
+    // Get the user's email from their JWT
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    
+    if (userError || !user?.email) {
       throw new Error('No email found')
     }
 
+    // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     })
 
+    console.log('Creating checkout session for email:', user.email)
+
+    // Find or create customer
+    let customerId: string | undefined
     const customers = await stripe.customers.list({
-      email: email,
+      email: user.email,
       limit: 1
     })
 
-    let customer_id = undefined
     if (customers.data.length > 0) {
-      customer_id = customers.data[0].id
+      customerId = customers.data[0].id
+      
+      // Check if customer already has an active subscription
       const subscriptions = await stripe.subscriptions.list({
-        customer: customers.data[0].id,
+        customer: customerId,
         status: 'active',
         price: 'price_1QgR91DYSfbOmyKLcwYN99y6',
         limit: 1
@@ -54,8 +62,8 @@ serve(async (req) => {
 
     console.log('Creating payment session...')
     const session = await stripe.checkout.sessions.create({
-      customer: customer_id,
-      customer_email: customer_id ? undefined : email,
+      customer: customerId,
+      customer_email: customerId ? undefined : user.email,
       line_items: [
         {
           price: 'price_1QgR91DYSfbOmyKLcwYN99y6',
