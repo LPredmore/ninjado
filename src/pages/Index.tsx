@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { SupabaseClient } from '@supabase/supabase-js';
 import Layout from '@/components/Layout';
@@ -17,6 +17,7 @@ interface IndexProps {
 const Index = ({ user, supabase }: IndexProps) => {
   const { totalTimeSaved, recordTaskCompletion } = useTimeTracking();
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
+  const [orderedTasks, setOrderedTasks] = useState<Task[]>([]);
   
   const {
     isRoutineStarted,
@@ -57,29 +58,34 @@ const Index = ({ user, supabase }: IndexProps) => {
     },
   });
 
+  // Update orderedTasks when tasks are loaded or reordered
+  useEffect(() => {
+    if (tasks) {
+      setOrderedTasks(tasks);
+    }
+  }, [tasks]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
   const handleTaskComplete = async (taskId: string, timeSaved: number) => {
-    const task = tasks?.find(t => t.id === taskId);
+    const task = orderedTasks.find(t => t.id === taskId);
     if (!task) return;
 
     setCompletedTaskIds(prev => [...prev, taskId]);
     await recordTaskCompletion(task.title, timeSaved);
 
     const updatedCompletedTasks = [...completedTaskIds, taskId];
-    if (tasks && updatedCompletedTasks.length === tasks.length) {
+    if (orderedTasks && updatedCompletedTasks.length === orderedTasks.length) {
       resetRoutineState();
     }
   };
 
   const handleStartRoutine = () => {
-    if (!tasks) return;
-    
-    // Initialize timers for all tasks
+    // Initialize timers using the current order of tasks
     const initialTimers: { [key: string]: number } = {};
-    tasks.forEach(task => {
+    orderedTasks.forEach(task => {
       initialTimers[task.id] = task.duration * 60;
     });
     
@@ -92,15 +98,19 @@ const Index = ({ user, supabase }: IndexProps) => {
     setSelectedRoutineId(routineId);
   };
 
+  const handleTaskReorder = (reorderedTasks: Task[]) => {
+    setOrderedTasks(reorderedTasks);
+  };
+
   // Transform tasks to include completion status and active state
-  const processedTasks: Task[] = tasks?.map((task, index) => ({
+  const processedTasks: Task[] = orderedTasks.map((task, index) => ({
     ...task,
     isCompleted: completedTaskIds.includes(task.id),
     isActive: isRoutineStarted && 
               !completedTaskIds.includes(task.id) && 
               completedTaskIds.length === index,
     timeLeft: timers[task.id]
-  })) || [];
+  }));
 
   return (
     <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
@@ -120,6 +130,7 @@ const Index = ({ user, supabase }: IndexProps) => {
             isRoutineStarted={isRoutineStarted}
             onStartRoutine={handleStartRoutine}
             onTaskComplete={handleTaskComplete}
+            onTaskReorder={handleTaskReorder}
           />
         )}
       </div>

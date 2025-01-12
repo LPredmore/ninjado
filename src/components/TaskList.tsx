@@ -11,12 +11,14 @@ interface TaskListProps {
   tasks: Task[];
   onTaskComplete: (taskId: string, timeSaved: number) => void;
   isRoutineStarted: boolean;
+  onTaskReorder: (tasks: Task[]) => void;
 }
 
 const TaskList = ({ 
   tasks,
   onTaskComplete,
-  isRoutineStarted
+  isRoutineStarted,
+  onTaskReorder
 }: TaskListProps) => {
   const [localTasks, setLocalTasks] = React.useState<Task[]>(tasks);
   const [newTaskTitle, setNewTaskTitle] = React.useState('');
@@ -24,12 +26,7 @@ const TaskList = ({
 
   // Update local tasks when parent tasks change
   React.useEffect(() => {
-    // Ensure only one task is active at a time
-    const updatedTasks = tasks.map((task, index) => ({
-      ...task,
-      isActive: !task.isCompleted && tasks.slice(0, index).every(t => t.isCompleted)
-    }));
-    setLocalTasks(updatedTasks);
+    setLocalTasks(tasks);
   }, [tasks]);
 
   const handleMoveTask = (index: number, direction: 'up' | 'down') => {
@@ -44,12 +41,13 @@ const TaskList = ({
     const newTasks = [...localTasks];
     [newTasks[index], newTasks[newIndex]] = [newTasks[newIndex], newTasks[index]];
     setLocalTasks(newTasks);
+    onTaskReorder(newTasks);
   };
 
   const handleSkipTask = (taskId: string) => {
-    setLocalTasks(prev => 
-      prev.filter(task => task.id !== taskId)
-    );
+    const newTasks = localTasks.filter(task => task.id !== taskId);
+    setLocalTasks(newTasks);
+    onTaskReorder(newTasks);
     toast.success('Task skipped');
   };
 
@@ -68,7 +66,9 @@ const TaskList = ({
       type: 'regular'
     };
 
-    setLocalTasks(prev => [...prev, newTask]);
+    const updatedTasks = [...localTasks, newTask];
+    setLocalTasks(updatedTasks);
+    onTaskReorder(updatedTasks);
     setNewTaskTitle('');
     setNewTaskDuration('');
     toast.success('Temporary task added');
