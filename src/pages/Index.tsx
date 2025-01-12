@@ -8,6 +8,8 @@ import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 import { useQuery } from "@tanstack/react-query";
 import RoutineSelector from '@/components/RoutineSelector';
 import { useRoutineState } from '@/hooks/useRoutineState';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface IndexProps {
   user: User;
@@ -18,6 +20,8 @@ const Index = ({ user, supabase }: IndexProps) => {
   const { totalTimeSaved, recordTaskCompletion } = useTimeTracking();
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
   const [orderedTasks, setOrderedTasks] = useState<Task[]>([]);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const {
     isRoutineStarted,
@@ -58,7 +62,10 @@ const Index = ({ user, supabase }: IndexProps) => {
     },
   });
 
-  // Update orderedTasks when tasks are loaded or reordered
+  useEffect(() => {
+    checkSubscription();
+  }, []);
+
   useEffect(() => {
     if (tasks) {
       setOrderedTasks(tasks);
@@ -67,6 +74,34 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+  };
+
+  const checkSubscription = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) throw error;
+      setIsSubscribed(data.subscribed);
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      toast.error('Failed to check subscription status');
+    }
+  };
+
+  const handleSubscribe = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout');
+      if (error) throw error;
+      
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start subscription process');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleTaskComplete = async (taskId: string, timeSaved: number) => {
@@ -83,7 +118,6 @@ const Index = ({ user, supabase }: IndexProps) => {
   };
 
   const handleStartRoutine = () => {
-    // Initialize timers using the current order of tasks
     const initialTimers: { [key: string]: number } = {};
     orderedTasks.forEach(task => {
       initialTimers[task.id] = task.duration * 60;
@@ -94,6 +128,10 @@ const Index = ({ user, supabase }: IndexProps) => {
   };
 
   const handleRoutineSelect = (routineId: string) => {
+    if (!isSubscribed && routines && routines.length >= 3) {
+      toast.error('Please subscribe to create more than 3 routines');
+      return;
+    }
     resetRoutineState();
     setSelectedRoutineId(routineId);
   };
@@ -102,7 +140,6 @@ const Index = ({ user, supabase }: IndexProps) => {
     setOrderedTasks(reorderedTasks);
   };
 
-  // Transform tasks to include completion status and active state
   const processedTasks: Task[] = orderedTasks.map((task, index) => ({
     ...task,
     isCompleted: completedTaskIds.includes(task.id),
@@ -115,6 +152,22 @@ const Index = ({ user, supabase }: IndexProps) => {
   return (
     <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="space-y-6">
+        {!isSubscribed && (
+          <div className="bg-ninja-primary/10 p-4 rounded-lg flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold">Upgrade to Pro</h3>
+              <p className="text-sm text-gray-600">Get unlimited routines for $5/month</p>
+            </div>
+            <Button
+              onClick={handleSubscribe}
+              disabled={isLoading}
+              className="bg-ninja-primary hover:bg-ninja-primary/90"
+            >
+              {isLoading ? 'Loading...' : 'Subscribe Now'}
+            </Button>
+          </div>
+        )}
+
         <div className="w-full">
           <RoutineSelector
             routines={routines || []}
