@@ -1,11 +1,13 @@
+
 import React from 'react';
 import TaskCard from './TaskCard';
 import { Task } from '@/types';
 import { Button } from './ui/button';
-import { ArrowUpIcon, ArrowDownIcon, SkipForwardIcon, Plus } from 'lucide-react';
+import { SkipForwardIcon, Plus, GripVertical } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Input } from './ui/input';
 import { toast } from 'sonner';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 interface TaskListProps {
   tasks: Task[];
@@ -28,21 +30,6 @@ const TaskList = ({
   React.useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
-
-  const handleMoveTask = (index: number, direction: 'up' | 'down') => {
-    if (
-      (direction === 'up' && index === 0) || 
-      (direction === 'down' && index === localTasks.length - 1)
-    ) {
-      return;
-    }
-
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    const newTasks = [...localTasks];
-    [newTasks[index], newTasks[newIndex]] = [newTasks[newIndex], newTasks[index]];
-    setLocalTasks(newTasks);
-    onTaskReorder(newTasks);
-  };
 
   const handleSkipTask = (taskId: string) => {
     const newTasks = localTasks.filter(task => task.id !== taskId);
@@ -74,49 +61,83 @@ const TaskList = ({
     toast.success('Temporary task added');
   };
 
+  const handleDragEnd = (result: any) => {
+    // Dropped outside the list
+    if (!result.destination) {
+      return;
+    }
+
+    const items = Array.from(localTasks);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setLocalTasks(items);
+    onTaskReorder(items);
+  };
+
   return (
     <div className="space-y-4">
-      {localTasks.map((task, index) => (
-        <div key={task.id} className="relative group">
-          <TaskCard
-            task={task}
-            onComplete={(timeSaved) => onTaskComplete(task.id, timeSaved)}
-            onEdit={() => {}}
-            onDelete={() => {}}
-            isRoutineStarted={isRoutineStarted}
-          />
-          {!isRoutineStarted && (
-            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleMoveTask(index, 'up')}
-                disabled={index === 0}
-                className="bg-white/90 hover:bg-white"
-              >
-                <ArrowUpIcon className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleMoveTask(index, 'down')}
-                disabled={index === localTasks.length - 1}
-                className="bg-white/90 hover:bg-white"
-              >
-                <ArrowDownIcon className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleSkipTask(task.id)}
-                className="bg-white/90 hover:bg-white"
-              >
-                <SkipForwardIcon className="h-4 w-4" />
-              </Button>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="tasks-list">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="space-y-4"
+            >
+              {localTasks.map((task, index) => (
+                <Draggable 
+                  key={task.id} 
+                  draggableId={task.id} 
+                  index={index}
+                  isDragDisabled={isRoutineStarted}
+                >
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      className={`relative group ${snapshot.isDragging ? 'z-50' : ''}`}
+                    >
+                      <div className="flex">
+                        {!isRoutineStarted && (
+                          <div 
+                            {...provided.dragHandleProps}
+                            className="flex items-center px-2 cursor-grab active:cursor-grabbing"
+                          >
+                            <GripVertical className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <TaskCard
+                            task={task}
+                            onComplete={(timeSaved) => onTaskComplete(task.id, timeSaved)}
+                            onEdit={() => {}}
+                            onDelete={() => {}}
+                            isRoutineStarted={isRoutineStarted}
+                          />
+                        </div>
+                      </div>
+                      {!isRoutineStarted && (
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleSkipTask(task.id)}
+                            className="bg-white/90 hover:bg-white"
+                          >
+                            <SkipForwardIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
             </div>
           )}
-        </div>
-      ))}
+        </Droppable>
+      </DragDropContext>
 
       {!isRoutineStarted && (
         <Dialog>

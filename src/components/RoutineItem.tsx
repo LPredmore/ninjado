@@ -1,9 +1,12 @@
+
 import React from 'react';
 import { List, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TaskItem from './TaskItem';
 import AddTaskDialog from './AddTaskDialog';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { DragDropContext, Droppable } from 'react-beautiful-dnd';
+import { toast } from 'sonner';
 
 interface RoutineItemProps {
   routine: {
@@ -32,6 +35,28 @@ const RoutineItem = ({
   isSelected,
   onSelect
 }: RoutineItemProps) => {
+  
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+    
+    const items = Array.from(tasks);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    
+    // Update positions in database
+    try {
+      for (let i = 0; i < items.length; i++) {
+        await supabase
+          .from('routine_tasks')
+          .update({ position: i })
+          .eq('id', items[i].id);
+      }
+      onTasksUpdate();
+    } catch (error) {
+      toast.error('Failed to update task positions');
+    }
+  };
+  
   return (
     <div
       className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -59,16 +84,29 @@ const RoutineItem = ({
       </div>
 
       <div className="mt-4 space-y-2" onClick={(e) => e.stopPropagation()}>
-        {tasks.map((task, index) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            isFirst={index === 0}
-            isLast={index === tasks.length - 1}
-            onTaskUpdate={onTasksUpdate}
-            supabase={supabase}
-          />
-        ))}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId={`routine-${routine.id}`}>
+            {(provided) => (
+              <div 
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+              >
+                {tasks.map((task, index) => (
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    isFirst={index === 0}
+                    isLast={index === tasks.length - 1}
+                    onTaskUpdate={onTasksUpdate}
+                    supabase={supabase}
+                    index={index}
+                  />
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
 
         <AddTaskDialog
           routineId={routine.id}
