@@ -88,21 +88,9 @@ const Index = ({ user, supabase }: IndexProps) => {
     }
   };
 
-  const handleSubscribe = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
-      if (error) throw error;
-      
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Failed to start subscription process');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSubscribe = () => {
+    // Direct to Stripe payment link instead of creating a checkout session
+    window.location.href = "https://buy.stripe.com/fZedRM7Co6Qe2qc144";
   };
 
   const handleTaskComplete = async (taskId: string, timeSaved: number) => {
@@ -161,10 +149,9 @@ const Index = ({ user, supabase }: IndexProps) => {
             </div>
             <Button
               onClick={handleSubscribe}
-              disabled={isLoading}
               className="bg-ninja-primary hover:bg-ninja-primary/90"
             >
-              {isLoading ? 'Loading...' : 'Subscribe Now'}
+              Subscribe Now
             </Button>
           </div>
         )}
