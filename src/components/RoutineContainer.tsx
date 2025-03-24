@@ -1,3 +1,4 @@
+
 import React from 'react';
 import RoutineProgress from './RoutineProgress';
 import TaskList from './TaskList';
@@ -7,7 +8,9 @@ interface RoutineContainerProps {
   tasks: Task[];
   completedTasks: number;
   isRoutineStarted: boolean;
+  isPaused: boolean;
   onStartRoutine: () => void;
+  onPauseRoutine: () => void;
   onTaskComplete: (taskId: string, timeSaved: number) => Promise<void>;
   onTaskReorder: (tasks: Task[]) => void;
 }
@@ -16,7 +19,9 @@ const RoutineContainer = ({
   tasks,
   completedTasks,
   isRoutineStarted,
+  isPaused,
   onStartRoutine,
+  onPauseRoutine,
   onTaskComplete,
   onTaskReorder,
 }: RoutineContainerProps) => {
@@ -26,7 +31,9 @@ const RoutineContainer = ({
         completedTasks={completedTasks}
         totalTasks={tasks.length}
         isRoutineStarted={isRoutineStarted}
+        isPaused={isPaused}
         onStartRoutine={onStartRoutine}
+        onPauseRoutine={onPauseRoutine}
       />
       <TaskList
         tasks={tasks}

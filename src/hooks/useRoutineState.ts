@@ -1,13 +1,16 @@
+
 import { useState, useEffect } from 'react';
 
 interface RoutineState {
   isRoutineStarted: boolean;
+  isPaused: boolean;
   timers: { [key: string]: number };
   completedTaskIds: string[];
 }
 
 export const useRoutineState = (selectedRoutineId: string | null) => {
   const [isRoutineStarted, setIsRoutineStarted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: number }>({});
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
 
@@ -18,11 +21,13 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
       if (savedState) {
         const parsed = JSON.parse(savedState) as RoutineState;
         setIsRoutineStarted(parsed.isRoutineStarted);
+        setIsPaused(parsed.isPaused || false);
         setTimers(parsed.timers);
         setCompletedTaskIds(parsed.completedTaskIds);
       } else {
         // Reset state if no saved state exists
         setIsRoutineStarted(false);
+        setIsPaused(false);
         setTimers({});
         setCompletedTaskIds([]);
       }
@@ -33,7 +38,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (isRoutineStarted) {
+    if (isRoutineStarted && !isPaused) {
       interval = setInterval(() => {
         setTimers(prevTimers => {
           const newTimers = { ...prevTimers };
@@ -60,24 +65,26 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
         clearInterval(interval);
       }
     };
-  }, [isRoutineStarted, completedTaskIds]);
+  }, [isRoutineStarted, isPaused, completedTaskIds]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
     if (selectedRoutineId && isRoutineStarted) {
       const state: RoutineState = {
         isRoutineStarted,
+        isPaused,
         timers,
         completedTaskIds,
       };
       localStorage.setItem(`routineState_${selectedRoutineId}`, JSON.stringify(state));
     }
-  }, [selectedRoutineId, isRoutineStarted, timers, completedTaskIds]);
+  }, [selectedRoutineId, isRoutineStarted, isPaused, timers, completedTaskIds]);
 
   const resetRoutineState = () => {
     if (selectedRoutineId) {
       localStorage.removeItem(`routineState_${selectedRoutineId}`);
       setIsRoutineStarted(false);
+      setIsPaused(false);
       setTimers({});
       setCompletedTaskIds([]);
     }
@@ -86,6 +93,8 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
   return {
     isRoutineStarted,
     setIsRoutineStarted,
+    isPaused,
+    setIsPaused,
     timers,
     setTimers,
     completedTaskIds,

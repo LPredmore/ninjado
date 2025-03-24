@@ -27,6 +27,8 @@ const Index = ({ user, supabase }: IndexProps) => {
   const {
     isRoutineStarted,
     setIsRoutineStarted,
+    isPaused,
+    setIsPaused,
     timers,
     setTimers,
     completedTaskIds,
@@ -114,6 +116,11 @@ const Index = ({ user, supabase }: IndexProps) => {
     
     setTimers(initialTimers);
     setIsRoutineStarted(true);
+    setIsPaused(false);
+  };
+
+  const handlePauseRoutine = () => {
+    setIsPaused(!isPaused);
   };
 
   const handleRoutineSelect = (routineId: string) => {
@@ -169,7 +176,9 @@ const Index = ({ user, supabase }: IndexProps) => {
             tasks={processedTasks}
             completedTasks={completedTaskIds.length}
             isRoutineStarted={isRoutineStarted}
+            isPaused={isPaused}
             onStartRoutine={handleStartRoutine}
+            onPauseRoutine={handlePauseRoutine}
             onTaskComplete={handleTaskComplete}
             onTaskReorder={handleTaskReorder}
           />

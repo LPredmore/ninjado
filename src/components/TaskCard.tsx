@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,7 @@ interface TaskCardProps {
   onEdit: () => void;
   onDelete: () => void;
   isRoutineStarted: boolean;
+  isPaused?: boolean;
 }
 
 const TaskCard = ({
@@ -20,6 +22,7 @@ const TaskCard = ({
   onEdit,
   onDelete,
   isRoutineStarted,
+  isPaused,
 }: TaskCardProps) => {
   const handleComplete = () => {
     if (task.timeLeft !== undefined) {
@@ -46,7 +49,7 @@ const TaskCard = ({
               </Badge>
             )}
           </div>
-          {task.isActive && !task.isCompleted && isRoutineStarted && (
+          {task.isActive && !task.isCompleted && isRoutineStarted && !isPaused && (
             <TaskCompleteButton onClick={handleComplete} />
           )}
         </div>
@@ -56,6 +59,7 @@ const TaskCard = ({
           duration={task.duration}
           isActive={task.isActive && isRoutineStarted}
           isRoutineStarted={isRoutineStarted}
+          isPaused={isPaused}
           isFocusTask={task.type === 'focus'}
         />
 

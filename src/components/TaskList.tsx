@@ -13,6 +13,7 @@ interface TaskListProps {
   tasks: Task[];
   onTaskComplete: (taskId: string, timeSaved: number) => void;
   isRoutineStarted: boolean;
+  isPaused?: boolean;
   onTaskReorder: (tasks: Task[]) => void;
 }
 
@@ -20,6 +21,7 @@ const TaskList = ({
   tasks,
   onTaskComplete,
   isRoutineStarted,
+  isPaused,
   onTaskReorder
 }: TaskListProps) => {
   const [localTasks, setLocalTasks] = React.useState<Task[]>(tasks);
@@ -114,6 +116,7 @@ const TaskList = ({
                             onEdit={() => {}}
                             onDelete={() => {}}
                             isRoutineStarted={isRoutineStarted}
+                            isPaused={isPaused}
                           />
                         </div>
                       </div>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -7,6 +8,7 @@ interface TaskTimerProps {
   duration: number;
   isActive: boolean;
   isRoutineStarted: boolean;
+  isPaused?: boolean;
   isFocusTask?: boolean;
 }
 
@@ -15,6 +17,7 @@ const TaskTimer = ({
   duration, 
   isActive, 
   isRoutineStarted,
+  isPaused,
   isFocusTask 
 }: TaskTimerProps) => {
   const formatTime = (seconds: number) => {
@@ -47,7 +50,7 @@ const TaskTimer = ({
             "text-sm",
             timeLeft < 0 ? "text-red-500" : (isFocusTask ? "text-purple-600" : "text-gray-500")
           )}>
-            Time remaining: {formatTime(timeLeft)}
+            Time remaining: {formatTime(timeLeft)} {isPaused && <span className="font-medium text-amber-500">(Paused)</span>}
           </p>
         )}
       </div>
