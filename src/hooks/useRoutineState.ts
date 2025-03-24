@@ -1,11 +1,13 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface RoutineState {
   isRoutineStarted: boolean;
   isPaused: boolean;
   timers: { [key: string]: number };
   completedTaskIds: string[];
+  lastUpdated: number; // Timestamp of last update
+  pausedAt: number | null; // Timestamp when paused
 }
 
 export const useRoutineState = (selectedRoutineId: string | null) => {
@@ -13,6 +15,10 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
   const [isPaused, setIsPaused] = useState(false);
   const [timers, setTimers] = useState<{ [key: string]: number }>({});
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load state from localStorage when component mounts or routine changes
   useEffect(() => {
@@ -24,22 +30,110 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
         setIsPaused(parsed.isPaused || false);
         setTimers(parsed.timers);
         setCompletedTaskIds(parsed.completedTaskIds);
+        setLastUpdated(parsed.lastUpdated || Date.now());
+        setPausedAt(parsed.pausedAt);
+        
+        // If routine was started but not paused, calculate elapsed time since last update
+        if (parsed.isRoutineStarted && !parsed.isPaused) {
+          const now = Date.now();
+          const elapsedSeconds = Math.floor((now - parsed.lastUpdated) / 1000);
+          
+          if (elapsedSeconds > 0) {
+            // Update timers to account for elapsed time
+            setTimers(prevTimers => {
+              const newTimers = { ...prevTimers };
+              let activeTaskFound = false;
+              
+              // Find the first non-completed task
+              Object.keys(newTimers).some(taskId => {
+                if (!parsed.completedTaskIds.includes(taskId) && !activeTaskFound) {
+                  activeTaskFound = true;
+                  // For focus tasks, continue counting into negative
+                  newTimers[taskId] = Math.max(newTimers[taskId] - elapsedSeconds, -999);
+                  return false;
+                }
+                return false;
+              });
+              
+              return newTimers;
+            });
+          }
+        }
       } else {
         // Reset state if no saved state exists
         setIsRoutineStarted(false);
         setIsPaused(false);
         setTimers({});
         setCompletedTaskIds([]);
+        setLastUpdated(Date.now());
+        setPausedAt(null);
       }
     }
+    
+    // Clean up interval on unmount
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, [selectedRoutineId]);
+
+  // Set up timer with visibility change detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isRoutineStarted && !isPaused) {
+        const now = Date.now();
+        const lastTime = lastUpdated;
+        const elapsedSeconds = Math.floor((now - lastTime) / 1000);
+        
+        if (elapsedSeconds > 0) {
+          setLastUpdated(now);
+          
+          setTimers(prevTimers => {
+            const newTimers = { ...prevTimers };
+            let activeTaskFound = false;
+            
+            // Find the first non-completed task
+            Object.keys(newTimers).some(taskId => {
+              if (!completedTaskIds.includes(taskId) && !activeTaskFound) {
+                activeTaskFound = true;
+                // For focus tasks, continue counting into negative
+                newTimers[taskId] = Math.max(newTimers[taskId] - elapsedSeconds, -999);
+                return false;
+              }
+              return false;
+            });
+            
+            return newTimers;
+          });
+        }
+      }
+    };
+    
+    // Add visibility change listener
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Clean up function
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isRoutineStarted, isPaused, lastUpdated, completedTaskIds]);
 
   // Timer countdown effect
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
 
     if (isRoutineStarted && !isPaused) {
-      interval = setInterval(() => {
+      // Start a new interval
+      intervalRef.current = setInterval(() => {
+        const now = Date.now();
+        setLastUpdated(now);
+        
         setTimers(prevTimers => {
           const newTimers = { ...prevTimers };
           let activeTaskFound = false;
@@ -49,7 +143,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
             if (!completedTaskIds.includes(taskId) && !activeTaskFound) {
               activeTaskFound = true;
               // For focus tasks, continue counting into negative
-              newTimers[taskId] = newTimers[taskId] - 1;
+              newTimers[taskId] = Math.max(newTimers[taskId] - 1, -999);
               return false;
             }
             return false;
@@ -61,11 +155,23 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
     }
 
     return () => {
-      if (interval) {
-        clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, [isRoutineStarted, isPaused, completedTaskIds]);
+
+  // Custom setter for pause state that also tracks pause timestamp
+  const setPauseState = (paused: boolean) => {
+    setIsPaused(paused);
+    if (paused) {
+      setPausedAt(Date.now());
+    } else {
+      setPausedAt(null);
+      setLastUpdated(Date.now());
+    }
+  };
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -75,10 +181,12 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
         isPaused,
         timers,
         completedTaskIds,
+        lastUpdated,
+        pausedAt,
       };
       localStorage.setItem(`routineState_${selectedRoutineId}`, JSON.stringify(state));
     }
-  }, [selectedRoutineId, isRoutineStarted, isPaused, timers, completedTaskIds]);
+  }, [selectedRoutineId, isRoutineStarted, isPaused, timers, completedTaskIds, lastUpdated, pausedAt]);
 
   const resetRoutineState = () => {
     if (selectedRoutineId) {
@@ -87,6 +195,8 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
       setIsPaused(false);
       setTimers({});
       setCompletedTaskIds([]);
+      setLastUpdated(Date.now());
+      setPausedAt(null);
     }
   };
 
@@ -94,7 +204,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
     isRoutineStarted,
     setIsRoutineStarted,
     isPaused,
-    setIsPaused,
+    setIsPaused: setPauseState,
     timers,
     setTimers,
     completedTaskIds,

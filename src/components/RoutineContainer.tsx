@@ -39,6 +39,7 @@ const RoutineContainer = ({
         tasks={tasks}
         onTaskComplete={onTaskComplete}
         isRoutineStarted={isRoutineStarted}
+        isPaused={isPaused}
         onTaskReorder={onTaskReorder}
       />
     </div>
