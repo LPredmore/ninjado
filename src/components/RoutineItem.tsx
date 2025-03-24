@@ -7,6 +7,8 @@ import AddTaskDialog from './AddTaskDialog';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { toast } from 'sonner';
+import CopyRoutineDialog from './CopyRoutineDialog';
+import EditRoutineDialog from './EditRoutineDialog';
 
 interface RoutineItemProps {
   routine: {
@@ -18,6 +20,7 @@ interface RoutineItemProps {
     title: string;
     duration: number;
     position: number;
+    type?: 'regular' | 'focus';
   }[];
   onDelete: (routineId: string) => void;
   supabase: SupabaseClient;
@@ -70,17 +73,31 @@ const RoutineItem = ({
         <div className="flex items-center space-x-2">
           <List className="w-5 h-5 text-ninja-primary" />
           <span className="font-medium">{routine.title}</span>
+          <EditRoutineDialog 
+            routineId={routine.id} 
+            routineTitle={routine.title} 
+            supabase={supabase} 
+            onEditComplete={onTasksUpdate}
+          />
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(routine.id);
-          }}
-        >
-          <Trash2 className="w-4 h-4 text-gray-500" />
-        </Button>
+        <div className="flex items-center space-x-2">
+          <CopyRoutineDialog
+            routineId={routine.id}
+            routineTitle={routine.title}
+            supabase={supabase}
+            onCopyComplete={onTasksUpdate}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(routine.id);
+            }}
+          >
+            <Trash2 className="w-4 h-4 text-gray-500" />
+          </Button>
+        </div>
       </div>
 
       <div className="mt-4 space-y-2" onClick={(e) => e.stopPropagation()}>

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from "sonner";
 import { Draggable } from 'react-beautiful-dnd';
+import EditTaskDialog from './EditTaskDialog';
 
 interface TaskItemProps {
   task: {
@@ -60,6 +61,12 @@ const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
           </div>
           
           <div className="flex items-center gap-2">
+            <EditTaskDialog
+              taskId={task.id}
+              task={task}
+              supabase={supabase}
+              onEditComplete={onTaskUpdate}
+            />
             <Button
               variant="ghost"
               size="icon"

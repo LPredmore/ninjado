@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { SupabaseClient } from "@supabase/supabase-js";
@@ -63,6 +64,11 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
     }
   };
 
+  const handleRoutineUpdate = () => {
+    refetchRoutines();
+    refetchTasks();
+  };
+
   return (
     <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="container mx-auto p-4">
@@ -82,7 +88,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
               tasks={tasks?.filter((task) => task.routine_id === routine.id) || []}
               onDelete={handleDeleteRoutine}
               supabase={supabase}
-              onTasksUpdate={refetchTasks}
+              onTasksUpdate={handleRoutineUpdate}
               isSelected={selectedRoutineId === routine.id}
               onSelect={() => setSelectedRoutineId(routine.id)}
             />
@@ -93,7 +99,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           open={isAddRoutineOpen}
           onOpenChange={setIsAddRoutineOpen}
           supabase={supabase}
-          onRoutineAdded={refetchRoutines}
+          onRoutineAdded={handleRoutineUpdate}
         />
       </div>
     </Layout>
