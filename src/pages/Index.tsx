@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -145,6 +144,9 @@ const Index = ({ user, supabase }: IndexProps) => {
     timeLeft: timers[task.id]
   }));
 
+  // Find the selected routine to get its title
+  const selectedRoutine = routines?.find(routine => routine.id === selectedRoutineId);
+
   return (
     <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="space-y-6">
@@ -173,6 +175,7 @@ const Index = ({ user, supabase }: IndexProps) => {
 
         {selectedRoutineId && (
           <RoutineContainer
+            routineTitle={selectedRoutine?.title || "Routine"}
             tasks={processedTasks}
             completedTasks={completedTaskIds.length}
             isRoutineStarted={isRoutineStarted}

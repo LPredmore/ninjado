@@ -5,6 +5,7 @@ import TaskList from './TaskList';
 import { Task } from '@/types';
 
 interface RoutineContainerProps {
+  routineTitle: string;
   tasks: Task[];
   completedTasks: number;
   isRoutineStarted: boolean;
@@ -16,6 +17,7 @@ interface RoutineContainerProps {
 }
 
 const RoutineContainer = ({
+  routineTitle,
   tasks,
   completedTasks,
   isRoutineStarted,
@@ -28,6 +30,7 @@ const RoutineContainer = ({
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg space-y-6">
       <RoutineProgress
+        routineTitle={routineTitle}
         completedTasks={completedTasks}
         totalTasks={tasks.length}
         isRoutineStarted={isRoutineStarted}

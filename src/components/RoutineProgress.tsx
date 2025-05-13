@@ -5,6 +5,7 @@ import ProgressBar from './ProgressBar';
 import { Play, Pause } from 'lucide-react';
 
 interface RoutineProgressProps {
+  routineTitle: string;
   completedTasks: number;
   totalTasks: number;
   isRoutineStarted: boolean;
@@ -14,6 +15,7 @@ interface RoutineProgressProps {
 }
 
 const RoutineProgress = ({
+  routineTitle,
   completedTasks,
   totalTasks,
   isRoutineStarted,
@@ -26,7 +28,7 @@ const RoutineProgress = ({
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold text-ninja-text">
-            Morning Routine Progress
+            {routineTitle} Progress
           </h2>
           <p className="text-sm text-gray-500">
             {completedTasks} of {totalTasks} tasks completed
