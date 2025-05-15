@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Pencil, Clock } from "lucide-react";
 
@@ -29,7 +29,11 @@ const EditRoutineDialog = ({
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast.error("Routine title cannot be empty");
+      toast({
+        title: "Error",
+        description: "Routine title cannot be empty",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -45,12 +49,19 @@ const EditRoutineDialog = ({
 
       if (error) throw error;
 
-      toast.success("Routine updated successfully");
+      toast({
+        title: "Success",
+        description: "Routine updated successfully"
+      });
       setOpen(false);
       onEditComplete();
     } catch (error) {
       console.error("Error updating routine:", error);
-      toast.error("Failed to update routine");
+      toast({
+        title: "Error",
+        description: "Failed to update routine",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +70,10 @@ const EditRoutineDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button
-        onClick={() => setOpen(true)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(true);
+        }}
         variant="ghost"
         size="sm"
         className="h-8 w-8 p-0"

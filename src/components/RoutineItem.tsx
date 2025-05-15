@@ -6,7 +6,7 @@ import TaskItem from './TaskItem';
 import AddTaskDialog from './AddTaskDialog';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import CopyRoutineDialog from './CopyRoutineDialog';
 import EditRoutineDialog from './EditRoutineDialog';
 import { Badge } from "@/components/ui/badge";
@@ -58,7 +58,11 @@ const RoutineItem = ({
       }
       onTasksUpdate();
     } catch (error) {
-      toast.error('Failed to update task positions');
+      toast({
+        title: "Error",
+        description: "Failed to update task positions",
+        variant: "destructive"
+      });
     }
   };
 
