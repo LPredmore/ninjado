@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Pencil } from "lucide-react";
+import { Pencil, Clock } from "lucide-react";
 
 interface EditRoutineDialogProps {
   routineId: string;
   routineTitle: string;
+  routineStartTime?: string;
   supabase: SupabaseClient;
   onEditComplete: () => void;
 }
@@ -17,11 +18,13 @@ interface EditRoutineDialogProps {
 const EditRoutineDialog = ({
   routineId,
   routineTitle,
+  routineStartTime,
   supabase,
   onEditComplete,
 }: EditRoutineDialogProps) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(routineTitle);
+  const [startTime, setStartTime] = useState(routineStartTime || "");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSave = async () => {
@@ -34,7 +37,10 @@ const EditRoutineDialog = ({
     try {
       const { error } = await supabase
         .from("routines")
-        .update({ title })
+        .update({ 
+          title,
+          start_time: startTime || null 
+        })
         .eq("id", routineId);
 
       if (error) throw error;
@@ -64,12 +70,30 @@ const EditRoutineDialog = ({
         <DialogHeader>
           <DialogTitle>Edit Routine</DialogTitle>
         </DialogHeader>
-        <div className="py-4">
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Routine title"
-          />
+        <div className="py-4 space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Routine Title</label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Routine title"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Start Time</label>
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-gray-500" />
+              <Input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                placeholder="Start time"
+              />
+            </div>
+            <p className="text-xs text-gray-500">
+              Set the time when you usually start this routine
+            </p>
+          </div>
         </div>
         <DialogFooter>
           <Button

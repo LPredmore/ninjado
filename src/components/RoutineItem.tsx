@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { List, Trash2 } from 'lucide-react';
+import { List, Trash2, Clock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TaskItem from './TaskItem';
 import AddTaskDialog from './AddTaskDialog';
@@ -9,11 +9,13 @@ import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { toast } from 'sonner';
 import CopyRoutineDialog from './CopyRoutineDialog';
 import EditRoutineDialog from './EditRoutineDialog';
+import { Badge } from "@/components/ui/badge";
 
 interface RoutineItemProps {
   routine: {
     id: string;
     title: string;
+    start_time?: string | null;
   };
   tasks: {
     id: string;
@@ -59,6 +61,25 @@ const RoutineItem = ({
       toast.error('Failed to update task positions');
     }
   };
+
+  // Calculate the total duration of all tasks in minutes
+  const totalDurationMinutes = tasks.reduce((total, task) => total + task.duration, 0);
+  
+  // Calculate the end time if start time is set
+  const calculateEndTime = () => {
+    if (!routine.start_time) return null;
+    
+    const [hours, minutes] = routine.start_time.split(':').map(Number);
+    const startDate = new Date();
+    startDate.setHours(hours, minutes, 0);
+    
+    const endDate = new Date(startDate);
+    endDate.setMinutes(endDate.getMinutes() + totalDurationMinutes);
+    
+    return endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+  
+  const endTime = calculateEndTime();
   
   return (
     <div
@@ -75,7 +96,8 @@ const RoutineItem = ({
           <span className="font-medium">{routine.title}</span>
           <EditRoutineDialog 
             routineId={routine.id} 
-            routineTitle={routine.title} 
+            routineTitle={routine.title}
+            routineStartTime={routine.start_time || undefined}
             supabase={supabase} 
             onEditComplete={onTasksUpdate}
           />
@@ -99,6 +121,28 @@ const RoutineItem = ({
           </Button>
         </div>
       </div>
+
+      {(routine.start_time || tasks.length > 0) && (
+        <div className="mt-2 flex flex-wrap gap-2 items-center">
+          {routine.start_time && (
+            <div className="flex items-center text-sm text-gray-600">
+              <Clock className="w-4 h-4 mr-1" />
+              <span>Start: {routine.start_time}</span>
+              {endTime && (
+                <>
+                  <span className="mx-1">→</span>
+                  <span>End: {endTime}</span>
+                </>
+              )}
+            </div>
+          )}
+          {tasks.length > 0 && (
+            <Badge variant="outline" className="text-xs">
+              {totalDurationMinutes} min total
+            </Badge>
+          )}
+        </div>
+      )}
 
       <div className="mt-4 space-y-2" onClick={(e) => e.stopPropagation()}>
         <DragDropContext onDragEnd={handleDragEnd}>

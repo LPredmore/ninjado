@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { Clock } from "lucide-react";
 
 interface AddRoutineDialogProps {
   open: boolean;
@@ -19,6 +21,7 @@ export const AddRoutineDialog = ({
   onRoutineAdded,
 }: AddRoutineDialogProps) => {
   const [title, setTitle] = useState("");
+  const [startTime, setStartTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,6 +32,7 @@ export const AddRoutineDialog = ({
       const { error } = await supabase.from("routines").insert({
         title,
         user_id: (await supabase.auth.getUser()).data.user?.id,
+        start_time: startTime || null
       });
 
       if (error) throw error;
@@ -37,6 +41,7 @@ export const AddRoutineDialog = ({
       onRoutineAdded();
       onOpenChange(false);
       setTitle("");
+      setStartTime("");
     } catch (error) {
       toast.error("Failed to create routine");
     } finally {
@@ -53,6 +58,7 @@ export const AddRoutineDialog = ({
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
+              <label className="text-sm font-medium">Routine Title</label>
               <Input
                 id="title"
                 placeholder="Routine title"
@@ -60,6 +66,21 @@ export const AddRoutineDialog = ({
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Start Time (optional)</label>
+              <div className="flex items-center space-x-2">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  placeholder="Start time"
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                Set the time when you usually start this routine
+              </p>
             </div>
           </div>
           <DialogFooter>
