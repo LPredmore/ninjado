@@ -12,4 +12,5 @@ export interface Routine {
   id: string;
   title: string;
   startTime?: string; // Optional start time in HH:MM format
+  endTime?: string;   // Optional end time (calculated)
 }

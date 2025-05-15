@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { List, Trash2, Clock } from 'lucide-react';
+import { List, Trash2, Clock, CalendarClock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TaskItem from './TaskItem';
 import AddTaskDialog from './AddTaskDialog';
@@ -122,27 +122,41 @@ const RoutineItem = ({
         </div>
       </div>
 
-      {(routine.start_time || tasks.length > 0) && (
-        <div className="mt-2 flex flex-wrap gap-2 items-center">
-          {routine.start_time && (
-            <div className="flex items-center text-sm text-gray-600">
-              <Clock className="w-4 h-4 mr-1" />
-              <span>Start: {routine.start_time}</span>
-              {endTime && (
-                <>
-                  <span className="mx-1">→</span>
-                  <span>End: {endTime}</span>
-                </>
-              )}
-            </div>
-          )}
+      <div className="mt-3 flex justify-between items-center">
+        <div className="flex flex-wrap gap-1 items-center">
           {tasks.length > 0 && (
             <Badge variant="outline" className="text-xs">
               {totalDurationMinutes} min total
             </Badge>
           )}
         </div>
-      )}
+        
+        <div className="flex gap-4 items-center">
+          {routine.start_time ? (
+            <div className="flex items-center px-3 py-1 bg-gray-50 rounded-md border border-gray-200">
+              <Clock className="w-4 h-4 mr-1 text-gray-500" />
+              <span className="text-sm font-medium">Start: {routine.start_time}</span>
+            </div>
+          ) : (
+            <div className="flex items-center px-3 py-1 bg-gray-50 rounded-md border border-gray-200 text-gray-400">
+              <Clock className="w-4 h-4 mr-1" />
+              <span className="text-sm">No start time</span>
+            </div>
+          )}
+          
+          {endTime ? (
+            <div className="flex items-center px-3 py-1 bg-gray-50 rounded-md border border-gray-200">
+              <CalendarClock className="w-4 h-4 mr-1 text-gray-500" />
+              <span className="text-sm font-medium">End: {endTime}</span>
+            </div>
+          ) : (
+            <div className="flex items-center px-3 py-1 bg-gray-50 rounded-md border border-gray-200 text-gray-400">
+              <CalendarClock className="w-4 h-4 mr-1" />
+              <span className="text-sm">Set start time</span>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="mt-4 space-y-2" onClick={(e) => e.stopPropagation()}>
         <DragDropContext onDragEnd={handleDragEnd}>
