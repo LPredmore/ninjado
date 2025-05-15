@@ -30,6 +30,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      console.log("Fetched routines:", data); // Add log to debug
       return data;
     },
   });

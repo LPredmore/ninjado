@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,12 @@ const EditRoutineDialog = ({
   const [title, setTitle] = useState(routineTitle);
   const [startTime, setStartTime] = useState(routineStartTime || "");
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Update local state when props change
+  useEffect(() => {
+    setTitle(routineTitle);
+    setStartTime(routineStartTime || "");
+  }, [routineTitle, routineStartTime, open]);
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -39,6 +45,8 @@ const EditRoutineDialog = ({
 
     setIsLoading(true);
     try {
+      console.log("Updating routine with data:", { title, start_time: startTime || null });
+      
       const { error } = await supabase
         .from("routines")
         .update({ 
@@ -96,7 +104,7 @@ const EditRoutineDialog = ({
           <div className="space-y-2">
             <label className="text-sm font-medium">Start Time</label>
             <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-gray-500" />
+              <Clock className="w-4 h-4 text-gray-500" />
               <Input
                 type="time"
                 value={startTime}
