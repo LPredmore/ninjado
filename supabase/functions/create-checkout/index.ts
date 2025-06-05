@@ -5,9 +5,19 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = (Deno.env.get('FRONTEND_URL') || '').split(',').map((o) => o.trim()).filter(Boolean)
+
+function getCorsHeaders(origin: string | null) {
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0] || ''
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'))
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -33,70 +43,3 @@ serve(async (req) => {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
-    })
-
-    console.log('Creating checkout session for email:', user.email)
-
-    // Find or create customer
-    let customerId: string | undefined
-    const customers = await stripe.customers.list({
-      email: user.email,
-      limit: 1
-    })
-
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id
-      
-      // Check if customer already has an active subscription
-      const subscriptions = await stripe.subscriptions.list({
-        customer: customerId,
-        status: 'active',
-        price: 'price_1QgR91DYSfbOmyKLcwYN99y6',
-        limit: 1
-      })
-
-      if (subscriptions.data.length > 0) {
-        throw new Error("You already have an active subscription")
-      }
-    }
-
-    console.log('Creating payment session...')
-    const origin = req.headers.get('origin')
-    const baseUrl = origin && origin === FRONTEND_URL ? origin : FRONTEND_URL
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price: 'price_1QgR91DYSfbOmyKLcwYN99y6',
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/`,
-      cancel_url: `${req.headers.get('origin')}/`,
-      success_url: `${baseUrl}/`,
-      cancel_url: `${baseUrl}/`,
-    })
-
-    console.log('Payment session created:', session.id)
-    return new Response(
-      JSON.stringify({ url: session.url }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    )
-  } catch (error) {
-    console.error('Error creating payment session:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    )
-  }
-})
