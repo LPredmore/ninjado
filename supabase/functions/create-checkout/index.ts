@@ -18,6 +18,8 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_ANON_KEY') ?? '',
   )
 
+  const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || ''
+
   try {
     // Get the user's JWT from the request headers
     const authHeader = req.headers.get('Authorization')!
@@ -61,6 +63,8 @@ serve(async (req) => {
     }
 
     console.log('Creating payment session...')
+    const origin = req.headers.get('origin')
+    const baseUrl = origin && origin === FRONTEND_URL ? origin : FRONTEND_URL
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -73,6 +77,8 @@ serve(async (req) => {
       mode: 'subscription',
       success_url: `${req.headers.get('origin')}/`,
       cancel_url: `${req.headers.get('origin')}/`,
+      success_url: `${baseUrl}/`,
+      cancel_url: `${baseUrl}/`,
     })
 
     console.log('Payment session created:', session.id)
