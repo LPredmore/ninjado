@@ -5,9 +5,19 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = (Deno.env.get('FRONTEND_URL') || '').split(',').map((o) => o.trim()).filter(Boolean)
+
+function getCorsHeaders(origin: string | null) {
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0] || ''
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'))
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -17,6 +27,8 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_ANON_KEY') ?? '',
   )
+
+  const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || ''
 
   try {
     // Get the user's JWT from the request headers
@@ -31,56 +43,3 @@ serve(async (req) => {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
-    })
-
-    console.log('Checking subscription for email:', user.email)
-
-    // Find customer by email
-    const customers = await stripe.customers.list({
-      email: user.email,
-      limit: 1
-    })
-
-    if (customers.data.length === 0) {
-      console.log('No customer found for email:', user.email)
-      return new Response(
-        JSON.stringify({ subscribed: false }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      )
-    }
-
-    // Check for active subscription
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customers.data[0].id,
-      status: 'active',
-      price: 'price_1QgR91DYSfbOmyKLcwYN99y6',
-      limit: 1
-    })
-
-    console.log('Found subscription status:', subscriptions.data.length > 0)
-
-    return new Response(
-      JSON.stringify({ 
-        subscribed: subscriptions.data.length > 0,
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    )
-  } catch (error) {
-    console.error('Error checking subscription:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    )
-  }
-})
