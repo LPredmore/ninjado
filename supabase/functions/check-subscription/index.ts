@@ -28,8 +28,6 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_ANON_KEY') ?? '',
   )
 
-  const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || ''
-
   try {
     // Get the user's JWT from the request headers
     const authHeader = req.headers.get('Authorization')!
@@ -43,3 +41,5 @@ serve(async (req) => {
     }
 
     // Initialize Stripe
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
