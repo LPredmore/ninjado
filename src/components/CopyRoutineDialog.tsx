@@ -24,26 +24,37 @@ const CopyRoutineDialog = ({
   const [newTitle, setNewTitle] = useState(`Copy of ${routineTitle}`);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleCopyRoutine = async () => {
-    if (!newTitle.trim()) {
-      toast.error("Please provide a title for the copied routine");
-      return;
-    }
+  // ...
+const handleCopyRoutine = async () => {
+  if (!newTitle.trim()) {
+    toast.error("Please provide a title for the copied routine");
+    return;
+  }
 
-    setIsLoading(true);
-    try {
-      // 1. Create a new routine
-      const { data: newRoutine, error: routineError } = await supabase
-        .from("routines")
-        .insert({
-          title: newTitle,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-        })
-        .select()
-        .single();
+  setIsLoading(true);
+  try {
+    // Fetch the original routine to copy start_time
+    const { data: originalRoutine, error: routineFetchErr } = await supabase
+      .from("routines")
+      .select("start_time")
+      .eq("id", routineId)
+      .single();
 
-      if (routineError) throw routineError;
+    if (routineFetchErr) throw routineFetchErr;
 
+    // 1. Create a new routine
+    const { data: newRoutine, error: routineError } = await supabase
+      .from("routines")
+      .insert({
+        title: newTitle,
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        start_time: originalRoutine?.start_time ?? null,
+      })
+      .select()
+      .single();
+
+    if (routineError) throw routineError;
+    
       // 2. Fetch tasks from original routine
       const { data: originalTasks, error: tasksError } = await supabase
         .from("routine_tasks")
