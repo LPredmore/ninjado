@@ -40,22 +40,24 @@ const AddTaskDialog = ({
   const [taskType, setTaskType] = useState<'regular' | 'focus'>('regular');
 
   const handleCreateTask = async () => {
-    if (!newTaskTitle.trim() || !newTaskDuration) {
-      toast.error('Please fill in all task details');
-      return;
-    }
+  const durationMinutes = parseInt(newTaskDuration, 10);
 
-    const { error } = await supabase
-      .from('routine_tasks')
-      .insert([
-        {
-          routine_id: routineId,
-          title: newTaskTitle,
-          duration: parseInt(newTaskDuration),
-          position: tasksCount,
-          type: taskType
-        }
-      ]);
+  if (!newTaskTitle.trim() || isNaN(durationMinutes) || durationMinutes <= 0) {
+    toast.error('Please fill in all task details');
+    return;
+  }
+
+  const { error } = await supabase
+    .from('routine_tasks')
+    .insert([
+      {
+        routine_id: routineId,
+        title: newTaskTitle,
+        duration: durationMinutes,
+        position: tasksCount,
+        type: taskType,
+      },
+    ]);
 
     if (error) {
       toast.error('Failed to create task');
