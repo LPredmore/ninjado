@@ -1,6 +1,11 @@
-
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
@@ -26,7 +31,7 @@ const EditRoutineDialog = ({
   const [title, setTitle] = useState(routineTitle);
   const [startTime, setStartTime] = useState(routineStartTime || "");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Update local state when props change
   useEffect(() => {
     setTitle(routineTitle);
@@ -38,20 +43,18 @@ const EditRoutineDialog = ({
       toast({
         title: "Error",
         description: "Routine title cannot be empty",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      console.log("Updating routine with data:", { title, start_time: startTime || null });
-      
       const { error } = await supabase
         .from("routines")
-        .update({ 
+        .update({
           title,
-          start_time: startTime || null 
+          start_time: startTime || null,
         })
         .eq("id", routineId);
 
@@ -59,7 +62,7 @@ const EditRoutineDialog = ({
 
       toast({
         title: "Success",
-        description: "Routine updated successfully"
+        description: "Routine updated successfully",
       });
       setOpen(false);
       onEditComplete();
@@ -68,7 +71,7 @@ const EditRoutineDialog = ({
       toast({
         title: "Error",
         description: "Failed to update routine",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -118,16 +121,10 @@ const EditRoutineDialog = ({
           </div>
         </div>
         <DialogFooter>
-          <Button
-            onClick={() => setOpen(false)}
-            variant="outline"
-          >
+          <Button onClick={() => setOpen(false)} variant="outline">
             Cancel
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isLoading}
-          >
+          <Button onClick={handleSave} disabled={isLoading}>
             {isLoading ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>
