@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { SupabaseClient } from "@supabase/supabase-js";
@@ -30,7 +29,6 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      console.log("Fetched routines:", data); // Add log to debug
       return data;
     },
   });
