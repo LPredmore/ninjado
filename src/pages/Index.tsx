@@ -66,6 +66,23 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   useEffect(() => {
     checkSubscription();
+    
+    // Check for payment success/cancel in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      // Payment successful, refresh subscription status
+      toast.success('Payment successful! Welcome to Pro!');
+      setTimeout(() => {
+        checkSubscription();
+      }, 2000); // Give Stripe time to process
+      
+      // Clean up URL params
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (urlParams.get('canceled') === 'true') {
+      // Payment canceled
+      toast.info('Payment canceled');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, []);
 
   useEffect(() => {
@@ -89,9 +106,17 @@ const Index = ({ user, supabase }: IndexProps) => {
     }
   };
 
-  const handleSubscribe = () => {
-    // Direct to Stripe payment link instead of creating a checkout session
-    window.location.href = "https://buy.stripe.com/fZedRM7Co6Qe2qc144";
+  const handleSubscribe = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to create checkout session');
+    }
   };
 
   const handleTaskComplete = async (taskId: string, timeSaved: number) => {

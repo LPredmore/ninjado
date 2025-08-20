@@ -17,10 +17,10 @@ function getCorsHeaders(origin: string | null) {
   }
 }
 
-// Helper logging function for enhanced debugging
+// Helper logging function for debugging
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+  console.log(`[CUSTOMER-PORTAL] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -31,11 +31,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-  )
-
   try {
     logStep("Function started");
 
@@ -43,66 +38,46 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    // Get the user's JWT from the request headers
-    const authHeader = req.headers.get('Authorization')!
-    const token = authHeader.replace('Bearer ', '')
-    
-    // Get the user's email from their JWT
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
-    
-    if (userError || !user?.email) {
-      throw new Error('No email found')
-    }
+    // Initialize Supabase client with the service role key
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
 
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("No authorization header provided");
+    logStep("Authorization header found");
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    const user = userData.user;
+    if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Initialize Stripe
-    const stripe = new Stripe(stripeKey, {
-      apiVersion: '2023-10-16',
-    })
-
-    // Check if customer exists in Stripe
+    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Found existing Stripe customer", { customerId });
-    } else {
-      logStep("No existing customer found, will create during checkout");
+    if (customers.data.length === 0) {
+      throw new Error("No Stripe customer found for this user");
     }
+    const customerId = customers.data[0].id;
+    logStep("Found Stripe customer", { customerId });
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
-
-    // Create checkout session for subscription
-    const session = await stripe.checkout.sessions.create({
+    const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: { name: "NinjaDo Pro Subscription" },
-            unit_amount: 799, // $7.99 in cents
-            recurring: { interval: "month" },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      success_url: `${origin}/?success=true`,
-      cancel_url: `${origin}/?canceled=true`,
+      return_url: `${origin}/`,
     });
+    logStep("Customer portal session created", { sessionId: portalSession.id, url: portalSession.url });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
-
-    return new Response(JSON.stringify({ url: session.url }), {
+    return new Response(JSON.stringify({ url: portalSession.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
+    logStep("ERROR in customer-portal", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
