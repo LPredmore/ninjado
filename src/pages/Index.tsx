@@ -185,14 +185,36 @@ const Index = ({ user, supabase }: IndexProps) => {
           <div className="bg-ninja-primary/10 p-4 rounded-lg flex items-center justify-between">
             <div>
               <h3 className="font-semibold">Upgrade to Pro</h3>
-              <p className="text-sm text-gray-600">Get unlimited routines for $5/month</p>
+              <p className="text-sm text-gray-600">
+                Get unlimited routines for $5/month
+                <br />
+                <span className="text-xs">
+                  Just subscribed? <button 
+                    onClick={checkSubscription}
+                    className="text-ninja-primary underline"
+                    disabled={isLoading}
+                  >
+                    Refresh status
+                  </button>
+                </span>
+              </p>
             </div>
-            <Button
-              onClick={handleSubscribe}
-              className="bg-ninja-primary hover:bg-ninja-primary/90"
-            >
-              Subscribe Now
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={checkSubscription}
+                variant="outline"
+                size="sm"
+                disabled={isLoading}
+              >
+                {isLoading ? "Checking..." : "Refresh"}
+              </Button>
+              <Button
+                onClick={handleSubscribe}
+                className="bg-ninja-primary hover:bg-ninja-primary/90"
+              >
+                Subscribe Now
+              </Button>
+            </div>
           </div>
         )}
 
