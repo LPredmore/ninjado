@@ -108,14 +108,19 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   const handleSubscribe = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
+      // Use Stripe payment link as fallback
+      const stripePaymentUrl = 'https://buy.stripe.com/fZedRM7Co6Qe2qc144';
+      window.open(stripePaymentUrl, '_blank');
+      
+      // TODO: Debug edge function issue
+      // const { data, error } = await supabase.functions.invoke('create-checkout');
+      // if (error) throw error;
+      // if (data?.url) {
+      //   window.open(data.url, '_blank');
+      // }
     } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Failed to create checkout session');
+      console.error('Error opening payment link:', error);
+      toast.error('Failed to open payment link');
     }
   };
 
