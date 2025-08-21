@@ -54,34 +54,9 @@ serve(async (req) => {
     logStep(`Checking subscription for email: ${user.email}`);
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    logStep("Stripe customer search result", { 
-      searchEmail: user.email, 
-      customersFound: customers.data.length,
-      customerEmails: customers.data.map(c => c.email) 
-    });
     
     if (customers.data.length === 0) {
       logStep("No customer found, updating unsubscribed state");
-      
-      // Also search by a few common email variations
-      const emailVariations = [
-        user.email.replace('+test', ''),
-        user.email.replace('+', '%2B'), // URL encoded +
-      ];
-      
-      for (const emailVar of emailVariations) {
-        if (emailVar !== user.email) {
-          const altCustomers = await stripe.customers.list({ email: emailVar, limit: 1 });
-          if (altCustomers.data.length > 0) {
-            logStep("Found customer with email variation", { 
-              originalEmail: user.email, 
-              foundEmail: emailVar,
-              customerId: altCustomers.data[0].id 
-            });
-            break;
-          }
-        }
-      }
       await supabaseClient.from("subscribers").upsert({
         email: user.email,
         user_id: user.id,
