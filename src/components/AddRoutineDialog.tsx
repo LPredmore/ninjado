@@ -12,6 +12,8 @@ interface AddRoutineDialogProps {
   onOpenChange: (open: boolean) => void;
   supabase: SupabaseClient;
   onRoutineAdded: () => void;
+  isSubscribed?: boolean;
+  routineCount?: number;
 }
 
 export const AddRoutineDialog = ({
@@ -19,6 +21,8 @@ export const AddRoutineDialog = ({
   onOpenChange,
   supabase,
   onRoutineAdded,
+  isSubscribed = true,
+  routineCount = 0,
 }: AddRoutineDialogProps) => {
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -26,6 +30,13 @@ export const AddRoutineDialog = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check subscription limits before submitting
+    if (!isSubscribed && routineCount >= 1) {
+      toast.error("Free users are limited to 1 routine. Please upgrade to create more routines.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

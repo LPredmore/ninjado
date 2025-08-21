@@ -148,8 +148,8 @@ const Index = ({ user, supabase }: IndexProps) => {
   };
 
   const handleRoutineSelect = (routineId: string) => {
-    if (!isSubscribed && routines && routines.length >= 3) {
-      toast.error('Please subscribe to create more than 3 routines');
+    if (!isSubscribed && routines && routines.length > 1) {
+      toast.error('Free users are limited to 1 routine. Please upgrade to use multiple routines.');
       return;
     }
     resetRoutineState();
