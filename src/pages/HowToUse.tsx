@@ -3,6 +3,7 @@ import SidebarLayout from '@/components/SidebarLayout';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 import { 
   Target, 
   Clock, 
@@ -16,8 +17,18 @@ import {
 } from "lucide-react";
 
 const HowToUse = () => {
+  const navigate = useNavigate();
+  
   const handleSignOut = async () => {
     // This will be handled by the parent component
+  };
+
+  const handlePrivacyClick = () => {
+    window.open('https://bestselfs.com/data', '_blank');
+  };
+
+  const handleStartMission = () => {
+    navigate('/');
   };
 
   return (
@@ -223,7 +234,12 @@ const HowToUse = () => {
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-muted-foreground">Learn about how we protect your privacy and handle your training data</p>
-              <Button variant="default" size="lg" className="gradient-fun text-white font-semibold">
+              <Button 
+                variant="default" 
+                size="lg" 
+                className="gradient-fun text-white font-semibold"
+                onClick={handlePrivacyClick}
+              >
                 <Target className="w-4 h-4 mr-2" />
                 Privacy & Data Policy
               </Button>
@@ -237,7 +253,12 @@ const HowToUse = () => {
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-muted-foreground">Start with a simple morning or evening routine and work your way up to mastery!</p>
-              <Button variant="clay-electric" size="lg" className="w-full">
+              <Button 
+                variant="clay-electric" 
+                size="lg" 
+                className="w-full"
+                onClick={handleStartMission}
+              >
                 🎯 Start Your First Mission
               </Button>
             </CardContent>
