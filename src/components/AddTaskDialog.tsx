@@ -38,6 +38,7 @@ const AddTaskDialog = ({
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDuration, setNewTaskDuration] = useState('');
   const [taskType, setTaskType] = useState<'regular' | 'focus'>('regular');
+  const [open, setOpen] = useState(false);
 
   const handleCreateTask = async () => {
   const durationMinutes = parseInt(newTaskDuration, 10);
@@ -67,12 +68,18 @@ const AddTaskDialog = ({
     setNewTaskTitle('');
     setNewTaskDuration('');
     setTaskType('regular');
+    setOpen(false);
     onTasksUpdate();
     toast.success('Task added successfully');
+    
+    // Refresh the page after a short delay to ensure database updates are reflected
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button 
           className="w-full mt-2 bg-ninja-accent text-white hover:bg-ninja-accent/90"

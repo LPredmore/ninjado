@@ -89,7 +89,7 @@ const RoutineItem = ({
     <div
       className={`clay-element p-4 cursor-pointer transition-clay clay-hover ${
         isSelected
-          ? 'gradient-clay-accent glow-jade border-2 border-accent/50'
+          ? 'border-2 border-accent/50'
           : 'bg-card border-2 border-border/30 hover:border-accent/30'
       }`}
       onClick={onSelect}
@@ -98,6 +98,9 @@ const RoutineItem = ({
         <div className="flex items-center space-x-2">
           <List className="w-5 h-5 text-accent" />
           <span className="font-medium text-card-foreground">{routine.title}</span>
+          <Badge variant="outline" className="clay-element bg-primary/20 text-primary border-primary/30 text-xs">
+            {tasks.length} task{tasks.length !== 1 ? 's' : ''}
+          </Badge>
           <EditRoutineDialog 
             routineId={routine.id} 
             routineTitle={routine.title}
