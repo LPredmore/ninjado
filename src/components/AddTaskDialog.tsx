@@ -121,7 +121,7 @@ const AddTaskDialog = ({
                 <SelectValue placeholder="Select task type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="regular">Regular Task</SelectItem>
+                <SelectItem value="regular">Speed Task</SelectItem>
                 <SelectItem value="focus">Focus Task</SelectItem>
               </SelectContent>
             </Select>
