@@ -45,19 +45,19 @@ const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 mb-2"
+          className="clay-element px-3 py-2 gradient-clay-accent mb-2 flex items-center justify-between"
         >
           <div className="flex items-center gap-2">
             <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing mr-2">
-              <GripVertical className="h-5 w-5 text-gray-400" />
+              <GripVertical className="h-5 w-5 text-accent-foreground/70" />
             </div>
-            <span className="font-medium">{task.title}</span>
+            <span className="text-sm font-medium text-accent-foreground">{task.title}</span>
             {task.type === 'focus' && (
-              <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+              <Badge variant="secondary" className="bg-accent-foreground/20 text-accent-foreground border-accent-foreground/30">
                 Focus
               </Badge>
             )}
-            <span className="text-sm text-gray-500">({task.duration} min)</span>
+            <span className="text-sm text-accent-foreground/70">({task.duration} min)</span>
           </div>
           
           <div className="flex items-center gap-2">
@@ -71,7 +71,7 @@ const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
               variant="ghost"
               size="icon"
               onClick={handleDelete}
-              className="h-8 w-8 text-red-500 hover:text-red-600"
+              className="h-8 w-8 text-accent-foreground/70 hover:text-accent-foreground hover:bg-accent-foreground/10"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
