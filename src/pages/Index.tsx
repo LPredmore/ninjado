@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { SupabaseClient } from '@supabase/supabase-js';
-import Layout from '@/components/Layout';
+import SidebarLayout from '@/components/SidebarLayout';
 import RoutineContainer from '@/components/RoutineContainer';
 import { Task } from '@/types';
 import { useTimeTracking } from '@/contexts/TimeTrackingContext';
@@ -179,7 +179,7 @@ const Index = ({ user, supabase }: IndexProps) => {
   const selectedRoutine = routines?.find(routine => routine.id === selectedRoutineId);
 
   return (
-    <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
+    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="space-y-6">
         {!isSubscribed && (
           <div className="bg-ninja-primary/10 p-4 rounded-lg flex items-center justify-between">
@@ -218,7 +218,7 @@ const Index = ({ user, supabase }: IndexProps) => {
           />
         )}
       </div>
-    </Layout>
+    </SidebarLayout>
   );
 };
 

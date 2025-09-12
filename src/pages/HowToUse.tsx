@@ -1,15 +1,18 @@
 import React from 'react';
-import Layout from '@/components/Layout';
+import SidebarLayout from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 
 const HowToUse = () => {
+  const { totalTimeSaved } = useTimeTracking();
+  
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
   return (
-    <Layout onSignOut={handleSignOut} totalTimeSaved={0}>
+    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-ninja-text">How to Use NinjaDo</h2>
         
@@ -76,7 +79,7 @@ const HowToUse = () => {
           </section>
         </Card>
       </div>
-    </Layout>
+    </SidebarLayout>
   );
 };
 

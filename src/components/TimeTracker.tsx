@@ -13,11 +13,11 @@ const TimeTracker = ({ totalTimeSaved }: TimeTrackerProps) => {
   };
 
   return (
-    <div className="md:fixed md:top-4 md:left-4 bg-white rounded-lg shadow-lg p-4 flex items-center space-x-2 mb-4 md:mb-0">
-      <Trophy className="w-5 h-5 text-ninja-primary" />
+    <div className="flex items-center space-x-2 bg-card rounded-lg px-3 py-2 shadow-sm border">
+      <Trophy className="w-4 h-4 text-primary" />
       <div>
-        <p className="text-sm text-gray-500">Time Saved</p>
-        <p className="text-lg font-semibold text-ninja-primary">
+        <p className="text-xs text-muted-foreground">Time Saved</p>
+        <p className="text-sm font-semibold text-primary">
           {formatTimeDisplay(totalTimeSaved)}
         </p>
       </div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { SupabaseClient } from "@supabase/supabase-js";
-import Layout from "@/components/Layout";
+import SidebarLayout from "@/components/SidebarLayout";
 import { RewardsList } from "@/components/RewardsList";
 import { AddRewardDialog } from "@/components/AddRewardDialog";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ const Rewards = ({ user, supabase }: RewardsProps) => {
   };
 
   return (
-    <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
+    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="container mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Rewards</h1>
@@ -59,7 +59,7 @@ const Rewards = ({ user, supabase }: RewardsProps) => {
           onRewardAdded={refetchRewards}
         />
       </div>
-    </Layout>
+    </SidebarLayout>
   );
 };
 

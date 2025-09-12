@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { SupabaseClient } from "@supabase/supabase-js";
-import Layout from "@/components/Layout";
+import SidebarLayout from "@/components/SidebarLayout";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -111,7 +111,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
   };
 
   return (
-    <Layout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
+    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="container mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Routines</h1>
@@ -149,7 +149,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           routineCount={routines?.length || 0}
         />
       </div>
-    </Layout>
+    </SidebarLayout>
   );
 };
 
