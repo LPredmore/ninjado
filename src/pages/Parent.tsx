@@ -7,30 +7,30 @@ import { Shield, Lock, Unlock, Eye, EyeOff } from 'lucide-react';
 import SidebarLayout from '@/components/SidebarLayout';
 import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 import { toast } from '@/hooks/use-toast';
-
 interface ParentProps {
   user: User;
   supabase: SupabaseClient;
 }
-
-const Parent = ({ user, supabase }: ParentProps) => {
-  const { totalTimeSaved } = useTimeTracking();
+const Parent = ({
+  user,
+  supabase
+}: ParentProps) => {
+  const {
+    totalTimeSaved
+  } = useTimeTracking();
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [hasPin, setHasPin] = useState(false);
-
   useEffect(() => {
     // Check if PIN exists in localStorage
     const storedPin = localStorage.getItem(`ninja_pin_${user.id}`);
     setHasPin(!!storedPin);
   }, [user.id]);
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
-
   const handleSetPin = () => {
     if (newPin.length < 4) {
       toast({
@@ -40,7 +40,6 @@ const Parent = ({ user, supabase }: ParentProps) => {
       });
       return;
     }
-
     if (newPin !== confirmPin) {
       toast({
         title: "PINs Don't Match",
@@ -49,29 +48,25 @@ const Parent = ({ user, supabase }: ParentProps) => {
       });
       return;
     }
-
     localStorage.setItem(`ninja_pin_${user.id}`, newPin);
     setHasPin(true);
     setNewPin('');
     setConfirmPin('');
     toast({
       title: "Parental Controls Activated",
-      description: "PIN has been set successfully. Security protocols are now active.",
+      description: "PIN has been set successfully. Security protocols are now active."
     });
   };
-
   const handleRemovePin = () => {
     localStorage.removeItem(`ninja_pin_${user.id}`);
     setHasPin(false);
     setCurrentPin('');
     toast({
       title: "Parental Controls Deactivated",
-      description: "PIN has been removed. All restrictions are lifted.",
+      description: "PIN has been removed. All restrictions are lifted."
     });
   };
-
-  return (
-    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
+  return <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="container mx-auto p-6 max-w-4xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -92,25 +87,17 @@ const Parent = ({ user, supabase }: ParentProps) => {
           <Card className="clay-element">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                {hasPin ? (
-                  <Lock className="w-5 h-5 text-green-500" />
-                ) : (
-                  <Unlock className="w-5 h-5 text-orange-500" />
-                )}
+                {hasPin ? <Lock className="w-5 h-5 text-green-500" /> : <Unlock className="w-5 h-5 text-orange-500" />}
                 Security Status
               </CardTitle>
               <CardDescription>
-                {hasPin 
-                  ? "Parental controls are ACTIVE. PIN required for restricted actions."
-                  : "No parental controls set. All features are unrestricted."
-                }
+                {hasPin ? "Parental controls are ACTIVE. PIN required for restricted actions." : "No parental controls set. All features are unrestricted."}
               </CardDescription>
             </CardHeader>
           </Card>
 
           {/* PIN Management */}
-          {!hasPin ? (
-            <Card className="clay-element">
+          {!hasPin ? <Card className="clay-element">
               <CardHeader>
                 <CardTitle>Set Parental PIN</CardTitle>
                 <CardDescription>
@@ -119,39 +106,20 @@ const Parent = ({ user, supabase }: ParentProps) => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="relative">
-                  <Input
-                    type={showPin ? "text" : "password"}
-                    placeholder="Enter new PIN (minimum 4 digits)"
-                    value={newPin}
-                    onChange={(e) => setNewPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1 h-8 w-8"
-                    onClick={() => setShowPin(!showPin)}
-                  >
+                  <Input type={showPin ? "text" : "password"} placeholder="Enter new PIN (minimum 4 digits)" value={newPin} onChange={e => setNewPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))} className="pr-10" />
+                  <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1 h-8 w-8" onClick={() => setShowPin(!showPin)}>
                     {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
                 <div className="relative">
-                  <Input
-                    type={showPin ? "text" : "password"}
-                    placeholder="Confirm PIN"
-                    value={confirmPin}
-                    onChange={(e) => setConfirmPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
-                  />
+                  <Input type={showPin ? "text" : "password"} placeholder="Confirm PIN" value={confirmPin} onChange={e => setConfirmPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))} />
                 </div>
                 <Button onClick={handleSetPin} className="w-full" variant="clay-jade">
                   <Shield className="w-4 h-4 mr-2" />
                   Activate Parental Controls
                 </Button>
               </CardContent>
-            </Card>
-          ) : (
-            <Card className="clay-element">
+            </Card> : <Card className="clay-element">
               <CardHeader>
                 <CardTitle>PIN Management</CardTitle>
                 <CardDescription>
@@ -164,8 +132,7 @@ const Parent = ({ user, supabase }: ParentProps) => {
                   Remove PIN & Deactivate Controls
                 </Button>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Information Cards */}
           <Card className="clay-element">
@@ -216,20 +183,11 @@ const Parent = ({ user, supabase }: ParentProps) => {
           </Card>
 
           <Card className="clay-element border-orange-200 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/50">
-            <CardHeader>
-              <CardTitle className="text-orange-700 dark:text-orange-300">Important Notes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-orange-600 dark:text-orange-400">
-              <p className="text-sm">• PIN is stored locally on this device only</p>
-              <p className="text-sm">• If you forget your PIN, you'll need to clear browser data to reset</p>
-              <p className="text-sm">• Without a PIN, all features are completely unrestricted</p>
-              <p className="text-sm">• PIN protection only applies when explicitly set by parents</p>
-            </CardContent>
+            
+            
           </Card>
         </div>
       </div>
-    </SidebarLayout>
-  );
+    </SidebarLayout>;
 };
-
 export default Parent;
