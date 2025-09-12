@@ -23,6 +23,7 @@ const Index = ({ user, supabase }: IndexProps) => {
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
   const [orderedTasks, setOrderedTasks] = useState<Task[]>([]);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState(false);
   
   const {
@@ -105,6 +106,8 @@ const Index = ({ user, supabase }: IndexProps) => {
     } catch (error) {
       console.error('Error checking subscription:', error);
       toast.error('Failed to check subscription status');
+    } finally {
+      setIsCheckingSubscription(false);
     }
   };
 
@@ -185,7 +188,7 @@ const Index = ({ user, supabase }: IndexProps) => {
       <div className="space-y-8 p-6">
         
         {/* Pro Upgrade Banner */}
-        {!isSubscribed && (
+        {!isSubscribed && !isCheckingSubscription && (
           <div className="clay-element gradient-clay-accent p-6 glow-jade">
             <div className="flex items-center justify-between">
               <div>
