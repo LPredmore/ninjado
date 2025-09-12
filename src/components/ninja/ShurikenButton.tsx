@@ -25,10 +25,13 @@ export const ShurikenButton = ({
     electric: 'clay-electric'
   } as const;
 
+  // Use xl size for text content, shuriken for icons only
+  const buttonSize = Icon ? "shuriken" : "xl";
+
   return (
     <Button
       variant={variantMap[variant]}
-      size="shuriken"
+      size={buttonSize}
       onClick={onClick}
       className={className}
       disabled={disabled}

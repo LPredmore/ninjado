@@ -11,6 +11,7 @@ import { useRoutineState } from '@/hooks/useRoutineState';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 
 interface IndexProps {
   user: User;
@@ -252,6 +253,8 @@ const Index = ({ user, supabase }: IndexProps) => {
           </div>
         )}
         
+        {/* PWA Install Prompt */}
+        <PWAInstallPrompt />
       </div>
     </SidebarLayout>
   );

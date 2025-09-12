@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Target, Settings, Gift, HelpCircle, User, LogOut, Shield } from "lucide-react";
+import { Target, Settings, Gift, HelpCircle, User, LogOut, Shield, Menu } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const navigationItems = [
   {
@@ -50,6 +51,7 @@ interface AppSidebarProps {
 export function AppSidebar({ onSignOut }: AppSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const isMobile = useIsMobile();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -67,7 +69,11 @@ export function AppSidebar({ onSignOut }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar className="border-r border-border/50 backdrop-blur-md">
+    <Sidebar 
+      className="border-r border-border/50 backdrop-blur-md" 
+      collapsible="icon"
+      variant={isMobile ? "floating" : "sidebar"}
+    >
       {/* Ninja Dojo Background with bamboo texture */}
       <div className="absolute inset-0 bg-gradient-to-b from-ninja-forest to-ninja-midnight opacity-95" />
       <div className="relative z-10">
