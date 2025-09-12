@@ -103,7 +103,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
         <div className="text-center">
           <div className="clay-element w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
             <img 
-              src="/lovable-uploads/4b52c6af-f31e-4e1e-b212-c7b79a00f888.png" 
+              src="/lovable-uploads/3b625771-568e-4e81-9f85-dd2963292f55.png" 
               alt="Ninja Avatar"
               className="w-16 h-16 object-contain"
             />
