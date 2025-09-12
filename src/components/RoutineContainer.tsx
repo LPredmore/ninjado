@@ -15,6 +15,7 @@ interface RoutineContainerProps {
   onPauseRoutine: () => void;
   onTaskComplete: (taskId: string, timeSaved: number) => Promise<void>;
   onTaskReorder: (tasks: Task[]) => void;
+  userId: string;
 }
 
 const RoutineContainer = ({
@@ -27,6 +28,7 @@ const RoutineContainer = ({
   onPauseRoutine,
   onTaskComplete,
   onTaskReorder,
+  userId,
 }: RoutineContainerProps) => {
   return (
     <NinjaScrollCard 
@@ -43,6 +45,7 @@ const RoutineContainer = ({
           isPaused={isPaused}
           onStartRoutine={onStartRoutine}
           onPauseRoutine={onPauseRoutine}
+          userId={userId}
         />
         
         <div className="clay-element p-6">
@@ -58,6 +61,7 @@ const RoutineContainer = ({
             isRoutineStarted={isRoutineStarted}
             isPaused={isPaused}
             onTaskReorder={onTaskReorder}
+            userId={userId}
           />
         </div>
       </div>

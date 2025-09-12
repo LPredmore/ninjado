@@ -11,6 +11,8 @@ import Rewards from "./pages/Rewards";
 import HowToUse from "./pages/HowToUse";
 import Profile from "./pages/Profile";
 import Contact from "./pages/Contact";
+import Parent from "./pages/Parent";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { User } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 import { TimeTrackingProvider } from "./contexts/TimeTrackingContext";
@@ -61,8 +63,23 @@ const App = () => {
               <Sonner />
               <Routes>
                 <Route path="/" element={<Index user={user} supabase={supabase} />} />
-                <Route path="/routines" element={<Routines user={user} supabase={supabase} />} />
+                <Route 
+                  path="/routines" 
+                  element={
+                    <ProtectedRoute userId={user.id}>
+                      <Routines user={user} supabase={supabase} />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route path="/rewards" element={<Rewards user={user} supabase={supabase} />} />
+                <Route 
+                  path="/parent" 
+                  element={
+                    <ProtectedRoute userId={user.id}>
+                      <Parent user={user} supabase={supabase} />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route path="/how-to-use" element={<HowToUse />} />
                 <Route path="/profile" element={<Profile user={user} supabase={supabase} />} />
                 <Route path="/contact" element={<Contact user={user} supabase={supabase} />} />

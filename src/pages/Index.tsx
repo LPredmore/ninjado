@@ -232,6 +232,7 @@ const Index = ({ user, supabase }: IndexProps) => {
               onPauseRoutine={handlePauseRoutine}
               onTaskComplete={handleTaskComplete}
               onTaskReorder={handleTaskReorder}
+              userId={user.id}
             />
           </div>
         )}

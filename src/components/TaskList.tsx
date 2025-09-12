@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from './ui/input';
 import { toast } from 'sonner';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { useParentalControls } from '@/hooks/useParentalControls';
+import PinPrompt from '@/components/PinPrompt';
 
 interface TaskListProps {
   tasks: Task[];
@@ -15,6 +17,7 @@ interface TaskListProps {
   isRoutineStarted: boolean;
   isPaused?: boolean;
   onTaskReorder: (tasks: Task[]) => void;
+  userId: string;
 }
 
 const TaskList = ({ 
@@ -22,11 +25,14 @@ const TaskList = ({
   onTaskComplete,
   isRoutineStarted,
   isPaused,
-  onTaskReorder
+  onTaskReorder,
+  userId
 }: TaskListProps) => {
   const [localTasks, setLocalTasks] = React.useState<Task[]>(tasks);
   const [newTaskTitle, setNewTaskTitle] = React.useState('');
   const [newTaskDuration, setNewTaskDuration] = React.useState('');
+  const [showAddDialog, setShowAddDialog] = React.useState(false);
+  const { isPinPromptOpen, requestAccess, handlePinSuccess, handlePinCancel } = useParentalControls(userId);
 
   // Update local tasks when parent tasks change
   React.useEffect(() => {
@@ -60,7 +66,13 @@ const TaskList = ({
     onTaskReorder(updatedTasks);
     setNewTaskTitle('');
     setNewTaskDuration('');
+    setShowAddDialog(false);
     toast.success('Temporary task added');
+  };
+
+  const handlePinSuccessForAddTask = () => {
+    setShowAddDialog(true);
+    handlePinSuccess();
   };
 
   const handleDragEnd = (result: any) => {
@@ -143,45 +155,59 @@ const TaskList = ({
       </DragDropContext>
 
       {!isRoutineStarted && (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="w-full mt-4" variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Temporary Task
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Temporary Task</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div>
-                <label className="text-sm font-medium">Task Name</label>
-                <Input
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  placeholder="Enter task name"
-                  className="mt-1"
-                />
+        <>
+          <Button 
+            className="w-full mt-4" 
+            variant="outline"
+            onClick={() => requestAccess(() => setShowAddDialog(true))}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Temporary Task
+          </Button>
+          
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Temporary Task</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <label className="text-sm font-medium">Task Name</label>
+                  <Input
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                    placeholder="Enter task name"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Duration (minutes)</label>
+                  <Input
+                    type="number"
+                    value={newTaskDuration}
+                    onChange={(e) => setNewTaskDuration(e.target.value)}
+                    placeholder="Enter duration"
+                    min="1"
+                    className="mt-1"
+                  />
+                </div>
+                <Button onClick={handleAddTemporaryTask} className="w-full">
+                  Add Task
+                </Button>
               </div>
-              <div>
-                <label className="text-sm font-medium">Duration (minutes)</label>
-                <Input
-                  type="number"
-                  value={newTaskDuration}
-                  onChange={(e) => setNewTaskDuration(e.target.value)}
-                  placeholder="Enter duration"
-                  min="1"
-                  className="mt-1"
-                />
-              </div>
-              <Button onClick={handleAddTemporaryTask} className="w-full">
-                Add Task
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </>
       )}
+      
+      <PinPrompt
+        isOpen={isPinPromptOpen}
+        onClose={handlePinCancel}
+        onSuccess={handlePinSuccessForAddTask}
+        title="Task Management Security"
+        description="Adding temporary tasks requires parental authorization."
+        userId={userId}
+      />
     </div>
   );
 };

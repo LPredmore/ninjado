@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Target, Settings, Gift, HelpCircle, User, LogOut } from "lucide-react";
+import { Target, Settings, Gift, HelpCircle, User, LogOut, Shield } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +30,11 @@ const navigationItems = [
     title: "Rewards",
     url: "/rewards", 
     icon: Gift,
+  },
+  {
+    title: "Parents",
+    url: "/parent",
+    icon: Shield,
   },
   {
     title: "How to Use",

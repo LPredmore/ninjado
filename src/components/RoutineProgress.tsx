@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ShurikenButton } from '@/components/ninja/ShurikenButton';
 import { Progress } from '@/components/ui/progress';
 import { Play, Pause } from 'lucide-react';
+import { useParentalControls } from '@/hooks/useParentalControls';
+import PinPrompt from '@/components/PinPrompt';
 
 interface RoutineProgressProps {
   routineTitle: string;
@@ -13,6 +15,7 @@ interface RoutineProgressProps {
   isPaused: boolean;
   onStartRoutine: () => void;
   onPauseRoutine: () => void;
+  userId: string;
 }
 
 const RoutineProgress = ({
@@ -22,9 +25,11 @@ const RoutineProgress = ({
   isRoutineStarted,
   isPaused,
   onStartRoutine,
-  onPauseRoutine
+  onPauseRoutine,
+  userId
 }: RoutineProgressProps) => {
   const percentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  const { isPinPromptOpen, requestAccess, handlePinSuccess, handlePinCancel } = useParentalControls(userId);
 
   return (
     <div className="space-y-6">
@@ -51,7 +56,7 @@ const RoutineProgress = ({
           </ShurikenButton>
         ) : (
           <Button
-            onClick={onPauseRoutine}
+            onClick={() => requestAccess(onPauseRoutine)}
             variant="ninja-scroll"
             size="lg"
             className="flex items-center gap-2"
@@ -79,6 +84,15 @@ const RoutineProgress = ({
         </div>
         <Progress value={percentage} className="h-6 clay-element" />
       </div>
+      
+      <PinPrompt
+        isOpen={isPinPromptOpen}
+        onClose={handlePinCancel}
+        onSuccess={handlePinSuccess}
+        title="Training Control Security"
+        description="Pause/Resume controls require parental authorization."
+        userId={userId}
+      />
     </div>
   );
 };
