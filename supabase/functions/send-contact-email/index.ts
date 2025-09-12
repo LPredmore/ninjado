@@ -26,6 +26,37 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { to, from, topic, message, senderEmail }: ContactEmailRequest = await req.json();
 
+    // Input validation and sanitization
+    if (!to || !senderEmail || !topic || !message) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Validate email formats
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(to) || !emailRegex.test(senderEmail)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Sanitize and validate inputs
+    const sanitizedMessage = message.slice(0, 5000).replace(/[<>]/g, ''); // Remove HTML tags, limit length
+    const sanitizedSenderEmail = senderEmail.slice(0, 100);
+    const sanitizedTopic = topic.slice(0, 50);
+
+    // Validate topic is one of allowed values
+    const allowedTopics = ['suggest-feature', 'report-problem', 'corporate-rate', 'unsubscribe'];
+    if (!allowedTopics.includes(sanitizedTopic)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid topic" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Map topic values to readable subjects
     const topicMap: { [key: string]: string } = {
       'suggest-feature': 'Feature Suggestion',
@@ -34,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
       'unsubscribe': 'Unsubscribe Request'
     };
 
-    const subject = `NinjaDo Contact: ${topicMap[topic] || topic}`;
+    const subject = `NinjaDo Contact: ${topicMap[sanitizedTopic]}`;
 
     const emailResponse = await resend.emails.send({
       from: "NinjaDo Contact <onboarding@resend.dev>",
@@ -42,10 +73,10 @@ const handler = async (req: Request): Promise<Response> => {
       subject: subject,
       html: `
         <h2>New Contact Form Submission</h2>
-        <p><strong>From:</strong> ${senderEmail}</p>
-        <p><strong>Topic:</strong> ${topicMap[topic] || topic}</p>
+        <p><strong>From:</strong> ${sanitizedSenderEmail}</p>
+        <p><strong>Topic:</strong> ${topicMap[sanitizedTopic]}</p>
         <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>${sanitizedMessage.replace(/\n/g, '<br>')}</p>
         <hr>
         <p><small>This message was sent via the NinjaDo contact form.</small></p>
       `,
