@@ -37,19 +37,21 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
   });
 
   const { data: tasks, refetch: refetchTasks } = useQuery({
-    queryKey: ["tasks", selectedRoutineId],
-    enabled: !!selectedRoutineId,
+    queryKey: ["all-tasks"],
     queryFn: async () => {
-      if (!selectedRoutineId) return [];
+      if (!routines || routines.length === 0) return [];
+      
+      const routineIds = routines.map(r => r.id);
       const { data, error } = await supabase
         .from("routine_tasks")
         .select("*")
-        .eq("routine_id", selectedRoutineId)
+        .in("routine_id", routineIds)
         .order("position", { ascending: true });
 
       if (error) throw error;
       return data;
     },
+    enabled: !!routines && routines.length > 0,
   });
 
   const checkSubscription = async () => {
