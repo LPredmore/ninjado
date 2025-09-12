@@ -1,16 +1,36 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useParentalControls = (userId: string) => {
   const [isPinPromptOpen, setIsPinPromptOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [pinRequired, setPinRequired] = useState(false);
 
-  const checkPinRequired = useCallback(() => {
-    const storedPin = localStorage.getItem(`ninja_pin_${userId}`);
-    return !!storedPin;
+  useEffect(() => {
+    checkPinRequired();
+  }, [userId]);
+
+  const checkPinRequired = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('parental_controls')
+        .select('is_active')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking PIN requirement:', error);
+        return;
+      }
+
+      setPinRequired(!!data?.is_active);
+    } catch (error) {
+      console.error('Error checking PIN requirement:', error);
+    }
   }, [userId]);
 
   const requestAccess = useCallback((action: () => void, skipPinCheck = false) => {
-    if (skipPinCheck || !checkPinRequired()) {
+    if (skipPinCheck || !pinRequired) {
       // No PIN set or PIN check skipped, execute action immediately
       action();
       return;
@@ -19,7 +39,7 @@ export const useParentalControls = (userId: string) => {
     // PIN required, show prompt
     setPendingAction(() => action);
     setIsPinPromptOpen(true);
-  }, [checkPinRequired]);
+  }, [pinRequired]);
 
   const handlePinSuccess = useCallback(() => {
     if (pendingAction) {
@@ -39,6 +59,7 @@ export const useParentalControls = (userId: string) => {
     requestAccess,
     handlePinSuccess,
     handlePinCancel,
-    checkPinRequired: checkPinRequired()
+    checkPinRequired: pinRequired,
+    refreshPinStatus: checkPinRequired
   };
 };

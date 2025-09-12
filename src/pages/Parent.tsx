@@ -7,6 +7,7 @@ import { Shield, Lock, Unlock, Eye, EyeOff } from 'lucide-react';
 import SidebarLayout from '@/components/SidebarLayout';
 import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 import { toast } from '@/hooks/use-toast';
+import bcrypt from 'bcryptjs';
 interface ParentProps {
   user: User;
   supabase: SupabaseClient;
@@ -23,15 +24,67 @@ const Parent = ({
   const [confirmPin, setConfirmPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [hasPin, setHasPin] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
   useEffect(() => {
-    // Check if PIN exists in localStorage
-    const storedPin = localStorage.getItem(`ninja_pin_${user.id}`);
-    setHasPin(!!storedPin);
+    checkExistingPin();
+    migrateFromLocalStorage();
   }, [user.id]);
+
+  const checkExistingPin = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('parental_controls')
+        .select('is_active')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking PIN:', error);
+        return;
+      }
+
+      setHasPin(!!data?.is_active);
+    } catch (error) {
+      console.error('Error checking existing PIN:', error);
+    }
+  };
+
+  const migrateFromLocalStorage = async () => {
+    const localPin = localStorage.getItem(`ninja_pin_${user.id}`);
+    if (!localPin) return;
+
+    try {
+      const { data: existingPin } = await supabase
+        .from('parental_controls')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!existingPin) {
+        const hashedPin = await bcrypt.hash(localPin, 10);
+        await supabase
+          .from('parental_controls')
+          .insert({
+            user_id: user.id,
+            pin_hash: hashedPin,
+            is_active: true
+          });
+
+        localStorage.removeItem(`ninja_pin_${user.id}`);
+        toast({
+          title: "PIN Migrated",
+          description: "Your PIN has been securely migrated to the cloud for cross-device sync.",
+        });
+      }
+    } catch (error) {
+      console.error('Error migrating PIN:', error);
+    }
+  };
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
-  const handleSetPin = () => {
+  const handleSetPin = async () => {
     if (newPin.length < 4) {
       toast({
         title: "PIN Too Short",
@@ -48,23 +101,67 @@ const Parent = ({
       });
       return;
     }
-    localStorage.setItem(`ninja_pin_${user.id}`, newPin);
-    setHasPin(true);
-    setNewPin('');
-    setConfirmPin('');
-    toast({
-      title: "Parental Controls Activated",
-      description: "PIN has been set successfully. Security protocols are now active."
-    });
+
+    setLoading(true);
+    try {
+      const hashedPin = await bcrypt.hash(newPin, 10);
+      
+      const { error } = await supabase
+        .from('parental_controls')
+        .upsert({
+          user_id: user.id,
+          pin_hash: hashedPin,
+          is_active: true
+        });
+
+      if (error) throw error;
+
+      setHasPin(true);
+      setNewPin('');
+      setConfirmPin('');
+      
+      toast({
+        title: "Parental Controls Activated",
+        description: "PIN has been set successfully. Security protocols are now active."
+      });
+    } catch (error) {
+      console.error('Error setting PIN:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set PIN. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleRemovePin = () => {
-    localStorage.removeItem(`ninja_pin_${user.id}`);
-    setHasPin(false);
-    setCurrentPin('');
-    toast({
-      title: "Parental Controls Deactivated",
-      description: "PIN has been removed. All restrictions are lifted."
-    });
+  const handleRemovePin = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('parental_controls')
+        .update({ is_active: false })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setHasPin(false);
+      setCurrentPin('');
+      
+      toast({
+        title: "Parental Controls Deactivated",
+        description: "PIN has been removed. All restrictions are lifted."
+      });
+    } catch (error) {
+      console.error('Error removing PIN:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove PIN. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   return <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="container mx-auto p-6 max-w-4xl">
@@ -114,9 +211,9 @@ const Parent = ({
                 <div className="relative">
                   <Input type={showPin ? "text" : "password"} placeholder="Confirm PIN" value={confirmPin} onChange={e => setConfirmPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))} />
                 </div>
-                <Button onClick={handleSetPin} className="w-full" variant="clay-jade">
+                <Button onClick={handleSetPin} className="w-full" variant="clay-jade" disabled={loading}>
                   <Shield className="w-4 h-4 mr-2" />
-                  Activate Parental Controls
+                  {loading ? "Activating..." : "Activate Parental Controls"}
                 </Button>
               </CardContent>
             </Card> : <Card className="clay-element">
@@ -127,9 +224,9 @@ const Parent = ({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button onClick={handleRemovePin} variant="destructive" className="w-full">
+                <Button onClick={handleRemovePin} variant="destructive" className="w-full" disabled={loading}>
                   <Unlock className="w-4 h-4 mr-2" />
-                  Remove PIN & Deactivate Controls
+                  {loading ? "Removing..." : "Remove PIN & Deactivate Controls"}
                 </Button>
               </CardContent>
             </Card>}

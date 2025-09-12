@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Shield, X, Eye, EyeOff } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import bcrypt from 'bcryptjs';
 
 interface PinPromptProps {
   isOpen: boolean;
@@ -23,28 +25,54 @@ interface PinPromptProps {
 const PinPrompt = ({ isOpen, onClose, onSuccess, title, description, userId }: PinPromptProps) => {
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
-    const storedPin = localStorage.getItem(`ninja_pin_${userId}`);
-    
-    if (!storedPin) {
-      // No PIN set, allow access
-      onSuccess();
-      return;
-    }
-    
-    if (pin === storedPin) {
-      onSuccess();
-      setPin('');
-    } else {
+    try {
+      const { data, error } = await supabase
+        .from('parental_controls')
+        .select('pin_hash')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single();
+
+      if (error || !data) {
+        toast({
+          title: "PIN Not Found",
+          description: "No active parental PIN found. Please set up parental controls first.",
+          variant: "destructive",
+        });
+        setPin('');
+        setLoading(false);
+        return;
+      }
+
+      const isValid = await bcrypt.compare(pin, data.pin_hash);
+      
+      if (isValid) {
+        onSuccess();
+        handleClose();
+      } else {
+        toast({
+          title: "Access Denied",
+          description: "Incorrect PIN. Only parents can access this feature.",
+          variant: "destructive"
+        });
+        setPin('');
+      }
+    } catch (error) {
+      console.error('Error verifying PIN:', error);
       toast({
-        title: "Access Denied",
-        description: "Incorrect PIN. Only parents can access this feature.",
-        variant: "destructive"
+        title: "Error",
+        description: "Failed to verify PIN. Please try again.",
+        variant: "destructive",
       });
       setPin('');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,9 +140,10 @@ const PinPrompt = ({ isOpen, onClose, onSuccess, title, description, userId }: P
               type="submit"
               variant="clay-jade"
               className="flex-1"
+              disabled={loading}
             >
               <Shield className="w-4 h-4 mr-2" />
-              Authorize
+              {loading ? "Verifying..." : "Authorize"}
             </Button>
           </div>
         </form>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PinPrompt from './PinPrompt';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,16 +15,40 @@ const ProtectedRoute = ({ children, userId, requirePin = true }: ProtectedRouteP
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedPin = localStorage.getItem(`ninja_pin_${userId}`);
-    
-    if (!requirePin || !storedPin) {
-      // No PIN required or no PIN set, allow access
-      setIsAuthorized(true);
-    } else {
-      // PIN required, show prompt
-      setShowPinPrompt(true);
-    }
+    checkPinRequirement();
   }, [userId, requirePin]);
+
+  const checkPinRequirement = async () => {
+    if (!requirePin) {
+      setIsAuthorized(true);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('parental_controls')
+        .select('is_active')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking PIN requirement:', error);
+        setIsAuthorized(true); // Allow access if there's an error
+        return;
+      }
+
+      if (data?.is_active) {
+        // PIN is active, show prompt
+        setShowPinPrompt(true);
+      } else {
+        // No PIN set or not active, allow access
+        setIsAuthorized(true);
+      }
+    } catch (error) {
+      console.error('Error checking PIN requirement:', error);
+      setIsAuthorized(true); // Allow access if there's an error
+    }
+  };
 
   const handlePinSuccess = () => {
     setIsAuthorized(true);
