@@ -87,17 +87,17 @@ const RoutineItem = ({
   
   return (
     <div
-      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+      className={`clay-element p-4 cursor-pointer transition-clay clay-hover ${
         isSelected
-          ? 'border-ninja-primary bg-ninja-primary/10'
-          : 'border-gray-200 hover:border-ninja-primary/50'
+          ? 'gradient-clay-accent glow-jade border-2 border-accent/50'
+          : 'bg-card border-2 border-border/30 hover:border-accent/30'
       }`}
       onClick={onSelect}
     >
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <List className="w-5 h-5 text-ninja-primary" />
-          <span className="font-medium">{routine.title}</span>
+          <List className="w-5 h-5 text-accent" />
+          <span className="font-medium text-card-foreground">{routine.title}</span>
           <EditRoutineDialog 
             routineId={routine.id} 
             routineTitle={routine.title}
@@ -120,16 +120,17 @@ const RoutineItem = ({
               e.stopPropagation();
               onDelete(routine.id);
             }}
+            className="hover:bg-destructive/20 hover:text-destructive"
           >
-            <Trash2 className="w-4 h-4 text-gray-500" />
+            <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
           </Button>
         </div>
       </div>
 
       <div className="mt-3 flex justify-between items-center">
-        <div className="flex flex-wrap gap-1 items-center">
+        <div className="flex flex-wrap gap-2 items-center">
           {tasks.length > 0 && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="clay-element bg-accent/20 text-accent border-accent/30 text-xs">
               {totalDurationMinutes} min total
             </Badge>
           )}
@@ -137,26 +138,34 @@ const RoutineItem = ({
         
         <div className="flex gap-4 items-center">
           {routine.start_time ? (
-            <div className="flex items-center px-3 py-1 bg-gray-50 rounded-md border border-gray-200">
-              <Clock className="w-4 h-4 mr-1 text-gray-500" />
-              <span className="text-sm font-medium">Start: {routine.start_time}</span>
+            <div className="clay-element px-3 py-2 gradient-clay-primary">
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-primary-foreground" />
+                <span className="text-sm font-medium text-primary-foreground">Start: {routine.start_time}</span>
+              </div>
             </div>
           ) : (
-            <div className="flex items-center px-3 py-1 bg-gray-50 rounded-md border border-gray-200 text-gray-400">
-              <Clock className="w-4 h-4 mr-1" />
-              <span className="text-sm">No start time</span>
+            <div className="clay-element px-3 py-2 bg-muted/50">
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">No start time</span>
+              </div>
             </div>
           )}
           
           {endTime ? (
-            <div className="flex items-center px-3 py-1 bg-gray-50 rounded-md border border-gray-200">
-              <CalendarClock className="w-4 h-4 mr-1 text-gray-500" />
-              <span className="text-sm font-medium">End: {endTime}</span>
+            <div className="clay-element px-3 py-2 gradient-clay-accent">
+              <div className="flex items-center">
+                <CalendarClock className="w-4 h-4 mr-2 text-accent-foreground" />
+                <span className="text-sm font-medium text-accent-foreground">End: {endTime}</span>
+              </div>
             </div>
           ) : (
-            <div className="flex items-center px-3 py-1 bg-gray-50 rounded-md border border-gray-200 text-gray-400">
-              <CalendarClock className="w-4 h-4 mr-1" />
-              <span className="text-sm">Set start time</span>
+            <div className="clay-element px-3 py-2 bg-muted/50">
+              <div className="flex items-center">
+                <CalendarClock className="w-4 h-4 mr-2 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Set start time</span>
+              </div>
             </div>
           )}
         </div>

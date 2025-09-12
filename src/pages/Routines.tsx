@@ -4,7 +4,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import SidebarLayout from "@/components/SidebarLayout";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, List } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AddRoutineDialog } from "@/components/AddRoutineDialog";
 import RoutineItem from "@/components/RoutineItem";
@@ -112,20 +112,36 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
 
   return (
     <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
-      <div className="container mx-auto p-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Routines</h1>
+      <div className="container mx-auto p-6 space-y-8">
+        
+        {/* Page Header */}
+        <div className="text-center">
+          <div className="clay-element w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
+            <List className="w-10 h-10 text-accent-foreground" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-2">
+            Training Routines
+          </h1>
+          <p className="text-muted-foreground">Create and manage your ninja training sequences</p>
+        </div>
+
+        {/* Add Routine Button */}
+        <div className="flex justify-center">
           <Button 
             onClick={handleAddRoutineClick}
             disabled={!isSubscribed && routines && routines.length >= 1}
+            variant="clay-jade"
+            size="lg"
+            className="glow-jade"
           >
-            <Plus className="mr-2" />
-            Add Routine
+            <Plus className="mr-2 w-5 h-5" />
+            Add New Routine
             {!isSubscribed && routines && routines.length >= 1 && " (Upgrade Required)"}
           </Button>
         </div>
 
-        <div className="grid gap-4">
+        {/* Routines Grid */}
+        <div className="grid gap-6">
           {routines?.map((routine) => (
             <RoutineItem
               key={routine.id}
@@ -139,6 +155,21 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
             />
           ))}
         </div>
+
+        {/* Empty State */}
+        {(!routines || routines.length === 0) && (
+          <div className="clay-element text-center p-12">
+            <div className="clay-element w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-6 flex items-center justify-center glow-jade">
+              <List className="w-10 h-10 text-accent-foreground" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-3">No Training Routines Yet</h3>
+            <p className="text-muted-foreground mb-6">Create your first routine to start your ninja training journey.</p>
+            <Button variant="clay-jade" size="lg" onClick={handleAddRoutineClick}>
+              <Plus className="w-5 h-5 mr-2" />
+              Create First Routine
+            </Button>
+          </div>
+        )}
 
         <AddRoutineDialog
           open={isAddRoutineOpen}
