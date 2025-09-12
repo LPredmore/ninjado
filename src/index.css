@@ -4,61 +4,63 @@
 
 @layer base {
   :root {
-    /* Ninja Clay Theme - Dark Mysterious Base */
+    /* Ninja Clay Theme - Cyberpunk Edition */
     --background: 220 25% 8%;           /* Midnight Blue #1C2A4E */
-    --foreground: 210 40% 85%;          /* Light text */
+    --foreground: 180 100% 85%;         /* Cyan light text */
     --card: 220 20% 15%;                /* Dark card background */
-    --card-foreground: 210 40% 85%;     /* Light card text */
+    --card-foreground: 180 100% 85%;    /* Cyan card text */
     --popover: 220 20% 12%;             /* Darker popover */
-    --popover-foreground: 210 40% 85%;  /* Light popover text */
+    --popover-foreground: 180 100% 85%; /* Cyan popover text */
     
-    /* Primary Clay Elements - Slate Gray */
-    --primary: 210 15% 45%;             /* Slate Gray #5D6D7E */
+    /* Primary Clay Elements - Cyberpunk Blue */
+    --primary: 220 100% 60%;            /* Cyberpunk Blue */
     --primary-foreground: 0 0% 100%;    /* White text on primary */
     
-    /* Secondary Clay - Deep Crimson */
-    --secondary: 10 60% 35%;            /* Deep Crimson Red #943126 */
+    /* Secondary Clay - Cyberpunk Purple */
+    --secondary: 270 80% 50%;           /* Cyberpunk Purple */
     --secondary-foreground: 0 0% 100%;  /* White text on secondary */
     
-    /* Action Colors - Vibrant Accents */
-    --accent: 174 70% 45%;              /* Jade Green #1ABC9C */
-    --accent-foreground: 0 0% 100%;     /* White text on accent */
+    /* Action Colors - Cyberpunk Accent */
+    --accent: 180 100% 50%;             /* Cyan Accent */
+    --accent-foreground: 220 25% 8%;    /* Dark text on cyan */
     
-    /* Warning/Urgent - Fiery Orange */
-    --destructive: 25 85% 50%;          /* Fiery Orange #E67E22 */
+    /* Warning/Urgent - Cyberpunk Pink */
+    --destructive: 320 100% 60%;        /* Cyberpunk Pink */
     --destructive-foreground: 0 0% 100%; /* White text */
     
-    /* Success - Electric Yellow */
-    --success: 48 100% 50%;             /* Electric Yellow #F1C40F */
-    --success-foreground: 220 25% 8%;   /* Dark text on yellow */
+    /* Success - Electric Cyan */
+    --success: 180 100% 50%;            /* Electric Cyan */
+    --success-foreground: 220 25% 8%;   /* Dark text on cyan */
     
     /* Muted elements */
     --muted: 220 15% 20%;               /* Charcoal Gray #343F4B */
-    --muted-foreground: 210 20% 65%;    /* Muted text */
+    --muted-foreground: 180 50% 65%;    /* Muted cyan text */
     
     /* Borders and inputs */
     --border: 220 15% 25%;              /* Subtle border */
     --input: 220 15% 18%;               /* Input background */
-    --ring: 174 70% 45%;                /* Focus ring - jade */
+    --ring: 180 100% 50%;               /* Focus ring - cyan */
     --radius: 1.25rem;                  /* 20px border radius */
 
-    /* Clay Tactile Gradients */
-    --gradient-clay-primary: linear-gradient(145deg, hsl(210 15% 48%), hsl(210 15% 42%));
-    --gradient-clay-secondary: linear-gradient(145deg, hsl(10 60% 38%), hsl(10 60% 32%));
-    --gradient-clay-accent: linear-gradient(145deg, hsl(174 70% 48%), hsl(174 70% 42%));
-    --gradient-dojo-bg: linear-gradient(135deg, hsl(220 25% 8%), hsl(140 20% 6%));
-    --gradient-success: linear-gradient(145deg, hsl(48 100% 53%), hsl(48 100% 47%));
+    /* Clay Tactile Gradients - Cyberpunk Edition */
+    --gradient-clay-primary: linear-gradient(145deg, hsl(220 100% 65%), hsl(220 100% 55%));
+    --gradient-clay-secondary: linear-gradient(145deg, hsl(270 80% 55%), hsl(270 80% 45%));
+    --gradient-clay-accent: linear-gradient(145deg, hsl(180 100% 55%), hsl(180 100% 45%));
+    --gradient-dojo-bg: linear-gradient(135deg, hsl(220 25% 8%), hsl(270 20% 6%));
+    --gradient-success: linear-gradient(145deg, hsl(180 100% 55%), hsl(180 100% 45%));
+    --gradient-cyberpunk: linear-gradient(45deg, hsl(180 100% 50%), hsl(220 100% 60%), hsl(270 80% 50%), hsl(320 100% 60%));
     
-    /* Clay Depth Shadows - Prominent outer + soft inner */
-    --shadow-clay-outer: 0 16px 48px -12px hsl(220 25% 4% / 0.6);
-    --shadow-clay-inner: inset 0 2px 4px hsl(0 0% 100% / 0.1), inset 0 -2px 4px hsl(220 25% 4% / 0.3);
-    --shadow-clay-hover: 0 20px 60px -15px hsl(220 25% 4% / 0.8);
-    --shadow-clay-press: 0 8px 24px -8px hsl(220 25% 4% / 0.4);
+    /* Clay Depth Shadows - Cyberpunk Glow */
+    --shadow-clay-outer: 0 16px 48px -12px hsl(220 25% 4% / 0.8);
+    --shadow-clay-inner: inset 0 2px 4px hsl(180 100% 50% / 0.1), inset 0 -2px 4px hsl(220 25% 4% / 0.3);
+    --shadow-clay-hover: 0 20px 60px -15px hsl(180 100% 50% / 0.4);
+    --shadow-clay-press: 0 8px 24px -8px hsl(220 25% 4% / 0.6);
     
-    /* Ninja Glow Effects */
-    --glow-jade: 0 0 30px hsl(174 70% 45% / 0.4);
-    --glow-fire: 0 0 30px hsl(25 85% 50% / 0.4);
-    --glow-electric: 0 0 30px hsl(48 100% 50% / 0.6);
+    /* Cyberpunk Glow Effects */
+    --glow-jade: 0 0 30px hsl(180 100% 50% / 0.6);
+    --glow-fire: 0 0 30px hsl(320 100% 60% / 0.6);
+    --glow-electric: 0 0 30px hsl(180 100% 50% / 0.8);
+    --glow-cyberpunk: 0 0 40px hsl(220 100% 60% / 0.6), 0 0 80px hsl(180 100% 50% / 0.3);
     
     /* Tactile Transitions */
     --transition-clay: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -114,7 +116,7 @@
     box-shadow: var(--shadow-clay-press), var(--shadow-clay-inner);
   }
   
-  /* Ninja Glow Effects */
+  /* Cyberpunk Glow Effects */
   .glow-jade {
     box-shadow: var(--glow-jade);
   }
@@ -123,6 +125,9 @@
   }
   .glow-electric {
     box-shadow: var(--glow-electric);
+  }
+  .glow-cyberpunk {
+    box-shadow: var(--glow-cyberpunk);
   }
   
   /* Clay Transitions */

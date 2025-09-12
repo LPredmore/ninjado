@@ -25,16 +25,16 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         
-        /* Ninja Clay Color Palette */
+        /* Ninja Clay Color Palette - Cyberpunk Edition */
         ninja: {
           midnight: "hsl(220 25% 8%)",      /* Midnight Blue base */
           charcoal: "hsl(220 15% 20%)",     /* Charcoal Gray */
-          forest: "hsl(140 20% 6%)",        /* Deep Forest Green */
-          slate: "hsl(210 15% 45%)",        /* Slate Gray */
-          crimson: "hsl(10 60% 35%)",       /* Deep Crimson */
-          jade: "hsl(174 70% 45%)",         /* Jade Green */
-          fire: "hsl(25 85% 50%)",          /* Fiery Orange */
-          electric: "hsl(48 100% 50%)",     /* Electric Yellow */
+          forest: "hsl(270 20% 6%)",        /* Deep Purple */
+          slate: "hsl(220 100% 60%)",       /* Cyberpunk Blue */
+          crimson: "hsl(320 100% 60%)",     /* Cyberpunk Pink */
+          jade: "hsl(180 100% 50%)",        /* Electric Cyan */
+          fire: "hsl(320 100% 60%)",        /* Cyberpunk Pink */
+          electric: "hsl(180 100% 50%)",    /* Electric Cyan */
         },
         
         primary: {

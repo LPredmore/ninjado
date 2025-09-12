@@ -69,13 +69,19 @@ export function AppSidebar({ onSignOut }: AppSidebarProps) {
         
         <SidebarHeader className="p-6">
           <div className="flex items-center gap-3">
-            <div className="clay-element w-12 h-12 gradient-clay-accent rounded-xl flex items-center justify-center glow-jade">
-              <span className="text-accent-foreground font-bold text-lg">🥷</span>
+            <div className="clay-element w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 glow-jade">
+              <img 
+                src="/lovable-uploads/4b52c6af-f31e-4e1e-b212-c7b79a00f888.png" 
+                alt="NinjaDo Logo"
+                className="w-10 h-10 object-contain"
+              />
             </div>
             {!collapsed && (
               <div>
-                <h2 className="font-bold text-xl text-foreground">NinjaDo</h2>
-                <p className="text-sm text-muted-foreground">Mystical Productivity Dojo</p>
+                <h2 className="font-bold text-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                  NinjaDo
+                </h2>
+                <p className="text-sm text-cyan-300/80 font-medium">Master Your Routine</p>
               </div>
             )}
           </div>
