@@ -20,7 +20,7 @@ export const NinjaScrollCard = ({
   const variantClasses = {
     default: '',
     mission: 'gradient-clay-primary glow-jade',
-    reward: 'gradient-clay-accent glow-electric animate-electric-glow'
+    reward: 'gradient-clay-accent glow-electric'
   };
 
   return (
@@ -28,7 +28,7 @@ export const NinjaScrollCard = ({
       className={cn(
         'ninja-scroll border-2 border-border/30 backdrop-blur-sm',
         variantClasses[variant],
-        glowing && 'animate-jade-glow',
+        glowing && 'glow-jade',
         className
       )}
     >

@@ -64,12 +64,12 @@ export function AppSidebar({ onSignOut }: AppSidebarProps) {
   return (
     <Sidebar className="border-r border-border/50 backdrop-blur-md">
       {/* Ninja Dojo Background with bamboo texture */}
-      <div className="absolute inset-0 bg-gradient-to-b from-ninja-forest to-ninja-midnight opacity-95 animate-bamboo-sway" />
+      <div className="absolute inset-0 bg-gradient-to-b from-ninja-forest to-ninja-midnight opacity-95" />
       <div className="relative z-10">
         
         <SidebarHeader className="p-6">
           <div className="flex items-center gap-3">
-            <div className="clay-element w-12 h-12 gradient-clay-accent rounded-xl flex items-center justify-center glow-jade animate-jade-glow">
+            <div className="clay-element w-12 h-12 gradient-clay-accent rounded-xl flex items-center justify-center glow-jade">
               <span className="text-accent-foreground font-bold text-lg">🥷</span>
             </div>
             {!collapsed && (

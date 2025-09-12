@@ -18,14 +18,14 @@ const buttonVariants = cva(
         link: "text-accent underline-offset-4 hover:underline transition-clay",
         
         /* Ninja Action Variants */
-        "clay-jade": "clay-element gradient-clay-accent text-accent-foreground clay-hover clay-press glow-jade animate-jade-glow font-bold",
-        "clay-fire": "clay-element bg-destructive text-destructive-foreground clay-hover clay-press glow-fire animate-fire-glow font-bold",
-        "clay-electric": "clay-element bg-success text-success-foreground clay-hover clay-press glow-electric animate-electric-glow font-bold",
+        "clay-jade": "clay-element gradient-clay-accent text-accent-foreground clay-hover clay-press glow-jade font-bold",
+        "clay-fire": "clay-element bg-destructive text-destructive-foreground clay-hover clay-press glow-fire font-bold",
+        "clay-electric": "clay-element bg-success text-success-foreground clay-hover clay-press glow-electric font-bold",
         
         /* Ninja Themed Variants */
-        "shuriken": "clay-element gradient-clay-primary text-primary-foreground clay-hover clay-press rounded-full aspect-square p-0 hover:animate-shuriken-spin font-bold",
+        "shuriken": "clay-element gradient-clay-primary text-primary-foreground clay-hover clay-press rounded-full aspect-square p-0 font-bold",
         "ninja-scroll": "clay-element bg-card border-2 border-border text-card-foreground clay-hover clay-press rounded-2xl font-medium shadow-clay-outer",
-        "smoke-bomb": "clay-element bg-muted text-muted-foreground clay-hover clay-press rounded-full animate-ninja-float",
+        "smoke-bomb": "clay-element bg-muted text-muted-foreground clay-hover clay-press rounded-full",
       },
       size: {
         default: "h-12 px-6 py-3 rounded-xl",

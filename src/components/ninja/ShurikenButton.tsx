@@ -30,7 +30,7 @@ export const ShurikenButton = ({
       variant={variantMap[variant]}
       size="shuriken"
       onClick={onClick}
-      className={`hover:animate-shuriken-spin ${className}`}
+      className={className}
       disabled={disabled}
     >
       {Icon ? <Icon className="w-6 h-6" /> : children}

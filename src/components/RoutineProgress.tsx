@@ -77,7 +77,7 @@ const RoutineProgress = ({
           <span className="text-sm font-bold text-foreground">Katana Power:</span>
           <span className="text-sm text-muted-foreground">{Math.round(percentage)}% charged</span>
         </div>
-        <Progress value={percentage} className="h-6 clay-element animate-jade-glow" />
+        <Progress value={percentage} className="h-6 clay-element" />
       </div>
     </div>
   );

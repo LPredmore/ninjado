@@ -185,7 +185,7 @@ const Index = ({ user, supabase }: IndexProps) => {
         
         {/* Pro Upgrade Banner */}
         {!isSubscribed && (
-          <div className="clay-element gradient-clay-accent p-6 glow-jade animate-jade-glow">
+          <div className="clay-element gradient-clay-accent p-6 glow-jade">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-accent-foreground text-lg">🌟 Upgrade to Pro Ninja</h3>
@@ -195,7 +195,6 @@ const Index = ({ user, supabase }: IndexProps) => {
                 variant="clay-electric"
                 size="lg"
                 onClick={handleSubscribe}
-                className="animate-electric-glow"
               >
                 ⚡ Subscribe Now
               </Button>
@@ -204,7 +203,7 @@ const Index = ({ user, supabase }: IndexProps) => {
         )}
 
         {/* Routine Selector - Ninja Scroll Style */}
-        <div className="clay-element animate-ninja-float">
+        <div className="clay-element">
           <div className="p-6">
             <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
               <span className="clay-element w-10 h-10 gradient-clay-primary rounded-xl flex items-center justify-center">
@@ -222,7 +221,7 @@ const Index = ({ user, supabase }: IndexProps) => {
 
         {/* Main Routine Container */}
         {selectedRoutineId && (
-          <div className="clay-element animate-ninja-float animation-delay-200">
+          <div className="clay-element">
             <RoutineContainer
               routineTitle={selectedRoutine?.title || "Ninja Mission"}
               tasks={processedTasks}
