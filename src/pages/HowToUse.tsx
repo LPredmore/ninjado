@@ -1,83 +1,249 @@
-import React from 'react';
+import { useState } from 'react';
 import SidebarLayout from '@/components/SidebarLayout';
-import { Card } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { useTimeTracking } from '@/contexts/TimeTrackingContext';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Target, 
+  Clock, 
+  TrendingUp, 
+  Gift, 
+  Zap, 
+  Brain, 
+  Play, 
+  CheckCircle,
+  Flame
+} from "lucide-react";
 
 const HowToUse = () => {
-  const { totalTimeSaved } = useTimeTracking();
-  
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    // This will be handled by the parent component
   };
 
   return (
-    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-ninja-text">How to Use NinjaDo</h2>
-        
-        <Card className="p-6 space-y-6">
-          <section className="space-y-3">
-            <h3 className="text-xl font-semibold text-ninja-text">Getting Started</h3>
-            <p className="text-gray-600">
-              NinjaDo helps you create and manage your daily routines efficiently. Here's how to get started:
-            </p>
-            <ol className="list-decimal list-inside space-y-2 text-gray-600 ml-4">
-              <li>Create a new routine from the Routines page</li>
-              <li>Add tasks to your routine</li>
-              <li>Start the routine when you're ready</li>
-              <li>Complete tasks to earn time savings</li>
-            </ol>
-          </section>
+    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={0}>
+      <div className="max-w-5xl mx-auto p-6 space-y-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <p className="text-lg text-muted-foreground mb-8">
+            Master the art of routine optimization and time crystal mastery
+          </p>
+        </div>
 
-          <section className="space-y-3">
-            <h3 className="text-xl font-semibold text-ninja-text">Types of Tasks</h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-ninja-text">Regular Tasks</h4>
-                <p className="text-gray-600">
-                  Regular tasks are standard tasks where any time saved from completing them early counts as time earned.
-                  For example, if you have a 10-minute task and complete it in 8 minutes, you earn 2 minutes.
-                  However, if you go over on your time, then it will deduct time from your Time Saved. For example,
-                  if you have a 10-minute task and complete it in 12 minutes, you will lose 2 minutes.
-                </p>
+        <div className="space-y-6">
+          {/* Getting Started */}
+          <Card className="bg-card/60 backdrop-blur border shadow-fun">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <Target className="w-5 h-5" />
+                Getting Started
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                  <Target className="w-5 h-5 mt-0.5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Create Your First Routine</h4>
+                    <p className="text-sm text-muted-foreground">Go to Routines and create a routine like 'Morning Routine' or 'Study Session'</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                  <CheckCircle className="w-5 h-5 mt-0.5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Add Tasks</h4>
+                    <p className="text-sm text-muted-foreground">Break down your routine into specific tasks with estimated durations</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                  <Flame className="w-5 h-5 mt-0.5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Set Task Types</h4>
+                    <p className="text-sm text-muted-foreground">Choose between Speed Tasks (earn crystals) and Focus Tasks (take your time)</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h4 className="font-medium text-ninja-text">Focus Tasks</h4>
-                <p className="text-gray-600">
-                  Focus Tasks are tasks that you don't want to be rushed on, but you also want to make sure you don't get distracted.
-                  You don't get any time added bonus for completing these tasks early. But it will deduct from your time if you go over.
-                </p>
-                <p className="text-gray-600 mt-2">
-                  Example: Your child needs to do a mindfulness activity, such as deep breathing, to calm themselves down in the middle
-                  of their routine. They need to do 10 deep slow breaths. You don't want them to feel rushed. So you create a Focus Task
-                  for Deep Breathing. I decide that it should take them no more than a minute and a half to get that done, and I put 3
-                  minutes as the time. This way, they have plenty of time so that they don't feel rushed. But if they get distracted and
-                  go start playing, then they will start losing time due to the distraction.
-                </p>
+            </CardContent>
+          </Card>
+
+          {/* Task Types Explained */}
+          <Card className="bg-card/60 backdrop-blur border shadow-fun">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <Flame className="w-5 h-5" />
+                Task Types Explained
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-semibold">Speed Tasks</h4>
+                    <Zap className="w-4 h-4 text-orange-500" />
+                    <Badge variant="secondary" className="text-xs">Earn Crystals</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Finish early to earn time crystals. Going overtime loses crystals. Perfect for routine tasks.</p>
+                </div>
+                <div className="p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-semibold">Focus Tasks</h4>
+                    <Brain className="w-4 h-4 text-orange-500" />
+                    <Badge variant="secondary" className="text-xs">No Rush</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Take your time, no rush bonus. Only penalized for going overtime. Good for creative work.</p>
+                </div>
               </div>
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
-          <section className="space-y-3">
-            <h3 className="text-xl font-semibold text-ninja-text">Managing Time</h3>
-            <p className="text-gray-600">
-              As you complete tasks faster than their allocated time, you'll earn time savings.
-              This saved time can be used to redeem rewards you create in the Rewards section.
-              Think of it as a way to incentivize efficient task completion!
-            </p>
-          </section>
+          {/* Executing Routines */}
+          <Card className="bg-card/60 backdrop-blur border shadow-fun">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <Play className="w-5 h-5" />
+                Executing Routines
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                  <Play className="w-5 h-5 mt-0.5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Select & Start</h4>
+                    <p className="text-sm text-muted-foreground">Choose your routine from the dropdown and hit 'Begin Training'</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                  <Clock className="w-5 h-5 mt-0.5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Focus on Current Task</h4>
+                    <p className="text-sm text-muted-foreground">Work on the highlighted active task. Watch the timer and progress bar.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                  <CheckCircle className="w-5 h-5 mt-0.5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Complete Tasks</h4>
+                    <p className="text-sm text-muted-foreground">Hit 'Complete Task' when finished or let the timer run to track overtime</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          <section className="space-y-3">
-            <h3 className="text-xl font-semibold text-ninja-text">Tips for Success</h3>
-            <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-              <li>Start with realistic time estimates for your tasks</li>
-              <li>Use focus tasks for activities that need dedicated attention</li>
-              <li>Create meaningful rewards to stay motivated</li>
-              <li>Review and adjust your routines regularly</li>
-            </ul>
-          </section>
-        </Card>
+          {/* Time Crystal System */}
+          <Card className="bg-card/60 backdrop-blur border shadow-fun">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div className="w-5 h-5 text-primary">💎</div>
+                Time Crystal System
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                  <TrendingUp className="w-5 h-5 mt-0.5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Earn Crystals</h4>
+                    <p className="text-sm text-muted-foreground">Complete Speed Tasks early to bank extra time for later use</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                  <Clock className="w-5 h-5 mt-0.5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Lose Crystals</h4>
+                    <p className="text-sm text-muted-foreground">Going overtime on any task type costs you crystals as a motivation penalty</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                  <Gift className="w-5 h-5 mt-0.5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold mb-1">Spend Wisely</h4>
+                    <p className="text-sm text-muted-foreground">Use earned crystals on rewards you create - breaks, treats, entertainment time</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pro Ninja Tips */}
+          <Card className="bg-card/60 backdrop-blur border shadow-fun">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div className="w-5 h-5 text-primary">🥷</div>
+                Pro Ninja Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Target className="w-5 h-5 mt-0.5 text-primary" />
+                    <div>
+                      <h4 className="font-semibold mb-1">Start Small</h4>
+                      <p className="text-sm text-muted-foreground">Begin with 3-5 task routines to build the habit</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 mt-0.5 text-primary" />
+                    <div>
+                      <h4 className="font-semibold mb-1">Be Realistic</h4>
+                      <p className="text-sm text-muted-foreground">Set achievable time estimates. You can always adjust later</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Flame className="w-5 h-5 mt-0.5 text-primary" />
+                    <div>
+                      <h4 className="font-semibold mb-1">Use Both Task Types</h4>
+                      <p className="text-sm text-muted-foreground">Mix Speed Tasks for efficiency with Focus Tasks for quality work</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-muted/30 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Gift className="w-5 h-5 mt-0.5 text-primary" />
+                    <div>
+                      <h4 className="font-semibold mb-1">Create Motivating Rewards</h4>
+                      <p className="text-sm text-muted-foreground">Set up rewards you actually want to earn crystals for</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Privacy Section */}
+          <Card className="bg-card/60 backdrop-blur border shadow-fun">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl text-center">Privacy & Your Data</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-muted-foreground">Learn about how we protect your privacy and handle your training data</p>
+              <Button variant="default" size="lg" className="gradient-fun text-white font-semibold">
+                <Target className="w-4 h-4 mr-2" />
+                Privacy & Data Policy
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Ready to Begin */}
+          <Card className="bg-card/60 backdrop-blur border shadow-fun">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl text-center">Ready to Begin Your Training?</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-muted-foreground">Start with a simple morning or evening routine and work your way up to mastery!</p>
+              <Button variant="fun" size="lg" className="animate-bounce-in">
+                <Target className="w-4 h-4 mr-2" />
+                Create First Routine
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </SidebarLayout>
   );
