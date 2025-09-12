@@ -101,7 +101,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
         
         {/* Profile Header */}
         <div className="text-center">
-          <div className="clay-element w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
+          <div className="clay-element w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
             <img 
               src="/lovable-uploads/3b625771-568e-4e81-9f85-dd2963292f55.png" 
               alt="Ninja Avatar"

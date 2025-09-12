@@ -80,7 +80,7 @@ export function AppSidebar({ onSignOut }: AppSidebarProps) {
         
         <SidebarHeader className="p-6">
           <div className="flex items-center gap-3">
-            <div className="clay-element w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 glow-jade">
+            <div className="clay-element w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden glow-jade">
               <img 
                 src="/lovable-uploads/3b625771-568e-4e81-9f85-dd2963292f55.png" 
                 alt="NinjaDo Logo"
