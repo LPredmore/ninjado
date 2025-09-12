@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { SupabaseClient } from "@supabase/supabase-js";
 import SidebarLayout from "@/components/SidebarLayout";
@@ -20,8 +20,36 @@ const Profile = ({ user, supabase }: ProfileProps) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [hasActiveSub, setHasActiveSub] = useState(false);
+  const [isLoadingSub, setIsLoadingSub] = useState(true);
   const { totalTimeSaved } = useTimeTracking();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('subscribers')
+          .select('subscribed, subscription_end')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!error && data) {
+          const isActive = data.subscribed && 
+            (!data.subscription_end || new Date(data.subscription_end) > new Date());
+          setHasActiveSub(isActive);
+        }
+      } catch (error) {
+        console.log("No subscription found");
+      } finally {
+        setIsLoadingSub(false);
+      }
+    };
+
+    if (user?.id) {
+      checkSubscription();
+    }
+  }, [user?.id, supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -137,46 +165,48 @@ const Profile = ({ user, supabase }: ProfileProps) => {
           </div>
         </NinjaScrollCard>
 
-        {/* Subscription Status */}
-        <NinjaScrollCard title="👑 Subscription Status" variant="default">
-          <div className="space-y-6">
-            
-            {/* Free Account Status */}
-            <div className="clay-element p-6 bg-muted/50">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="clay-element w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                  <span className="text-sm">🆓</span>
-                </div>
-                <h3 className="font-bold text-lg text-foreground">Free Account</h3>
-              </div>
+        {/* Subscription Status - Only show for free users */}
+        {!isLoadingSub && !hasActiveSub && (
+          <NinjaScrollCard title="👑 Subscription Status" variant="default">
+            <div className="space-y-6">
               
-              <div className="space-y-2 text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-accent rounded-full"></span>
-                  <span>1 Routine at a time</span>
+              {/* Free Account Status */}
+              <div className="clay-element p-6 bg-muted/50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="clay-element w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                    <span className="text-sm">🆓</span>
+                  </div>
+                  <h3 className="font-bold text-lg text-foreground">Free Account</h3>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-accent rounded-full"></span>
-                  <span>Basic Support</span>
+                
+                <div className="space-y-2 text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-accent rounded-full"></span>
+                    <span>1 Routine at a time</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-accent rounded-full"></span>
+                    <span>Basic Support</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Upgrade Button */}
-            <Button 
-              onClick={handleUpgradeToPremium}
-              variant="clay-electric" 
-              size="lg"
-              className="w-full glow-electric"
-            >
-              <Crown className="w-5 h-5 mr-2" />
-              Upgrade to Premium
-            </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Unlock unlimited routines and premium features
-            </p>
-          </div>
-        </NinjaScrollCard>
+              {/* Upgrade Button */}
+              <Button 
+                onClick={handleUpgradeToPremium}
+                variant="clay-electric" 
+                size="lg"
+                className="w-full glow-electric"
+              >
+                <Crown className="w-5 h-5 mr-2" />
+                Upgrade to Premium
+              </Button>
+              <p className="text-center text-sm text-muted-foreground">
+                Unlock unlimited routines and premium features
+              </p>
+            </div>
+          </NinjaScrollCard>
+        )}
 
         {/* Questions or Suggestions */}
         <NinjaScrollCard title="💬 Questions or Suggestions?" variant="default">

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { MessageSquare, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -17,7 +18,7 @@ interface ContactProps {
 }
 
 const Contact = ({ user, supabase }: ContactProps) => {
-  const [subject, setSubject] = useState("");
+  const [topic, setTopic] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { totalTimeSaved } = useTimeTracking();
@@ -29,22 +30,34 @@ const Contact = ({ user, supabase }: ContactProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!subject.trim() || !message.trim()) {
-      toast.error("Please fill in all fields");
+    if (!topic.trim() || !message.trim()) {
+      toast.error("Please select a topic and enter your message");
       return;
     }
 
     setIsSubmitting(true);
     
     try {
-      // For now, we'll just show a success message
-      // In a real app, you'd integrate with an email service or database
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      // Call Supabase Edge Function to send email
+      const { error } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          to: 'ourbestselfs@gmail.com',
+          from: user.email,
+          topic: topic,
+          message: message,
+          senderEmail: user.email
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
       
       toast.success("Message sent successfully! We'll get back to you soon.");
-      setSubject("");
+      setTopic("");
       setMessage("");
     } catch (error) {
+      console.error("Error sending message:", error);
       toast.error("Failed to send message. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -84,19 +97,22 @@ const Contact = ({ user, supabase }: ContactProps) => {
               />
             </div>
 
-            {/* Subject */}
+            {/* Topic */}
             <div className="space-y-2">
-              <Label htmlFor="subject" className="text-foreground font-medium">
-                Subject
+              <Label htmlFor="topic" className="text-foreground font-medium">
+                Topic
               </Label>
-              <Input
-                id="subject"
-                placeholder="What's this about?"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="clay-element"
-                required
-              />
+              <Select value={topic} onValueChange={setTopic} required>
+                <SelectTrigger className="clay-element">
+                  <SelectValue placeholder="Select a topic" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="suggest-feature">Suggest New Feature</SelectItem>
+                  <SelectItem value="report-problem">Report a Problem</SelectItem>
+                  <SelectItem value="corporate-rate">Get Corporate Rate</SelectItem>
+                  <SelectItem value="unsubscribe">Unsubscribe</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Message */}
