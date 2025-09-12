@@ -24,13 +24,19 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        
+        /* Ninja Clay Color Palette */
         ninja: {
-          primary: "#34D399",
-          secondary: "#F87171",
-          accent: "#8B5CF6",
-          background: "#F9FAFB",
-          text: "#1F2937",
+          midnight: "hsl(220 25% 8%)",      /* Midnight Blue base */
+          charcoal: "hsl(220 15% 20%)",     /* Charcoal Gray */
+          forest: "hsl(140 20% 6%)",        /* Deep Forest Green */
+          slate: "hsl(210 15% 45%)",        /* Slate Gray */
+          crimson: "hsl(10 60% 35%)",       /* Deep Crimson */
+          jade: "hsl(174 70% 45%)",         /* Jade Green */
+          fire: "hsl(25 85% 50%)",          /* Fiery Orange */
+          electric: "hsl(48 100% 50%)",     /* Electric Yellow */
         },
+        
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -42,6 +48,10 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -69,88 +79,141 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "bounce-in": {
+        
+        /* Clay Tactile Animations */
+        "clay-squish": {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(0.95)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "clay-bounce": {
           "0%": { 
-            transform: "scale(0.3) rotate(-10deg)", 
+            transform: "scale(0.8) rotate(-5deg)", 
             opacity: "0" 
           },
-          "50%": { 
-            transform: "scale(1.1) rotate(5deg)", 
-            opacity: "0.8" 
+          "60%": { 
+            transform: "scale(1.1) rotate(2deg)", 
+            opacity: "1" 
           },
           "100%": { 
             transform: "scale(1) rotate(0deg)", 
             opacity: "1" 
           },
         },
-        "wiggle": {
-          "0%, 100%": { transform: "rotate(-3deg)" },
-          "50%": { transform: "rotate(3deg)" },
-        },
-        "rainbow": {
-          "0%": { background: "linear-gradient(45deg, #ff6b6b, #4ecdc4)" },
-          "25%": { background: "linear-gradient(45deg, #4ecdc4, #45b7d1)" },
-          "50%": { background: "linear-gradient(45deg, #45b7d1, #96ceb4)" },
-          "75%": { background: "linear-gradient(45deg, #96ceb4, #feca57)" },
-          "100%": { background: "linear-gradient(45deg, #feca57, #ff6b6b)" },
-        },
-        "task-complete": {
+        
+        /* Ninja Themed Animations */
+        "smoke-puff": {
           "0%": { 
-            transform: "scale(1) rotate(0deg)",
-            background: "var(--gradient-primary)"
+            opacity: "1",
+            transform: "scale(1)",
+            filter: "blur(0px)"
+          },
+          "50%": {
+            opacity: "0.7",
+            transform: "scale(1.2)",
+            filter: "blur(2px)"
+          },
+          "100%": {
+            opacity: "0",
+            transform: "scale(1.5)",
+            filter: "blur(4px)"
+          }
+        },
+        "katana-slash": {
+          "0%": { 
+            transform: "translateX(-100%) rotate(-45deg)",
+            opacity: "0"
+          },
+          "50%": {
+            transform: "translateX(0%) rotate(0deg)",
+            opacity: "1"
+          },
+          "100%": { 
+            transform: "translateX(100%) rotate(45deg)",
+            opacity: "0"
+          },
+        },
+        "shuriken-spin": {
+          "0%": { 
+            transform: "rotate(0deg) scale(1)",
+            opacity: "1"
+          },
+          "100%": { 
+            transform: "rotate(360deg) scale(1.1)",
+            opacity: "1"
+          },
+        },
+        "ninja-float": {
+          "0%, 100%": { 
+            transform: "translateY(0px) rotate(0deg)" 
           },
           "25%": { 
-            transform: "scale(1.1) rotate(5deg)",
-            background: "var(--gradient-secondary)"
+            transform: "translateY(-8px) rotate(1deg)" 
           },
           "50%": { 
-            transform: "scale(1.2) rotate(-5deg)",
-            background: "var(--gradient-accent)"
+            transform: "translateY(-12px) rotate(0deg)" 
           },
           "75%": { 
-            transform: "scale(1.1) rotate(2deg)",
-            background: "var(--gradient-secondary)"
-          },
-          "100%": { 
-            transform: "scale(1) rotate(0deg)",
-            background: "var(--gradient-primary)"
+            transform: "translateY(-6px) rotate(-1deg)" 
           },
         },
-        "slide-up": {
-          "0%": { 
-            transform: "translateY(20px) scale(0.9)", 
-            opacity: "0" 
-          },
-          "100%": { 
-            transform: "translateY(0) scale(1)", 
-            opacity: "1" 
-          },
-        },
-        "float": {
-          "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-10px)" },
-        },
-        "glow-pulse": {
+        "jade-glow": {
           "0%, 100%": { 
-            boxShadow: "0 0 20px hsl(270 95% 75% / 0.4)",
+            boxShadow: "0 0 20px hsl(174 70% 45% / 0.4)",
             transform: "scale(1)"
           },
           "50%": { 
-            boxShadow: "0 0 40px hsl(270 95% 75% / 0.8)",
-            transform: "scale(1.02)"
+            boxShadow: "0 0 40px hsl(174 70% 45% / 0.8)",
+            transform: "scale(1.05)"
           },
+        },
+        "fire-glow": {
+          "0%, 100%": { 
+            boxShadow: "0 0 20px hsl(25 85% 50% / 0.4)",
+            transform: "scale(1)"
+          },
+          "50%": { 
+            boxShadow: "0 0 40px hsl(25 85% 50% / 0.8)",
+            transform: "scale(1.05)"
+          },
+        },
+        "electric-glow": {
+          "0%, 100%": { 
+            boxShadow: "0 0 20px hsl(48 100% 50% / 0.6)",
+            transform: "scale(1)"
+          },
+          "50%": { 
+            boxShadow: "0 0 40px hsl(48 100% 50% / 1)",
+            transform: "scale(1.05)"
+          },
+        },
+        "bamboo-sway": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(1deg)" },
+          "75%": { transform: "rotate(-1deg)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "bounce-in": "bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
-        "wiggle": "wiggle 0.5s ease-in-out infinite",
-        "rainbow": "rainbow 3s ease-in-out infinite",
-        "task-complete": "task-complete 1s ease-in-out",
-        "slide-up": "slide-up 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
-        "float": "float 3s ease-in-out infinite",
-        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        
+        /* Clay Animations */
+        "clay-squish": "clay-squish 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        "clay-bounce": "clay-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        
+        /* Ninja Animations */
+        "smoke-puff": "smoke-puff 0.6s ease-out forwards",
+        "katana-slash": "katana-slash 0.8s ease-in-out",
+        "shuriken-spin": "shuriken-spin 0.5s ease-out",
+        "ninja-float": "ninja-float 4s ease-in-out infinite",
+        
+        /* Glow Animations */
+        "jade-glow": "jade-glow 2s ease-in-out infinite",
+        "fire-glow": "fire-glow 2s ease-in-out infinite",
+        "electric-glow": "electric-glow 2s ease-in-out infinite",
+        
+        /* Background Animations */
+        "bamboo-sway": "bamboo-sway 6s ease-in-out infinite",
       },
     },
   },

@@ -4,42 +4,66 @@
 
 @layer base {
   :root {
-    /* Kid-friendly vibrant colors */
-    --background: 220 100% 98%;
-    --foreground: 240 10% 15%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 15%;
-    --primary: 270 95% 75%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 60 95% 85%;
-    --secondary-foreground: 240 10% 15%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 340 82% 75%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 220 13% 90%;
-    --input: 220 13% 95%;
-    --ring: 270 95% 75%;
-    --radius: 1.2rem;
+    /* Ninja Clay Theme - Dark Mysterious Base */
+    --background: 220 25% 8%;           /* Midnight Blue #1C2A4E */
+    --foreground: 210 40% 85%;          /* Light text */
+    --card: 220 20% 15%;                /* Dark card background */
+    --card-foreground: 210 40% 85%;     /* Light card text */
+    --popover: 220 20% 12%;             /* Darker popover */
+    --popover-foreground: 210 40% 85%;  /* Light popover text */
+    
+    /* Primary Clay Elements - Slate Gray */
+    --primary: 210 15% 45%;             /* Slate Gray #5D6D7E */
+    --primary-foreground: 0 0% 100%;    /* White text on primary */
+    
+    /* Secondary Clay - Deep Crimson */
+    --secondary: 10 60% 35%;            /* Deep Crimson Red #943126 */
+    --secondary-foreground: 0 0% 100%;  /* White text on secondary */
+    
+    /* Action Colors - Vibrant Accents */
+    --accent: 174 70% 45%;              /* Jade Green #1ABC9C */
+    --accent-foreground: 0 0% 100%;     /* White text on accent */
+    
+    /* Warning/Urgent - Fiery Orange */
+    --destructive: 25 85% 50%;          /* Fiery Orange #E67E22 */
+    --destructive-foreground: 0 0% 100%; /* White text */
+    
+    /* Success - Electric Yellow */
+    --success: 48 100% 50%;             /* Electric Yellow #F1C40F */
+    --success-foreground: 220 25% 8%;   /* Dark text on yellow */
+    
+    /* Muted elements */
+    --muted: 220 15% 20%;               /* Charcoal Gray #343F4B */
+    --muted-foreground: 210 20% 65%;    /* Muted text */
+    
+    /* Borders and inputs */
+    --border: 220 15% 25%;              /* Subtle border */
+    --input: 220 15% 18%;               /* Input background */
+    --ring: 174 70% 45%;                /* Focus ring - jade */
+    --radius: 1.25rem;                  /* 20px border radius */
 
-    /* Fun gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(270 95% 75%), hsl(310 90% 80%));
-    --gradient-secondary: linear-gradient(135deg, hsl(60 95% 85%), hsl(120 75% 75%));
-    --gradient-accent: linear-gradient(135deg, hsl(340 82% 75%), hsl(20 90% 75%));
-    --gradient-background: linear-gradient(180deg, hsl(220 100% 98%), hsl(250 50% 96%));
+    /* Clay Tactile Gradients */
+    --gradient-clay-primary: linear-gradient(145deg, hsl(210 15% 48%), hsl(210 15% 42%));
+    --gradient-clay-secondary: linear-gradient(145deg, hsl(10 60% 38%), hsl(10 60% 32%));
+    --gradient-clay-accent: linear-gradient(145deg, hsl(174 70% 48%), hsl(174 70% 42%));
+    --gradient-dojo-bg: linear-gradient(135deg, hsl(220 25% 8%), hsl(140 20% 6%));
+    --gradient-success: linear-gradient(145deg, hsl(48 100% 53%), hsl(48 100% 47%));
     
-    /* Playful shadows */
-    --shadow-fun: 0 8px 32px -8px hsl(270 95% 75% / 0.3);
-    --shadow-glow: 0 0 20px hsl(270 95% 75% / 0.4);
-    --shadow-bounce: 0 4px 16px -4px hsl(340 82% 75% / 0.3);
+    /* Clay Depth Shadows - Prominent outer + soft inner */
+    --shadow-clay-outer: 0 16px 48px -12px hsl(220 25% 4% / 0.6);
+    --shadow-clay-inner: inset 0 2px 4px hsl(0 0% 100% / 0.1), inset 0 -2px 4px hsl(220 25% 4% / 0.3);
+    --shadow-clay-hover: 0 20px 60px -15px hsl(220 25% 4% / 0.8);
+    --shadow-clay-press: 0 8px 24px -8px hsl(220 25% 4% / 0.4);
     
-    /* Smooth transitions */
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    --transition-smooth: all 0.2s ease-out;
+    /* Ninja Glow Effects */
+    --glow-jade: 0 0 30px hsl(174 70% 45% / 0.4);
+    --glow-fire: 0 0 30px hsl(25 85% 50% / 0.4);
+    --glow-electric: 0 0 30px hsl(48 100% 50% / 0.6);
+    
+    /* Tactile Transitions */
+    --transition-clay: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-squish: transform 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-float: transform 0.3s ease-out;
   }
 }
 
@@ -48,56 +72,123 @@
     @apply border-border;
   }
   body {
-    @apply bg-gradient-to-br from-background via-background to-muted text-foreground antialiased;
-    background-image: var(--gradient-background);
+    @apply text-foreground antialiased;
+    background: var(--gradient-dojo-bg);
+    background-attachment: fixed;
     min-height: 100vh;
+    /* Subtle bamboo texture pattern */
+    background-image: 
+      var(--gradient-dojo-bg),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 98px,
+        hsl(140 20% 8% / 0.3) 100px
+      );
   }
 }
 
 @layer utilities {
-  .gradient-fun {
-    background: var(--gradient-primary);
+  /* Clay Gradient Utilities */
+  .gradient-clay-primary {
+    background: var(--gradient-clay-primary);
   }
-  .gradient-secondary {
-    background: var(--gradient-secondary);
+  .gradient-clay-secondary {
+    background: var(--gradient-clay-secondary);
   }
-  .gradient-accent {
-    background: var(--gradient-accent);
+  .gradient-clay-accent {
+    background: var(--gradient-clay-accent);
   }
-  .shadow-fun {
-    box-shadow: var(--shadow-fun);
+  .gradient-success {
+    background: var(--gradient-success);
   }
-  .shadow-glow {
-    box-shadow: var(--shadow-glow);
+  
+  /* Clay Shadow Utilities */
+  .shadow-clay {
+    box-shadow: var(--shadow-clay-outer), var(--shadow-clay-inner);
   }
-  .shadow-bounce {
-    box-shadow: var(--shadow-bounce);
+  .shadow-clay-hover {
+    box-shadow: var(--shadow-clay-hover), var(--shadow-clay-inner);
   }
-  .transition-bounce {
-    transition: var(--transition-bounce);
+  .shadow-clay-press {
+    box-shadow: var(--shadow-clay-press), var(--shadow-clay-inner);
   }
-  .transition-smooth {
-    transition: var(--transition-smooth);
+  
+  /* Ninja Glow Effects */
+  .glow-jade {
+    box-shadow: var(--glow-jade);
+  }
+  .glow-fire {
+    box-shadow: var(--glow-fire);
+  }
+  .glow-electric {
+    box-shadow: var(--glow-electric);
+  }
+  
+  /* Clay Transitions */
+  .transition-clay {
+    transition: var(--transition-clay);
+  }
+  .transition-squish {
+    transition: var(--transition-squish);
+  }
+  .transition-float {
+    transition: var(--transition-float);
+  }
+  
+  /* Clay Tactile States */
+  .clay-element {
+    @apply rounded-xl shadow-clay transition-clay;
+  }
+  .clay-hover:hover {
+    @apply shadow-clay-hover transform -translate-y-1;
+  }
+  .clay-press:active {
+    @apply shadow-clay-press transform translate-y-0.5 scale-95;
   }
 }
 
+/* Ninja Task Animations */
 .task-enter {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(20px) scale(0.9) rotate(-2deg);
 }
 
 .task-enter-active {
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms, transform 300ms;
+  transform: translateY(0) scale(1) rotate(0deg);
+  transition: all 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .task-exit {
   opacity: 1;
+  transform: scale(1) rotate(0deg);
 }
 
 .task-exit-active {
   opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 300ms, transform 300ms;
+  transform: translateY(-20px) scale(0.8) rotate(3deg);
+  transition: all 300ms ease-in;
+}
+
+/* Smoke Puff Effect for completed tasks */
+@keyframes smoke-puff {
+  0% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+    filter: blur(4px);
+  }
+}
+
+.smoke-puff {
+  animation: smoke-puff 0.6s ease-out forwards;
 }

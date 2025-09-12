@@ -57,92 +57,98 @@ export function AppSidebar({ onSignOut }: AppSidebarProps) {
 
   const getNavClassName = (path: string) => {
     return isActive(path) 
-      ? "bg-primary text-primary-foreground font-medium" 
-      : "hover:bg-accent hover:text-accent-foreground";
+      ? "clay-element gradient-clay-accent text-accent-foreground font-bold glow-jade" 
+      : "rounded-xl transition-clay hover:bg-accent/20 hover:text-accent-foreground clay-hover";
   };
 
   return (
-    <Sidebar className="border-r bg-card">
-      <SidebarHeader className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">🥷</span>
-          </div>
-          {!collapsed && (
-            <div>
-              <h2 className="font-bold text-lg">NinjaDo</h2>
-              <p className="text-sm text-muted-foreground">Productivity Dojo</p>
+    <Sidebar className="border-r border-border/50 backdrop-blur-md">
+      {/* Ninja Dojo Background with bamboo texture */}
+      <div className="absolute inset-0 bg-gradient-to-b from-ninja-forest to-ninja-midnight opacity-95 animate-bamboo-sway" />
+      <div className="relative z-10">
+        
+        <SidebarHeader className="p-6">
+          <div className="flex items-center gap-3">
+            <div className="clay-element w-12 h-12 gradient-clay-accent rounded-xl flex items-center justify-center glow-jade animate-jade-glow">
+              <span className="text-accent-foreground font-bold text-lg">🥷</span>
             </div>
-          )}
-        </div>
-      </SidebarHeader>
+            {!collapsed && (
+              <div>
+                <h2 className="font-bold text-xl text-foreground">NinjaDo</h2>
+                <p className="text-sm text-muted-foreground">Mystical Productivity Dojo</p>
+              </div>
+            )}
+          </div>
+        </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      end={item.url === "/"}
-                      className={getNavClassName(item.url)}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navigationItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        end={item.url === "/"}
+                        className={getNavClassName(item.url)}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        {!collapsed && <span className="font-medium">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-      <SidebarFooter className="p-4">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink 
-                to="/profile"
-                className={getNavClassName("/profile")}
-              >
-                <User className="w-4 h-4" />
-                {!collapsed && <span>Profile</span>}
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        
-        {!collapsed && (
-          <>
-            <Separator className="my-2" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onSignOut}
-              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Leave Dojo
-            </Button>
-          </>
-        )}
-        
-        {collapsed && (
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <button 
+        <SidebarFooter className="p-4">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink 
+                  to="/profile"
+                  className={getNavClassName("/profile")}
+                >
+                  <User className="w-5 h-5" />
+                  {!collapsed && <span className="font-medium">Profile</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          
+          {!collapsed && (
+            <>
+              <Separator className="my-3 bg-border/50" />
+              <Button
+                variant="smoke-bomb"
+                size="sm"
                 onClick={onSignOut}
-                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="w-full justify-start text-destructive hover:glow-fire"
               >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        )}
-      </SidebarFooter>
+                <LogOut className="w-4 h-4 mr-2" />
+                Leave Dojo
+              </Button>
+            </>
+          )}
+          
+          {collapsed && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <button 
+                  onClick={onSignOut}
+                  className="clay-element rounded-xl w-full text-destructive hover:glow-fire clay-hover clay-press"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+        </SidebarFooter>
+        
+      </div>
     </Sidebar>
   );
 }

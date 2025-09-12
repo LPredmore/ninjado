@@ -237,7 +237,7 @@ const HowToUse = () => {
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-muted-foreground">Start with a simple morning or evening routine and work your way up to mastery!</p>
-              <Button variant="fun" size="lg" className="animate-bounce-in">
+              <Button variant="clay-electric" size="lg" className="animate-clay-bounce">
                 <Target className="w-4 h-4 mr-2" />
                 Create First Routine
               </Button>

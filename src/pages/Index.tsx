@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import RoutineSelector from '@/components/RoutineSelector';
 import { useRoutineState } from '@/hooks/useRoutineState';
 import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface IndexProps {
@@ -180,43 +181,77 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   return (
     <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
-      <div className="space-y-6">
+      <div className="space-y-8 p-6">
+        
+        {/* Pro Upgrade Banner */}
         {!isSubscribed && (
-          <div className="bg-ninja-primary/10 p-4 rounded-lg flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold">Upgrade to Pro</h3>
-              <p className="text-sm text-gray-600">Get unlimited routines for $5/month</p>
+          <div className="clay-element gradient-clay-accent p-6 glow-jade animate-jade-glow">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-accent-foreground text-lg">🌟 Upgrade to Pro Ninja</h3>
+                <p className="text-accent-foreground/80 text-sm">Unlock unlimited routines for $5/month</p>
+              </div>
+              <Button
+                variant="clay-electric"
+                size="lg"
+                onClick={handleSubscribe}
+                className="animate-electric-glow"
+              >
+                ⚡ Subscribe Now
+              </Button>
             </div>
-            <Button
-              onClick={handleSubscribe}
-              className="bg-ninja-primary hover:bg-ninja-primary/90"
-            >
-              Subscribe Now
-            </Button>
           </div>
         )}
 
-        <div className="w-full">
-          <RoutineSelector
-            routines={routines || []}
-            selectedRoutineId={selectedRoutineId}
-            onRoutineSelect={handleRoutineSelect}
-          />
+        {/* Routine Selector - Ninja Scroll Style */}
+        <div className="clay-element animate-ninja-float">
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
+              <span className="clay-element w-10 h-10 gradient-clay-primary rounded-xl flex items-center justify-center">
+                🎯
+              </span>
+              Choose Your Mission Scroll
+            </h2>
+            <RoutineSelector
+              routines={routines || []}
+              selectedRoutineId={selectedRoutineId}
+              onRoutineSelect={handleRoutineSelect}
+            />
+          </div>
         </div>
 
+        {/* Main Routine Container */}
         {selectedRoutineId && (
-          <RoutineContainer
-            routineTitle={selectedRoutine?.title || "Routine"}
-            tasks={processedTasks}
-            completedTasks={completedTaskIds.length}
-            isRoutineStarted={isRoutineStarted}
-            isPaused={isPaused}
-            onStartRoutine={handleStartRoutine}
-            onPauseRoutine={handlePauseRoutine}
-            onTaskComplete={handleTaskComplete}
-            onTaskReorder={handleTaskReorder}
-          />
+          <div className="clay-element animate-ninja-float animation-delay-200">
+            <RoutineContainer
+              routineTitle={selectedRoutine?.title || "Ninja Mission"}
+              tasks={processedTasks}
+              completedTasks={completedTaskIds.length}
+              isRoutineStarted={isRoutineStarted}
+              isPaused={isPaused}
+              onStartRoutine={handleStartRoutine}
+              onPauseRoutine={handlePauseRoutine}
+              onTaskComplete={handleTaskComplete}
+              onTaskReorder={handleTaskReorder}
+            />
+          </div>
         )}
+        
+        {/* Empty State - Encouraging message */}
+        {!selectedRoutineId && routines && routines.length === 0 && (
+          <div className="clay-element text-center p-12">
+            <div className="clay-element w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-6 flex items-center justify-center glow-jade">
+              <span className="text-4xl">🥷</span>
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-3">Welcome to the Dojo, Young Ninja!</h3>
+            <p className="text-muted-foreground mb-6">Create your first routine to begin your productivity training.</p>
+            <Button variant="clay-jade" size="lg">
+              <Settings className="w-5 h-5 mr-2" />
+              Create First Routine
+            </Button>
+          </div>
+        )}
+        
       </div>
     </SidebarLayout>
   );

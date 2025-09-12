@@ -5,29 +5,35 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:scale-105 active:scale-95",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-clay focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transform transition-all duration-200",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg hover:shadow-xl",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-primary/50 shadow-md hover:shadow-lg",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-lg hover:shadow-xl",
-        ghost: "hover:bg-accent hover:text-accent-foreground hover:shadow-md",
-        link: "text-primary underline-offset-4 hover:underline",
-        fun: "bg-gradient-to-r from-primary via-accent to-secondary text-white font-bold shadow-lg hover:shadow-xl transform hover:scale-110 hover:rotate-1 transition-all duration-300",
-        bounce: "bg-primary text-primary-foreground hover:animate-bounce shadow-lg hover:shadow-xl",
-        glow: "bg-primary text-primary-foreground shadow-lg hover:animate-glow-pulse",
+        /* Clay Variants */
+        default: "clay-element gradient-clay-primary text-primary-foreground clay-hover clay-press font-semibold",
+        destructive: "clay-element gradient-clay-secondary text-destructive-foreground clay-hover clay-press font-semibold",
+        outline: "clay-element border-2 border-border bg-background/80 backdrop-blur-sm text-foreground clay-hover clay-press hover:bg-accent/20",
+        secondary: "clay-element bg-muted text-muted-foreground clay-hover clay-press font-semibold",
+        ghost: "rounded-xl transition-clay hover:bg-accent/20 hover:text-accent-foreground",
+        link: "text-accent underline-offset-4 hover:underline transition-clay",
+        
+        /* Ninja Action Variants */
+        "clay-jade": "clay-element gradient-clay-accent text-accent-foreground clay-hover clay-press glow-jade animate-jade-glow font-bold",
+        "clay-fire": "clay-element bg-destructive text-destructive-foreground clay-hover clay-press glow-fire animate-fire-glow font-bold",
+        "clay-electric": "clay-element bg-success text-success-foreground clay-hover clay-press glow-electric animate-electric-glow font-bold",
+        
+        /* Ninja Themed Variants */
+        "shuriken": "clay-element gradient-clay-primary text-primary-foreground clay-hover clay-press rounded-full aspect-square p-0 hover:animate-shuriken-spin font-bold",
+        "ninja-scroll": "clay-element bg-card border-2 border-border text-card-foreground clay-hover clay-press rounded-2xl font-medium shadow-clay-outer",
+        "smoke-bomb": "clay-element bg-muted text-muted-foreground clay-hover clay-press rounded-full animate-ninja-float",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
-        fun: "h-12 px-6 py-3 text-base font-bold rounded-xl",
+        default: "h-12 px-6 py-3 rounded-xl",
+        sm: "h-10 px-4 py-2 rounded-lg",
+        lg: "h-14 px-8 py-4 rounded-xl text-base",
+        icon: "h-12 w-12 rounded-xl",
+        xl: "h-16 px-10 py-5 rounded-2xl text-lg",
+        shuriken: "h-14 w-14 rounded-full",
       },
     },
     defaultVariants: {
