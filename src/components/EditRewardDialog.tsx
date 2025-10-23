@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -24,7 +24,12 @@ export const EditRewardDialog = ({
 }: EditRewardDialogProps) => {
   const [title, setTitle] = useState(reward.title);
   const [baseTime, setBaseTime] = useState(reward.base_time);
-  const { toast } = useToast();
+
+  // Sync state when reward prop changes
+  useEffect(() => {
+    setTitle(reward.title);
+    setBaseTime(reward.base_time);
+  }, [reward]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,18 +40,11 @@ export const EditRewardDialog = ({
       .eq("id", reward.id);
 
     if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update reward",
-        variant: "destructive",
-      });
+      toast.error("Failed to update reward");
       return;
     }
 
-    toast({
-      title: "Success",
-      description: "Reward updated successfully",
-    });
+    toast.success("Reward updated successfully");
     onRewardUpdated();
     onOpenChange(false);
   };

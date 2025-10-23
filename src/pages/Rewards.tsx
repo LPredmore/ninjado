@@ -5,6 +5,7 @@ import SidebarLayout from "@/components/SidebarLayout";
 import { RewardsList } from "@/components/RewardsList";
 import { AddRewardDialog } from "@/components/AddRewardDialog";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
@@ -18,7 +19,7 @@ const Rewards = ({ user, supabase }: RewardsProps) => {
   const [isAddRewardOpen, setIsAddRewardOpen] = useState(false);
   const { totalTimeSaved } = useTimeTracking();
 
-  const { data: rewards, refetch: refetchRewards } = useQuery({
+  const { data: rewards, refetch: refetchRewards, isLoading } = useQuery({
     queryKey: ["rewards"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -46,11 +47,21 @@ const Rewards = ({ user, supabase }: RewardsProps) => {
           </Button>
         </div>
 
-        <RewardsList 
-          rewards={rewards || []} 
-          onRewardsChange={refetchRewards} 
-          supabase={supabase} 
-        />
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="h-[200px] w-full" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <RewardsList 
+            rewards={rewards || []} 
+            onRewardsChange={refetchRewards} 
+            supabase={supabase} 
+          />
+        )}
 
         <AddRewardDialog
           open={isAddRewardOpen}

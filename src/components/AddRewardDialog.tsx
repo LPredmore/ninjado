@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 interface AddRewardDialogProps {
@@ -21,7 +21,6 @@ export const AddRewardDialog = ({
 }: AddRewardDialogProps) => {
   const [title, setTitle] = useState("");
   const [baseTime, setBaseTime] = useState(30);
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,11 +28,7 @@ export const AddRewardDialog = ({
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to create rewards",
-        variant: "destructive",
-      });
+      toast.error("You must be logged in to create rewards");
       return;
     }
 
@@ -45,22 +40,18 @@ export const AddRewardDialog = ({
 
     if (error) {
       console.error("Error creating reward:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create reward",
-        variant: "destructive",
-      });
+      toast.error("Failed to create reward");
       return;
     }
 
-    toast({
-      title: "Success",
-      description: "Reward created successfully",
-    });
+    toast.success("Reward created successfully");
     onRewardAdded();
     onOpenChange(false);
     setTitle("");
     setBaseTime(30);
+    
+    // Scroll to top after adding reward
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
