@@ -20,7 +20,9 @@ interface IndexProps {
 
 const Index = ({ user, supabase }: IndexProps) => {
   const { totalTimeSaved, recordTaskCompletion } = useTimeTracking();
-  const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
+  const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(
+    () => localStorage.getItem('selectedRoutineId')
+  );
   const [orderedTasks, setOrderedTasks] = useState<Task[]>([]);
   
   const {
@@ -71,6 +73,14 @@ const Index = ({ user, supabase }: IndexProps) => {
     }
   }, [tasks]);
 
+  useEffect(() => {
+    if (selectedRoutineId) {
+      localStorage.setItem('selectedRoutineId', selectedRoutineId);
+    } else {
+      localStorage.removeItem('selectedRoutineId');
+    }
+  }, [selectedRoutineId]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
@@ -85,6 +95,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     const updatedCompletedTasks = [...completedTaskIds, taskId];
     if (orderedTasks && updatedCompletedTasks.length === orderedTasks.length) {
       resetRoutineState();
+      setSelectedRoutineId(null);
     }
   };
 
