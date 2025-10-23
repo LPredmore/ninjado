@@ -12,8 +12,9 @@ export const useParentalControls = (userId: string) => {
 
   const checkPinRequired = useCallback(async () => {
     try {
+      // Use safe view that doesn't expose pin_hash
       const { data, error } = await supabase
-        .from('parental_controls')
+        .from('parental_controls_safe')
         .select('is_active')
         .eq('user_id', userId)
         .single();

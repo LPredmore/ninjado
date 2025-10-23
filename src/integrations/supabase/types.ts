@@ -273,10 +273,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      parental_controls_safe: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       delete_user: { Args: never; Returns: undefined }
+      verify_parental_pin: { Args: { pin_input: string }; Returns: boolean }
     }
     Enums: {
       task_type: "regular" | "focus"

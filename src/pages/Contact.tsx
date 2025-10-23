@@ -11,6 +11,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { MessageSquare, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// Schema validation for contact form
+const contactSchema = z.object({
+  topic: z.enum(['suggest-feature', 'report-problem', 'corporate-rate'], {
+    errorMap: () => ({ message: "Please select a valid topic" })
+  }),
+  message: z.string()
+    .trim()
+    .min(10, { message: "Message must be at least 10 characters" })
+    .max(5000, { message: "Message must be less than 5000 characters" }),
+  email: z.string().email({ message: "Invalid email address" })
+});
 
 interface ContactProps {
   user: User;
@@ -30,8 +43,16 @@ const Contact = ({ user, supabase }: ContactProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!topic.trim() || !message.trim()) {
-      toast.error("Please select a topic and enter your message");
+    // Validate form data with zod schema
+    const validation = contactSchema.safeParse({
+      topic,
+      message,
+      email: user.email
+    });
+
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
       return;
     }
 

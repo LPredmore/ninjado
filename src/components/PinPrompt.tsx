@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Shield, X, Eye, EyeOff } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import bcrypt from 'bcryptjs';
 
 interface PinPromptProps {
   isOpen: boolean;
@@ -32,17 +31,16 @@ const PinPrompt = ({ isOpen, onClose, onSuccess, title, description, userId }: P
     setLoading(true);
     
     try {
-      const { data, error } = await supabase
-        .from('parental_controls')
-        .select('pin_hash')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .single();
+      // Use server-side verification function (secure - no PIN hash exposed to client)
+      const { data, error } = await supabase.rpc('verify_parental_pin', {
+        pin_input: pin
+      });
 
-      if (error || !data) {
+      if (error) {
+        console.error('Error verifying PIN:', error);
         toast({
-          title: "PIN Not Found",
-          description: "No active parental PIN found. Please set up parental controls first.",
+          title: "Error",
+          description: "Failed to verify PIN. Please try again.",
           variant: "destructive",
         });
         setPin('');
@@ -50,9 +48,7 @@ const PinPrompt = ({ isOpen, onClose, onSuccess, title, description, userId }: P
         return;
       }
 
-      const isValid = await bcrypt.compare(pin, data.pin_hash);
-      
-      if (isValid) {
+      if (data === true) {
         onSuccess();
         handleClose();
       } else {
