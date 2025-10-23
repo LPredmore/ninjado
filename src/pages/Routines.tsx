@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { SupabaseClient } from "@supabase/supabase-js";
 import SidebarLayout from "@/components/SidebarLayout";
@@ -18,7 +18,6 @@ interface RoutinesProps {
 const Routines = ({ user, supabase }: RoutinesProps) => {
   const { totalTimeSaved } = useTimeTracking();
   const [isAddRoutineOpen, setIsAddRoutineOpen] = useState(false);
-  const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
 
   const { data: routines, refetch: refetchRoutines } = useQuery({
     queryKey: ["routines"],
@@ -63,12 +62,13 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
 
   const handleDeleteRoutine = async (routineId: string) => {
     const { error } = await supabase.from("routines").delete().eq("id", routineId);
-    if (!error) {
-      refetchRoutines();
-      if (selectedRoutineId === routineId) {
-        setSelectedRoutineId(null);
-      }
+    if (error) {
+      console.error("Error deleting routine:", error);
+      toast.error("Failed to delete routine");
+      return;
     }
+    toast.success("Routine deleted successfully");
+    refetchRoutines();
   };
 
   const handleRoutineUpdate = () => {
@@ -114,8 +114,6 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
               onDelete={handleDeleteRoutine}
               supabase={supabase}
               onTasksUpdate={handleRoutineUpdate}
-              isSelected={selectedRoutineId === routine.id}
-              onSelect={() => setSelectedRoutineId(routine.id)}
             />
           ))}
         </div>

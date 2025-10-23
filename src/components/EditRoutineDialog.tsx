@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Pencil, Clock } from "lucide-react";
 
@@ -40,11 +40,7 @@ const EditRoutineDialog = ({
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast({
-        title: "Error",
-        description: "Routine title cannot be empty",
-        variant: "destructive",
-      });
+      toast.error("Routine title cannot be empty");
       return;
     }
 
@@ -60,19 +56,12 @@ const EditRoutineDialog = ({
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Routine updated successfully",
-      });
+      toast.success("Routine updated successfully");
       setOpen(false);
       onEditComplete();
     } catch (error) {
       console.error("Error updating routine:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update routine",
-        variant: "destructive",
-      });
+      toast.error("Failed to update routine");
     } finally {
       setIsLoading(false);
     }

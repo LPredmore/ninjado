@@ -6,7 +6,7 @@ import TaskItem from './TaskItem';
 import AddTaskDialog from './AddTaskDialog';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import CopyRoutineDialog from './CopyRoutineDialog';
 import EditRoutineDialog from './EditRoutineDialog';
 import { Badge } from "@/components/ui/badge";
@@ -27,8 +27,6 @@ interface RoutineItemProps {
   onDelete: (routineId: string) => void;
   supabase: SupabaseClient;
   onTasksUpdate: () => void;
-  isSelected: boolean;
-  onSelect: () => void;
 }
 
 const RoutineItem = ({ 
@@ -36,9 +34,7 @@ const RoutineItem = ({
   tasks, 
   onDelete, 
   supabase, 
-  onTasksUpdate,
-  isSelected,
-  onSelect
+  onTasksUpdate
 }: RoutineItemProps) => {
   
   const handleDragEnd = async (result: any) => {
@@ -58,11 +54,8 @@ const RoutineItem = ({
       }
       onTasksUpdate();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update task positions",
-        variant: "destructive"
-      });
+      console.error("Error updating task positions:", error);
+      toast.error("Failed to update task positions");
     }
   };
 
@@ -86,14 +79,7 @@ const RoutineItem = ({
   const endTime = calculateEndTime();
   
   return (
-    <div
-      className={`clay-element p-4 cursor-pointer transition-clay clay-hover ${
-        isSelected
-          ? 'border-2 border-accent/50'
-          : 'bg-card border-2 border-border/30 hover:border-accent/30'
-      }`}
-      onClick={onSelect}
-    >
+    <div className="clay-element p-4 bg-card border-2 border-border/30 transition-clay clay-hover hover:border-accent/30">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <List className="w-5 h-5 text-accent" />
