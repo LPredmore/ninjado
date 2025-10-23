@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { NinjaScrollCard } from "@/components/ninja/NinjaScrollCard";
-import { Mail, Lock, Crown, MessageSquare, Trash2, ExternalLink } from "lucide-react";
+import { Mail, Lock, MessageSquare, Trash2, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { 
@@ -31,39 +31,11 @@ const Profile = ({ user, supabase }: ProfileProps) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  const [hasActiveSub, setHasActiveSub] = useState(false);
-  const [isLoadingSub, setIsLoadingSub] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const { totalTimeSaved } = useTimeTracking();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkSubscription = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('subscribers')
-          .select('subscribed, subscription_end')
-          .eq('user_id', user.id)
-          .single();
-
-        if (!error && data) {
-          const isActive = data.subscribed && 
-            (!data.subscription_end || new Date(data.subscription_end) > new Date());
-          setHasActiveSub(isActive);
-        }
-      } catch (error) {
-        console.log("No subscription found");
-      } finally {
-        setIsLoadingSub(false);
-      }
-    };
-
-    if (user?.id) {
-      checkSubscription();
-    }
-  }, [user?.id, supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -99,10 +71,6 @@ const Profile = ({ user, supabase }: ProfileProps) => {
     } finally {
       setIsUpdatingPassword(false);
     }
-  };
-
-  const handleUpgradeToPremium = () => {
-    window.open('https://buy.stripe.com/fZedRM7Co6Qe2qc144', '_blank');
   };
 
   const handleSendMessage = () => {
@@ -214,49 +182,6 @@ const Profile = ({ user, supabase }: ProfileProps) => {
             </div>
           </div>
         </NinjaScrollCard>
-
-        {/* Subscription Status - Only show for free users */}
-        {!isLoadingSub && !hasActiveSub && (
-          <NinjaScrollCard title="👑 Subscription Status" variant="default">
-            <div className="space-y-6">
-              
-              {/* Free Account Status */}
-              <div className="clay-element p-6 bg-muted/50">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="clay-element w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                    <span className="text-sm">🆓</span>
-                  </div>
-                  <h3 className="font-bold text-lg text-foreground">Free Account</h3>
-                </div>
-                
-                <div className="space-y-2 text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-accent rounded-full"></span>
-                    <span>1 Routine at a time</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-accent rounded-full"></span>
-                    <span>Basic Support</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Upgrade Button */}
-              <Button 
-                onClick={handleUpgradeToPremium}
-                variant="clay-electric" 
-                size="lg"
-                className="w-full glow-electric"
-              >
-                <Crown className="w-5 h-5 mr-2" />
-                Upgrade to Premium
-              </Button>
-              <p className="text-center text-sm text-muted-foreground">
-                Unlock unlimited routines and premium features
-              </p>
-            </div>
-          </NinjaScrollCard>
-        )}
 
         {/* Questions or Suggestions */}
         <NinjaScrollCard title="💬 Questions or Suggestions?" variant="default">

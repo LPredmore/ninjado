@@ -19,8 +19,6 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
   const { totalTimeSaved } = useTimeTracking();
   const [isAddRoutineOpen, setIsAddRoutineOpen] = useState(false);
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isCheckingSubscription, setIsCheckingSubscription] = useState(true);
 
   const { data: routines, refetch: refetchRoutines } = useQuery({
     queryKey: ["routines"],
@@ -54,46 +52,12 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
     enabled: !!routines && routines.length > 0,
   });
 
-  const checkSubscription = async () => {
-    try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.access_token) {
-        setIsSubscribed(false);
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('check-subscription', {
-        headers: { Authorization: `Bearer ${session.session.access_token}` }
-      });
-
-      if (error) {
-        console.error('Subscription check error:', error);
-        setIsSubscribed(false);
-        return;
-      }
-
-      setIsSubscribed(data?.subscribed || false);
-    } catch (error) {
-      console.error('Subscription check failed:', error);
-      setIsSubscribed(false);
-    } finally {
-      setIsCheckingSubscription(false);
-    }
-  };
-
-  useEffect(() => {
-    checkSubscription();
-  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
   const handleAddRoutineClick = () => {
-    if (!isSubscribed && routines && routines.length >= 1) {
-      toast.error("Free users are limited to 1 routine. Please upgrade to create more routines.");
-      return;
-    }
     setIsAddRoutineOpen(true);
   };
 
@@ -131,14 +95,12 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         <div className="flex justify-center">
           <Button 
             onClick={handleAddRoutineClick}
-            disabled={!isSubscribed && routines && routines.length >= 1}
             variant="clay-jade"
             size="lg"
             className="glow-jade"
           >
             <Plus className="mr-2 w-5 h-5" />
             Add New Routine
-            {!isSubscribed && routines && routines.length >= 1 && " (Upgrade Required)"}
           </Button>
         </div>
 
@@ -178,8 +140,6 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           onOpenChange={setIsAddRoutineOpen}
           supabase={supabase}
           onRoutineAdded={handleRoutineUpdate}
-          isSubscribed={isSubscribed}
-          routineCount={routines?.length || 0}
         />
       </div>
     </SidebarLayout>

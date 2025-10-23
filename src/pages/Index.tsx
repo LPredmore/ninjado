@@ -22,9 +22,6 @@ const Index = ({ user, supabase }: IndexProps) => {
   const { totalTimeSaved, recordTaskCompletion } = useTimeTracking();
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
   const [orderedTasks, setOrderedTasks] = useState<Task[]>([]);
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
-  const [isCheckingSubscription, setIsCheckingSubscription] = useState<boolean>(true);
-  const [isLoading, setIsLoading] = useState(false);
   
   const {
     isRoutineStarted,
@@ -67,26 +64,6 @@ const Index = ({ user, supabase }: IndexProps) => {
     },
   });
 
-  useEffect(() => {
-    checkSubscription();
-    
-    // Check for payment success/cancel in URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
-      // Payment successful, refresh subscription status
-      toast.success('Payment successful! Welcome to Pro!');
-      setTimeout(() => {
-        checkSubscription();
-      }, 2000); // Give Stripe time to process
-      
-      // Clean up URL params
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (urlParams.get('canceled') === 'true') {
-      // Payment canceled
-      toast.info('Payment canceled');
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
 
   useEffect(() => {
     if (tasks) {
@@ -96,38 +73,6 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-  };
-
-  const checkSubscription = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      if (error) throw error;
-      setIsSubscribed(data.subscribed);
-    } catch (error) {
-      console.error('Error checking subscription:', error);
-      toast.error('Failed to check subscription status');
-    } finally {
-      setIsCheckingSubscription(false);
-    }
-  };
-
-  const handleSubscribe = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      } else {
-        // Use Stripe payment link as fallback
-        const stripePaymentUrl = 'https://buy.stripe.com/fZedRM7Co6Qe2qc144';
-        window.open(stripePaymentUrl, '_blank');
-      }
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      // Use Stripe payment link as fallback
-      const stripePaymentUrl = 'https://buy.stripe.com/fZedRM7Co6Qe2qc144';
-      window.open(stripePaymentUrl, '_blank');
-    }
   };
 
   const handleTaskComplete = async (taskId: string, timeSaved: number) => {
@@ -159,10 +104,6 @@ const Index = ({ user, supabase }: IndexProps) => {
   };
 
   const handleRoutineSelect = (routineId: string) => {
-    if (!isSubscribed && routines && routines.length > 1) {
-      toast.error('Free users are limited to 1 routine. Please upgrade to use multiple routines.');
-      return;
-    }
     resetRoutineState();
     setSelectedRoutineId(routineId);
   };
@@ -187,25 +128,6 @@ const Index = ({ user, supabase }: IndexProps) => {
     <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
       <div className="space-y-8 p-6">
         
-        {/* Pro Upgrade Banner */}
-        {!isSubscribed && !isCheckingSubscription && (
-          <div className="clay-element gradient-clay-accent p-6 glow-jade">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-accent-foreground text-lg">🌟 Upgrade to Pro Ninja</h3>
-                <p className="text-accent-foreground/80 text-sm">Unlock unlimited routines for $5/month</p>
-              </div>
-              <Button
-                variant="clay-electric"
-                size="lg"
-                onClick={handleSubscribe}
-              >
-                ⚡ Subscribe Now
-              </Button>
-            </div>
-          </div>
-        )}
-
         {/* Routine Selector - Ninja Scroll Style */}
         <div className="clay-element">
           <div className="p-6">
