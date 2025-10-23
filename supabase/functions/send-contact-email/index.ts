@@ -49,7 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
     const sanitizedTopic = topic.slice(0, 50);
 
     // Validate topic is one of allowed values
-    const allowedTopics = ['suggest-feature', 'report-problem', 'corporate-rate', 'unsubscribe'];
+    const allowedTopics = ['suggest-feature', 'report-problem', 'corporate-rate'];
     if (!allowedTopics.includes(sanitizedTopic)) {
       return new Response(
         JSON.stringify({ error: "Invalid topic" }),
@@ -61,8 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
     const topicMap: { [key: string]: string } = {
       'suggest-feature': 'Feature Suggestion',
       'report-problem': 'Problem Report',
-      'corporate-rate': 'Corporate Rate Inquiry',
-      'unsubscribe': 'Unsubscribe Request'
+      'corporate-rate': 'Corporate Rate Inquiry'
     };
 
     const subject = `NinjaDo Contact: ${topicMap[sanitizedTopic]}`;

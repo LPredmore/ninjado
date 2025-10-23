@@ -110,7 +110,6 @@ const Contact = ({ user, supabase }: ContactProps) => {
                   <SelectItem value="suggest-feature">Suggest New Feature</SelectItem>
                   <SelectItem value="report-problem">Report a Problem</SelectItem>
                   <SelectItem value="corporate-rate">Get Corporate Rate</SelectItem>
-                  <SelectItem value="unsubscribe">Unsubscribe</SelectItem>
                 </SelectContent>
               </Select>
             </div>
