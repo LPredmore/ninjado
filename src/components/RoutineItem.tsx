@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { List, Trash2, Clock, CalendarClock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TaskItem from './TaskItem';
@@ -36,31 +36,45 @@ const RoutineItem = ({
   supabase, 
   onTasksUpdate
 }: RoutineItemProps) => {
+  // Local state for optimistic updates
+  const [localTasks, setLocalTasks] = useState(tasks);
+  
+  // Sync local tasks with prop changes
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
   
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
     
-    const items = Array.from(tasks);
+    // Optimistic update - update UI immediately
+    const items = Array.from(localTasks);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
+    setLocalTasks(items);
     
-    // Update positions in database
+    // Update positions in database using parallel requests
     try {
-      for (let i = 0; i < items.length; i++) {
-        await supabase
+      const updatePromises = items.map((item, index) => 
+        supabase
           .from('routine_tasks')
-          .update({ position: i })
-          .eq('id', items[i].id);
-      }
+          .update({ position: index })
+          .eq('id', item.id)
+      );
+      
+      await Promise.all(updatePromises);
       onTasksUpdate();
     } catch (error) {
       console.error("Error updating task positions:", error);
       toast.error("Failed to update task positions");
+      // Revert optimistic update on error
+      setLocalTasks(tasks);
     }
   };
 
   // Calculate the total duration of all tasks in minutes
-  const totalDurationMinutes = tasks.reduce((total, task) => total + task.duration, 0);
+  const totalDurationMinutes = localTasks.reduce((total, task) => total + task.duration, 0);
   
   // Calculate the end time if start time is set
   const calculateEndTime = () => {
@@ -85,7 +99,7 @@ const RoutineItem = ({
           <List className="w-5 h-5 text-accent" />
           <span className="font-medium text-card-foreground">{routine.title}</span>
           <Badge variant="outline" className="clay-element bg-primary/20 text-primary border-primary/30 text-xs">
-            {tasks.length} task{tasks.length !== 1 ? 's' : ''}
+            {localTasks.length} task{localTasks.length !== 1 ? 's' : ''}
           </Badge>
           <EditRoutineDialog 
             routineId={routine.id} 
@@ -118,7 +132,7 @@ const RoutineItem = ({
 
       <div className="mt-3 flex justify-between items-center">
         <div className="flex flex-wrap gap-2 items-center">
-          {tasks.length > 0 && (
+          {localTasks.length > 0 && (
             <Badge variant="outline" className="clay-element bg-accent/20 text-accent border-accent/30 text-xs">
               {totalDurationMinutes} min total
             </Badge>
@@ -168,12 +182,12 @@ const RoutineItem = ({
                 {...provided.droppableProps}
                 ref={provided.innerRef}
               >
-                {tasks.map((task, index) => (
+                {localTasks.map((task, index) => (
                   <TaskItem
                     key={task.id}
                     task={task}
                     isFirst={index === 0}
-                    isLast={index === tasks.length - 1}
+                    isLast={index === localTasks.length - 1}
                     onTaskUpdate={onTasksUpdate}
                     supabase={supabase}
                     index={index}
@@ -188,7 +202,7 @@ const RoutineItem = ({
         <AddTaskDialog
           routineId={routine.id}
           routineTitle={routine.title}
-          tasksCount={tasks.length}
+          tasksCount={localTasks.length}
           onTasksUpdate={onTasksUpdate}
           supabase={supabase}
         />
