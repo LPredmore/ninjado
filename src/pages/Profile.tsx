@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { NinjaScrollCard } from "@/components/ninja/NinjaScrollCard";
-import { Mail, Lock, Crown, MessageSquare, Trash2 } from "lucide-react";
+import { Mail, Lock, Crown, MessageSquare, Trash2, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { 
@@ -351,6 +351,19 @@ const Profile = ({ user, supabase }: ProfileProps) => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Privacy & Terms Footer */}
+        <div className="text-center py-4">
+          <a 
+            href="https://bestselfs.com/data" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-accent transition-colors"
+          >
+            Privacy & Terms
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
 
       </div>
     </SidebarLayout>
