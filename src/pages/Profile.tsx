@@ -7,9 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { NinjaScrollCard } from "@/components/ninja/NinjaScrollCard";
-import { Mail, Lock, Crown, MessageSquare } from "lucide-react";
+import { Mail, Lock, Crown, MessageSquare, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProfileProps {
   user: User;
@@ -22,6 +33,9 @@ const Profile = ({ user, supabase }: ProfileProps) => {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [hasActiveSub, setHasActiveSub] = useState(false);
   const [isLoadingSub, setIsLoadingSub] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const { totalTimeSaved } = useTimeTracking();
   const navigate = useNavigate();
 
@@ -93,6 +107,42 @@ const Profile = ({ user, supabase }: ProfileProps) => {
 
   const handleSendMessage = () => {
     navigate('/contact');
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    
+    try {
+      // Step 1: Delete all user data from related tables
+      await supabase.from('reward_redemptions').delete().eq('user_id', user.id);
+      await supabase.from('rewards').delete().eq('user_id', user.id);
+      await supabase.from('routines').delete().eq('user_id', user.id);
+      await supabase.from('task_completions').delete().eq('user_id', user.id);
+      await supabase.from('parental_controls').delete().eq('user_id', user.id);
+      await supabase.from('subscribers').delete().eq('user_id', user.id);
+      await supabase.from('profiles').delete().eq('id', user.id);
+      
+      // Step 2: Delete the auth user
+      const { error: authError } = await supabase.rpc('delete_user');
+      
+      if (authError) {
+        toast.error("Failed to delete account. Please contact support.");
+        setIsDeletingAccount(false);
+        return;
+      }
+      
+      // Step 3: Show success message and redirect
+      toast.success("Your account has been permanently deleted");
+      
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+      
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("An error occurred while deleting your account");
+      setIsDeletingAccount(false);
+    }
   };
 
   return (
@@ -225,6 +275,82 @@ const Profile = ({ user, supabase }: ProfileProps) => {
             </Button>
           </div>
         </NinjaScrollCard>
+
+        {/* Delete Account - Danger Zone */}
+        <NinjaScrollCard title="⚠️ Danger Zone" variant="default">
+          <div className="space-y-4 border border-destructive/50 rounded-lg p-4 bg-destructive/5">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-destructive">Delete Account</h3>
+              <p className="text-sm text-muted-foreground">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+            </div>
+            
+            <Button 
+              onClick={() => setShowDeleteDialog(true)}
+              variant="destructive" 
+              size="lg"
+              className="w-full"
+            >
+              <Trash2 className="w-5 h-5 mr-2" />
+              Delete My Account
+            </Button>
+          </div>
+        </NinjaScrollCard>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-destructive">
+                Delete Account Permanently?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3">
+                <p className="font-medium">This will permanently delete:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>All your routines and tasks</li>
+                  <li>All your rewards and redemption history</li>
+                  <li>Your parental control settings</li>
+                  <li>Your time tracking data</li>
+                  <li>Your account and profile information</li>
+                </ul>
+                <p className="text-destructive font-semibold pt-2">
+                  This action cannot be reversed!
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            
+            <div className="flex items-start space-x-2 py-4">
+              <Checkbox
+                id="delete-confirm"
+                checked={deleteConfirmation}
+                onCheckedChange={(checked) => setDeleteConfirmation(checked as boolean)}
+              />
+              <label
+                htmlFor="delete-confirm"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                I understand this action is permanent and cannot be undone
+              </label>
+            </div>
+            
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                setDeleteConfirmation(false);
+                setShowDeleteDialog(false);
+              }}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteAccount}
+                disabled={!deleteConfirmation || isDeletingAccount}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeletingAccount ? "Deleting..." : "Delete My Account"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
       </div>
     </SidebarLayout>
