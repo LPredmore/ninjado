@@ -4,63 +4,63 @@
 
 @layer base {
   :root {
-    /* Ninja Clay Theme - Cyberpunk Edition */
-    --background: 220 25% 8%;           /* Midnight Blue #1C2A4E */
-    --foreground: 180 100% 85%;         /* Cyan light text */
-    --card: 220 20% 15%;                /* Dark card background */
-    --card-foreground: 180 100% 85%;    /* Cyan card text */
-    --popover: 220 20% 12%;             /* Darker popover */
-    --popover-foreground: 180 100% 85%; /* Cyan popover text */
+    /* Sunny Ninja Dojo - Kid-Friendly Theme */
+    --background: 200 100% 96%;         /* Light Sky Blue */
+    --foreground: 220 70% 20%;          /* Dark Navy (readable) */
+    --card: 0 0% 100%;                  /* Bright White */
+    --card-foreground: 220 70% 20%;     /* Dark Navy */
+    --popover: 0 0% 100%;               /* White popover */
+    --popover-foreground: 220 70% 20%;  /* Dark Navy */
     
-    /* Primary Clay Elements - Cyberpunk Blue */
-    --primary: 220 100% 60%;            /* Cyberpunk Blue */
-    --primary-foreground: 0 0% 100%;    /* White text on primary */
+    /* Primary Clay Elements - Sunny Orange */
+    --primary: 35 100% 55%;             /* Bright Orange */
+    --primary-foreground: 0 0% 100%;    /* White text */
     
-    /* Secondary Clay - Cyberpunk Purple */
-    --secondary: 270 80% 50%;           /* Cyberpunk Purple */
-    --secondary-foreground: 0 0% 100%;  /* White text on secondary */
+    /* Secondary Clay - Playful Purple */
+    --secondary: 270 60% 65%;           /* Soft Purple */
+    --secondary-foreground: 0 0% 100%;  /* White text */
     
-    /* Action Colors - Cyberpunk Accent */
-    --accent: 180 100% 50%;             /* Cyan Accent */
-    --accent-foreground: 220 25% 8%;    /* Dark text on cyan */
+    /* Action Colors - Grass Green */
+    --accent: 140 60% 50%;              /* Bright Green */
+    --accent-foreground: 0 0% 100%;     /* White text */
     
-    /* Warning/Urgent - Cyberpunk Pink */
-    --destructive: 320 100% 60%;        /* Cyberpunk Pink */
+    /* Warning/Urgent - Coral Pink */
+    --destructive: 10 80% 60%;          /* Soft Coral */
     --destructive-foreground: 0 0% 100%; /* White text */
     
-    /* Success - Electric Cyan */
-    --success: 180 100% 50%;            /* Electric Cyan */
-    --success-foreground: 220 25% 8%;   /* Dark text on cyan */
+    /* Success - Happy Green */
+    --success: 140 70% 50%;             /* Vibrant Green */
+    --success-foreground: 0 0% 100%;    /* White text */
     
     /* Muted elements */
-    --muted: 220 15% 20%;               /* Charcoal Gray #343F4B */
-    --muted-foreground: 180 50% 65%;    /* Muted cyan text */
+    --muted: 200 30% 90%;               /* Light Blue-Gray */
+    --muted-foreground: 220 50% 40%;    /* Medium Navy */
     
     /* Borders and inputs */
-    --border: 220 15% 25%;              /* Subtle border */
-    --input: 220 15% 18%;               /* Input background */
-    --ring: 180 100% 50%;               /* Focus ring - cyan */
+    --border: 200 40% 85%;              /* Soft Border */
+    --input: 0 0% 98%;                  /* Almost White */
+    --ring: 35 100% 55%;                /* Focus ring - orange */
     --radius: 1.25rem;                  /* 20px border radius */
 
-    /* Clay Tactile Gradients - Cyberpunk Edition */
-    --gradient-clay-primary: linear-gradient(145deg, hsl(220 100% 65%), hsl(220 100% 55%));
-    --gradient-clay-secondary: linear-gradient(145deg, hsl(270 80% 55%), hsl(270 80% 45%));
-    --gradient-clay-accent: linear-gradient(145deg, hsl(180 100% 55%), hsl(180 100% 45%));
-    --gradient-dojo-bg: linear-gradient(135deg, hsl(220 25% 8%), hsl(270 20% 6%));
-    --gradient-success: linear-gradient(145deg, hsl(180 100% 55%), hsl(180 100% 45%));
-    --gradient-cyberpunk: linear-gradient(45deg, hsl(180 100% 50%), hsl(220 100% 60%), hsl(270 80% 50%), hsl(320 100% 60%));
+    /* Clay Tactile Gradients - Sunny Edition */
+    --gradient-clay-primary: linear-gradient(145deg, hsl(35 100% 60%), hsl(45 100% 55%));
+    --gradient-clay-secondary: linear-gradient(145deg, hsl(270 60% 70%), hsl(270 60% 60%));
+    --gradient-clay-accent: linear-gradient(145deg, hsl(140 60% 55%), hsl(140 70% 50%));
+    --gradient-dojo-bg: linear-gradient(135deg, hsl(200 100% 96%), hsl(180 100% 98%));
+    --gradient-success: linear-gradient(145deg, hsl(140 70% 55%), hsl(140 70% 50%));
+    --gradient-rainbow: linear-gradient(45deg, hsl(35 100% 55%), hsl(140 60% 50%), hsl(200 80% 60%), hsl(270 60% 65%));
     
-    /* Clay Depth Shadows - Cyberpunk Glow */
-    --shadow-clay-outer: 0 16px 48px -12px hsl(220 25% 4% / 0.8);
-    --shadow-clay-inner: inset 0 2px 4px hsl(180 100% 50% / 0.1), inset 0 -2px 4px hsl(220 25% 4% / 0.3);
-    --shadow-clay-hover: 0 20px 60px -15px hsl(180 100% 50% / 0.4);
-    --shadow-clay-press: 0 8px 24px -8px hsl(220 25% 4% / 0.6);
+    /* Clay Depth Shadows - Soft & Playful */
+    --shadow-clay-outer: 0 8px 24px -6px hsl(220 50% 60% / 0.15);
+    --shadow-clay-inner: inset 0 1px 2px hsl(0 0% 100% / 0.8), inset 0 -1px 2px hsl(220 30% 80% / 0.2);
+    --shadow-clay-hover: 0 12px 32px -8px hsl(35 100% 55% / 0.3);
+    --shadow-clay-press: 0 4px 12px -4px hsl(220 50% 60% / 0.2);
     
-    /* Cyberpunk Glow Effects */
-    --glow-jade: 0 0 30px hsl(180 100% 50% / 0.6);
-    --glow-fire: 0 0 30px hsl(320 100% 60% / 0.6);
-    --glow-electric: 0 0 30px hsl(180 100% 50% / 0.8);
-    --glow-cyberpunk: 0 0 40px hsl(220 100% 60% / 0.6), 0 0 80px hsl(180 100% 50% / 0.3);
+    /* Playful Glow Effects */
+    --glow-jade: 0 0 20px hsl(140 60% 50% / 0.4);
+    --glow-fire: 0 0 20px hsl(10 80% 60% / 0.4);
+    --glow-electric: 0 0 20px hsl(35 100% 55% / 0.4);
+    --glow-rainbow: 0 0 30px hsl(35 100% 55% / 0.3), 0 0 60px hsl(140 60% 50% / 0.2);
     
     /* Tactile Transitions */
     --transition-clay: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -78,14 +78,14 @@
     background: var(--gradient-dojo-bg);
     background-attachment: fixed;
     min-height: 100vh;
-    /* Subtle bamboo texture pattern */
+    /* Playful cloud pattern */
     background-image: 
       var(--gradient-dojo-bg),
       repeating-linear-gradient(
         90deg,
         transparent,
         transparent 98px,
-        hsl(140 20% 8% / 0.3) 100px
+        hsl(200 40% 90% / 0.3) 100px
       );
   }
 }

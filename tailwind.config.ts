@@ -25,16 +25,18 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         
-        /* Ninja Clay Color Palette - Cyberpunk Edition */
+        /* Ninja Clay Color Palette - Sunny Dojo Edition */
         ninja: {
-          midnight: "hsl(220 25% 8%)",      /* Midnight Blue base */
-          charcoal: "hsl(220 15% 20%)",     /* Charcoal Gray */
-          forest: "hsl(270 20% 6%)",        /* Deep Purple */
-          slate: "hsl(220 100% 60%)",       /* Cyberpunk Blue */
-          crimson: "hsl(320 100% 60%)",     /* Cyberpunk Pink */
-          jade: "hsl(180 100% 50%)",        /* Electric Cyan */
-          fire: "hsl(320 100% 60%)",        /* Cyberpunk Pink */
-          electric: "hsl(180 100% 50%)",    /* Electric Cyan */
+          sky: "hsl(200 100% 96%)",         /* Light Sky Blue */
+          sunshine: "hsl(35 100% 55%)",     /* Bright Orange */
+          grass: "hsl(140 60% 50%)",        /* Bright Green */
+          ocean: "hsl(200 80% 60%)",        /* Friendly Blue */
+          sunset: "hsl(10 80% 60%)",        /* Coral/Pink */
+          lavender: "hsl(270 60% 70%)",     /* Soft Purple */
+          lemon: "hsl(45 100% 60%)",        /* Bright Yellow */
+          jade: "hsl(140 60% 50%)",         /* Bright Green */
+          fire: "hsl(10 80% 60%)",          /* Coral */
+          electric: "hsl(35 100% 55%)",     /* Bright Orange */
         },
         
         primary: {
@@ -159,31 +161,31 @@ export default {
         },
         "jade-glow": {
           "0%, 100%": { 
-            boxShadow: "0 0 20px hsl(174 70% 45% / 0.4)",
+            boxShadow: "0 0 20px hsl(140 60% 50% / 0.3)",
             transform: "scale(1)"
           },
           "50%": { 
-            boxShadow: "0 0 40px hsl(174 70% 45% / 0.8)",
+            boxShadow: "0 0 40px hsl(140 60% 50% / 0.5)",
             transform: "scale(1.05)"
           },
         },
         "fire-glow": {
           "0%, 100%": { 
-            boxShadow: "0 0 20px hsl(25 85% 50% / 0.4)",
+            boxShadow: "0 0 20px hsl(10 80% 60% / 0.3)",
             transform: "scale(1)"
           },
           "50%": { 
-            boxShadow: "0 0 40px hsl(25 85% 50% / 0.8)",
+            boxShadow: "0 0 40px hsl(10 80% 60% / 0.5)",
             transform: "scale(1.05)"
           },
         },
         "electric-glow": {
           "0%, 100%": { 
-            boxShadow: "0 0 20px hsl(48 100% 50% / 0.6)",
+            boxShadow: "0 0 20px hsl(35 100% 55% / 0.4)",
             transform: "scale(1)"
           },
           "50%": { 
-            boxShadow: "0 0 40px hsl(48 100% 50% / 1)",
+            boxShadow: "0 0 40px hsl(35 100% 55% / 0.6)",
             transform: "scale(1.05)"
           },
         },
