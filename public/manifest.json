@@ -14,31 +14,31 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "https://ninjado.bestselfs.com/ninjado-logo-512.png",
+      "src": "/ninjado-logo-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://ninjado.bestselfs.com/ninjado-logo-512.png",
+      "src": "/ninjado-logo-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://ninjado.bestselfs.com/ninjado-logo-192.png",
+      "src": "/ninjado-logo-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://ninjado.bestselfs.com/ninjado-logo-192.png",
+      "src": "/ninjado-logo-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://ninjado.bestselfs.com/ninjado-logo-180.png",
+      "src": "/ninjado-logo-180.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
@@ -46,56 +46,56 @@
   ],
   "screenshots": [
     {
-      "src": "https://ninjado.bestselfs.com/screenshot-1-routines.jpg",
+      "src": "/screenshot-1-routines.jpg",
       "sizes": "1080x2340",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Training Routines Management"
     },
     {
-      "src": "https://ninjado.bestselfs.com/screenshot-2-training.jpg",
+      "src": "/screenshot-2-training.jpg",
       "sizes": "1080x2340",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Active Training Session"
     },
     {
-      "src": "https://ninjado.bestselfs.com/screenshot-3-rewards.jpg",
+      "src": "/screenshot-3-rewards.jpg",
       "sizes": "1080x2340",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Rewards Center"
     },
     {
-      "src": "https://ninjado.bestselfs.com/screenshot-4-parental.jpg",
+      "src": "/screenshot-4-parental.jpg",
       "sizes": "1080x2340",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Parental Control Center"
     },
     {
-      "src": "https://ninjado.bestselfs.com/screenshot-5-howto.jpg",
+      "src": "/screenshot-5-howto.jpg",
       "sizes": "1080x2340",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "How to Use Guide"
     },
     {
-      "src": "https://ninjado.bestselfs.com/screenshot-6-session.jpg",
+      "src": "/screenshot-6-session.jpg",
       "sizes": "1080x2340",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Mission Task Tracking"
     },
     {
-      "src": "https://ninjado.bestselfs.com/screenshot-7-routines-alt.jpg",
+      "src": "/screenshot-7-routines-alt.jpg",
       "sizes": "1080x2340",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Routine Configuration"
     },
     {
-      "src": "https://ninjado.bestselfs.com/screenshot-8-progress.jpg",
+      "src": "/screenshot-8-progress.jpg",
       "sizes": "1080x2340",
       "type": "image/jpeg",
       "form_factor": "narrow",
@@ -108,21 +108,14 @@
       "short_name": "Train",
       "description": "Begin your ninja training session",
       "url": "/",
-      "icons": [{"src": "https://ninjado.bestselfs.com/ninjado-logo-192.png", "sizes": "192x192", "type": "image/png"}]
+      "icons": [{"src": "/ninjado-logo-192.png", "sizes": "192x192", "type": "image/png"}]
     },
     {
       "name": "View Rewards",
       "short_name": "Rewards", 
       "description": "Check your earned rewards",
       "url": "/rewards",
-      "icons": [{"src": "https://ninjado.bestselfs.com/ninjado-logo-192.png", "sizes": "192x192", "type": "image/png"}]
+      "icons": [{"src": "/ninjado-logo-192.png", "sizes": "192x192", "type": "image/png"}]
     }
-  ],
-  "related_applications": [
-    {
-      "platform": "ios",
-      "id": "com.bestselfs.ninjado"
-    }
-  ],
-  "prefer_related_applications": false
+  ]
 }
