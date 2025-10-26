@@ -44,64 +44,6 @@
       "purpose": "any"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshot-1-routines.jpg",
-      "sizes": "1080x1920",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Training Routines Management"
-    },
-    {
-      "src": "/screenshot-2-training.jpg",
-      "sizes": "1080x1920",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Active Training Session"
-    },
-    {
-      "src": "/screenshot-3-rewards.jpg",
-      "sizes": "1080x1920",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Rewards Center"
-    },
-    {
-      "src": "/screenshot-4-parental.jpg",
-      "sizes": "1080x1920",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Parental Control Center"
-    },
-    {
-      "src": "/screenshot-5-howto.jpg",
-      "sizes": "1080x1920",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "How to Use Guide"
-    },
-    {
-      "src": "/screenshot-6-session.jpg",
-      "sizes": "1080x1920",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Mission Task Tracking"
-    },
-    {
-      "src": "/screenshot-7-routines-alt.jpg",
-      "sizes": "1080x1920",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Routine Configuration"
-    },
-    {
-      "src": "/screenshot-8-progress.jpg",
-      "sizes": "1080x1920",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Training Progress Tracker"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Start Training",

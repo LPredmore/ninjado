@@ -8,15 +8,7 @@ const STATIC_RESOURCES = [
   '/manifest.json',
   '/ninjado-logo-180.png',
   '/ninjado-logo-192.png',
-  '/ninjado-logo-512.png',
-  '/screenshot-1-routines.jpg',
-  '/screenshot-2-training.jpg',
-  '/screenshot-3-rewards.jpg',
-  '/screenshot-4-parental.jpg',
-  '/screenshot-5-howto.jpg',
-  '/screenshot-6-session.jpg',
-  '/screenshot-7-routines-alt.jpg',
-  '/screenshot-8-progress.jpg'
+  '/ninjado-logo-512.png'
 ];
 
 // Install event
