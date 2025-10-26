@@ -3,6 +3,7 @@
   "short_name": "NinjaDo",
   "description": "Transform your daily tasks into epic ninja missions with NinjaDo - the gamified productivity app that makes routine mastery fun!",
   "id": "com.bestselfs.ninjado",
+  "iarc_rating_id": "3+",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#E3F2FD",
@@ -14,35 +15,79 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "/ninjado-logo-512.png",
+      "src": "https://ninjado.bestselfs.com/ninjado-logo-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/ninjado-logo-192.png",
+      "src": "https://ninjado.bestselfs.com/ninjado-logo-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/ninjado-logo-180.png",
+      "src": "https://ninjado.bestselfs.com/ninjado-logo-180.png",
       "sizes": "180x180",
       "type": "image/png"
     }
   ],
   "screenshots": [
     {
-      "src": "/screenshot-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
+      "src": "https://ninjado.bestselfs.com/screenshot-1-routines.jpg",
+      "sizes": "1080x2340",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Training Routines Management"
     },
     {
-      "src": "/screenshot-narrow.png", 
-      "sizes": "640x1136",
-      "type": "image/png",
-      "form_factor": "narrow"
+      "src": "https://ninjado.bestselfs.com/screenshot-2-training.jpg",
+      "sizes": "1080x2340",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Active Training Session"
+    },
+    {
+      "src": "https://ninjado.bestselfs.com/screenshot-3-rewards.jpg",
+      "sizes": "1080x2340",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Rewards Center"
+    },
+    {
+      "src": "https://ninjado.bestselfs.com/screenshot-4-parental.jpg",
+      "sizes": "1080x2340",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Parental Control Center"
+    },
+    {
+      "src": "https://ninjado.bestselfs.com/screenshot-5-howto.jpg",
+      "sizes": "1080x2340",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "How to Use Guide"
+    },
+    {
+      "src": "https://ninjado.bestselfs.com/screenshot-6-session.jpg",
+      "sizes": "1080x2340",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Mission Task Tracking"
+    },
+    {
+      "src": "https://ninjado.bestselfs.com/screenshot-7-routines-alt.jpg",
+      "sizes": "1080x2340",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Routine Configuration"
+    },
+    {
+      "src": "https://ninjado.bestselfs.com/screenshot-8-progress.jpg",
+      "sizes": "1080x2340",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Training Progress Tracker"
     }
   ],
   "shortcuts": [
