@@ -17,10 +17,6 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' &&
     componentTagger(),
     VitePWA({
-      registerType: 'autoUpdate',
-      strategies: 'injectManifest',
-      srcDir: 'public',
-      filename: 'sw.js',
       injectRegister: false,
       includeAssets: ['favicon.ico', 'ninjado-logo-180.png', 'ninjado-logo-192.png', 'ninjado-logo-512.png', 'logo.png'],
       manifest: {
@@ -42,22 +38,6 @@ export default defineConfig(({ mode }) => ({
             src: 'ninjado-logo-512.png',
             sizes: '512x512',
             type: 'image/png'
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/[^\/]+\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
-              }
-            }
           }
         ]
       }
