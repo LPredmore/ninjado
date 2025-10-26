@@ -1,14 +1,22 @@
 // Service Worker for NinjaDo PWA
-const CACHE_NAME = 'ninjado-v1';
-const STATIC_CACHE = 'ninjado-static-v1';
+const CACHE_NAME = 'ninjado-v2';
+const STATIC_CACHE = 'ninjado-static-v2';
 
 // Files to cache
 const STATIC_RESOURCES = [
   '/',
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/apple-touch-icon.png'
+  '/ninjado-logo-180.png',
+  '/ninjado-logo-192.png',
+  '/ninjado-logo-512.png',
+  '/screenshot-1-routines.jpg',
+  '/screenshot-2-training.jpg',
+  '/screenshot-3-rewards.jpg',
+  '/screenshot-4-parental.jpg',
+  '/screenshot-5-howto.jpg',
+  '/screenshot-6-session.jpg',
+  '/screenshot-7-routines-alt.jpg',
+  '/screenshot-8-progress.jpg'
 ];
 
 // Install event
@@ -77,8 +85,8 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
+      icon: '/ninjado-logo-192.png',
+      badge: '/ninjado-logo-192.png',
       vibrate: [200, 100, 200],
       data: data.data,
       actions: [

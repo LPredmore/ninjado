@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+      injectRegister: false,
       includeAssets: ['favicon.ico', 'ninjado-logo-180.png', 'ninjado-logo-192.png', 'ninjado-logo-512.png', 'logo.png'],
       manifest: {
         name: 'NinjaDo - Master Your Routine',
