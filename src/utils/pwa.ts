@@ -13,6 +13,12 @@ let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
 // Listen for the beforeinstallprompt event
 export const initializePWA = (): void => {
+  // Don't register service worker if running in Capacitor
+  if ((window as any).Capacitor) {
+    console.log('Running in Capacitor - skipping service worker registration');
+    return;
+  }
+
   window.addEventListener('beforeinstallprompt', (e: Event) => {
     // Prevent Chrome 67 and earlier from automatically showing the prompt
     e.preventDefault();
