@@ -74,11 +74,7 @@ export function AppSidebar({ onSignOut }: AppSidebarProps) {
       collapsible="icon"
       variant={isMobile ? "floating" : "sidebar"}
     >
-      {/* Ninja Dojo Background - Solid for mobile visibility */}
-      <div className="absolute inset-0 bg-gradient-to-b from-ninja-forest to-ninja-midnight" />
-      <div className="relative z-10">
-        
-        <SidebarHeader className="p-6">
+      <SidebarHeader className="p-6">
           <div className="flex items-center gap-3">
             <div className="clay-element w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden glow-jade">
               <img 
@@ -164,8 +160,6 @@ export function AppSidebar({ onSignOut }: AppSidebarProps) {
             </SidebarMenuItem>
           )}
         </SidebarFooter>
-        
-      </div>
     </Sidebar>
   );
 }
