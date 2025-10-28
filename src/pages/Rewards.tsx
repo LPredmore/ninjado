@@ -38,7 +38,7 @@ const Rewards = ({ user, supabase }: RewardsProps) => {
 
   return (
     <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4 md:p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Rewards</h1>
           <Button onClick={() => setIsAddRewardOpen(true)}>

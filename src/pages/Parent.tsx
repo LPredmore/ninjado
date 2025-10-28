@@ -164,7 +164,7 @@ const Parent = ({
     }
   };
   return <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
-      <div className="container mx-auto p-6 max-w-4xl">
+      <div className="container mx-auto p-4 md:p-6 max-w-4xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-xl clay-element flex items-center justify-center glow-jade">

@@ -78,7 +78,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
 
   return (
     <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
-      <div className="container mx-auto p-6 space-y-8">
+      <div className="container mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
         
         {/* Page Header */}
         <div className="text-center">

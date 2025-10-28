@@ -8,6 +8,14 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://0aa89cf8-0910-4f94-89bb-07221f4071b0.lovableproject.com?forceHideBadge=true',
     cleartext: true
+  },
+  ios: {
+    contentInset: 'automatic',
+    scrollEnabled: true
+  },
+  android: {
+    allowMixedContent: true,
+    captureInput: true
   }
 };
 

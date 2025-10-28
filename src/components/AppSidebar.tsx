@@ -70,12 +70,12 @@ export function AppSidebar({ onSignOut }: AppSidebarProps) {
 
   return (
     <Sidebar 
-      className="border-r border-border/50 backdrop-blur-md" 
+      className="border-r border-border/50" 
       collapsible="icon"
       variant={isMobile ? "floating" : "sidebar"}
     >
-      {/* Ninja Dojo Background with bamboo texture */}
-      <div className="absolute inset-0 bg-gradient-to-b from-ninja-forest to-ninja-midnight opacity-95" />
+      {/* Ninja Dojo Background - Solid for mobile visibility */}
+      <div className="absolute inset-0 bg-gradient-to-b from-ninja-forest to-ninja-midnight" />
       <div className="relative z-10">
         
         <SidebarHeader className="p-6">

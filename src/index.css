@@ -3,7 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  /* Safe Area Insets for Mobile */
   :root {
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    
     /* Sunny Ninja Dojo - Kid-Friendly Theme */
     --background: 200 100% 96%;         /* Light Sky Blue */
     --foreground: 220 70% 20%;          /* Dark Navy (readable) */
