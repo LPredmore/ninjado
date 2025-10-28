@@ -37,6 +37,8 @@ export default {
           jade: "hsl(140 60% 50%)",         /* Bright Green */
           fire: "hsl(10 80% 60%)",          /* Coral */
           electric: "hsl(35 100% 55%)",     /* Bright Orange */
+          forest: "hsl(140 30% 25%)",       /* Dark Forest Green */
+          midnight: "hsl(220 40% 15%)",     /* Dark Navy/Midnight Blue */
         },
         
         primary: {
