@@ -12,13 +12,15 @@ import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Pencil, Clock } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { invalidateRoutineQueries } from "@/lib/queryKeys";
+import { logError } from "@/lib/errorLogger";
 
 interface EditRoutineDialogProps {
   routineId: string;
   routineTitle: string;
   routineStartTime?: string;
   supabase: SupabaseClient;
-  onEditComplete: () => void;
+  userId: string;
 }
 
 const EditRoutineDialog = ({
@@ -26,12 +28,12 @@ const EditRoutineDialog = ({
   routineTitle,
   routineStartTime,
   supabase,
-  onEditComplete,
+  userId,
 }: EditRoutineDialogProps) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(routineTitle);
   const [startTime, setStartTime] = useState(routineStartTime || "");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
   const handleSave = async () => {
@@ -40,7 +42,7 @@ const EditRoutineDialog = ({
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       const { error } = await supabase
         .from("routines")
@@ -54,12 +56,16 @@ const EditRoutineDialog = ({
 
       toast.success("Routine updated successfully");
       setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["routines"] });
+      invalidateRoutineQueries(queryClient, userId);
     } catch (error) {
-      console.error("Error updating routine:", error);
+      logError("Failed to update routine", error, {
+        component: "EditRoutineDialog",
+        action: "handleSave",
+        routineId,
+      });
       toast.error("Failed to update routine");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -102,7 +108,7 @@ const EditRoutineDialog = ({
           <div className="space-y-2">
             <label className="text-sm font-medium">Start Time</label>
             <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-gray-500" />
+              <Clock className="w-4 h-4 text-muted-foreground" />
               <Input
                 type="time"
                 value={startTime}
@@ -119,8 +125,8 @@ const EditRoutineDialog = ({
           <Button onClick={() => setOpen(false)} variant="outline">
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Changes"}
+          <Button onClick={handleSave} disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>
       </DialogContent>

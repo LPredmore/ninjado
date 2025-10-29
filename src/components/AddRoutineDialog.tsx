@@ -7,19 +7,21 @@ import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Clock } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { invalidateRoutineQueries } from "@/lib/queryKeys";
+import { logError } from "@/lib/errorLogger";
 
 interface AddRoutineDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   supabase: SupabaseClient;
-  onRoutineAdded: () => void;
+  userId: string;
 }
 
 export const AddRoutineDialog = ({
   open,
   onOpenChange,
   supabase,
-  onRoutineAdded,
+  userId,
 }: AddRoutineDialogProps) => {
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -34,7 +36,7 @@ export const AddRoutineDialog = ({
     try {
       const { error } = await supabase.from("routines").insert({
         title,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        user_id: userId,
         start_time: startTime || null
       });
 
@@ -44,9 +46,12 @@ export const AddRoutineDialog = ({
       setTitle("");
       setStartTime("");
       onOpenChange(false);
-      queryClient.invalidateQueries({ queryKey: ["routines"] });
+      invalidateRoutineQueries(queryClient, userId);
     } catch (error) {
-      console.error("Error creating routine:", error);
+      logError("Failed to create routine", error, {
+        component: "AddRoutineDialog",
+        action: "handleSubmit",
+      });
       toast.error("Failed to create routine");
     } finally {
       setIsSubmitting(false);

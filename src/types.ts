@@ -1,3 +1,18 @@
+// Database types - matches Supabase schema exactly
+export interface RoutineDB {
+  id: string;
+  title: string;
+  start_time?: string | null;
+  user_id?: string;
+  created_at?: string;
+}
+
+// UI types - for component props
+export interface Routine {
+  id: string;
+  title: string;
+  start_time?: string | null;
+}
 
 export interface Task {
   id: string;
@@ -8,10 +23,12 @@ export interface Task {
   type?: 'regular' | 'focus';
 }
 
-export interface Routine {
+export interface RoutineTask {
   id: string;
+  routine_id: string;
   title: string;
-  start_time?: string | null; // Match the database column name
-  startTime?: string; // Optional start time in HH:MM format
-  endTime?: string;   // Optional end time (calculated)
+  duration: number;
+  position: number;
+  type?: 'regular' | 'focus';
+  created_at?: string;
 }

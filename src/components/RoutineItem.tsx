@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { List, Trash2, Clock, CalendarClock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TaskItem from './TaskItem';
@@ -11,6 +11,9 @@ import CopyRoutineDialog from './CopyRoutineDialog';
 import EditRoutineDialog from './EditRoutineDialog';
 import { Badge } from "@/components/ui/badge";
 import { useQueryClient } from "@tanstack/react-query";
+import { invalidateRoutineQueries } from "@/lib/queryKeys";
+import { logError } from "@/lib/errorLogger";
+import type { RoutineTask } from "@/types";
 
 interface RoutineItemProps {
   routine: {
@@ -18,28 +21,28 @@ interface RoutineItemProps {
     title: string;
     start_time?: string | null;
   };
-  tasks: {
-    id: string;
-    title: string;
-    duration: number;
-    position: number;
-    type?: 'regular' | 'focus';
-  }[];
+  tasks: RoutineTask[];
   onDelete: (routineId: string) => void;
   supabase: SupabaseClient;
-  onTasksUpdate: () => void;
+  userId: string;
 }
 
 const RoutineItem = ({ 
   routine, 
   tasks, 
   onDelete, 
-  supabase, 
-  onTasksUpdate
+  supabase,
+  userId
 }: RoutineItemProps) => {
-  // Local state for optimistic updates
+  // Local state for optimistic drag-and-drop updates
   const [localTasks, setLocalTasks] = useState(tasks);
   const queryClient = useQueryClient();
+  
+  // Sync tasks prop to local state when parent updates
+  // This fixes the issue where tasks weren't displaying after loading
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
   
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
@@ -63,10 +66,15 @@ const RoutineItem = ({
       });
 
       if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ["routines"] });
+      invalidateRoutineQueries(queryClient, userId);
     } catch (error) {
-      console.error("Error updating task positions:", error);
+      logError("Failed to reorder tasks", error, {
+        component: "RoutineItem",
+        action: "handleDragEnd",
+        routineId: routine.id,
+      });
       toast.error("Failed to reorder tasks");
+      // Rollback to original order
       setLocalTasks(tasks);
     }
   };
@@ -104,16 +112,17 @@ const RoutineItem = ({
             routineId={routine.id} 
             routineTitle={routine.title}
             routineStartTime={routine.start_time || undefined}
-            supabase={supabase} 
-            onEditComplete={onTasksUpdate}
+            supabase={supabase}
+            userId={userId}
           />
         </div>
         <div className="flex items-center space-x-2">
           <CopyRoutineDialog
             routineId={routine.id}
             routineTitle={routine.title}
+            routineStartTime={routine.start_time || undefined}
             supabase={supabase}
-            onCopyComplete={onTasksUpdate}
+            userId={userId}
           />
           <Button
             variant="ghost"
@@ -186,8 +195,8 @@ const RoutineItem = ({
                   <TaskItem
                     key={task.id}
                     task={task}
-                    onTaskUpdate={onTasksUpdate}
                     supabase={supabase}
+                    userId={userId}
                     index={index}
                   />
                 ))}
@@ -201,8 +210,8 @@ const RoutineItem = ({
           routineId={routine.id}
           routineTitle={routine.title}
           tasksCount={localTasks.length}
-          onTasksUpdate={onTasksUpdate}
           supabase={supabase}
+          userId={userId}
         />
       </div>
     </div>

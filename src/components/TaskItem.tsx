@@ -8,24 +8,30 @@ import { toast } from "sonner";
 import { Draggable } from 'react-beautiful-dnd';
 import EditTaskDialog from './EditTaskDialog';
 import { useQueryClient } from "@tanstack/react-query";
+import { invalidateRoutineQueries } from "@/lib/queryKeys";
+import { logError } from "@/lib/errorLogger";
+import type { RoutineTask } from "@/types";
 
 interface TaskItemProps {
-  task: {
-    id: string;
-    title: string;
-    duration: number;
-    position: number;
-    type?: 'regular' | 'focus';
-  };
-  onTaskUpdate: () => void;
+  task: RoutineTask;
   supabase: SupabaseClient;
+  userId: string;
   index: number;
 }
 
-const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
+const TaskItem = ({ task, supabase, userId, index }: TaskItemProps) => {
   const queryClient = useQueryClient();
 
   const handleDelete = async () => {
+    // Optimistic update - get current tasks from cache
+    const previousTasks = queryClient.getQueryData(['routines', 'tasks', userId]);
+    
+    // Remove task from UI immediately
+    queryClient.setQueryData(
+      ['routines', 'tasks', userId],
+      (old: any) => old?.filter((t: any) => t.id !== task.id) || []
+    );
+
     try {
       const { error } = await supabase
         .from('routine_tasks')
@@ -35,9 +41,17 @@ const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
       if (error) throw error;
 
       toast.success('Task deleted');
-      queryClient.invalidateQueries({ queryKey: ["routines"] });
+      invalidateRoutineQueries(queryClient, userId);
     } catch (error) {
-      console.error('Error deleting task:', error);
+      // Rollback on error
+      queryClient.setQueryData(['routines', 'tasks', userId], previousTasks);
+      
+      logError('Failed to delete task', error, {
+        component: 'TaskItem',
+        action: 'handleDelete',
+        taskId: task.id,
+      });
+      
       toast.error('Failed to delete task', {
         action: {
           label: "Retry",
@@ -74,7 +88,7 @@ const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
               taskId={task.id}
               task={task}
               supabase={supabase}
-              onEditComplete={onTaskUpdate}
+              userId={userId}
             />
             <Button
               variant="ghost"

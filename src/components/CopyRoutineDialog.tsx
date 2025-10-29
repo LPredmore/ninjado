@@ -6,23 +6,27 @@ import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Copy } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { invalidateRoutineQueries } from "@/lib/queryKeys";
+import { logError } from "@/lib/errorLogger";
 
 interface CopyRoutineDialogProps {
   routineId: string;
   routineTitle: string;
+  routineStartTime?: string;
   supabase: SupabaseClient;
-  onCopyComplete: () => void;
+  userId: string;
 }
 
 const CopyRoutineDialog = ({
   routineId,
   routineTitle,
+  routineStartTime,
   supabase,
-  onCopyComplete,
+  userId,
 }: CopyRoutineDialogProps) => {
   const [open, setOpen] = useState(false);
   const [newTitle, setNewTitle] = useState(`Copy of ${routineTitle}`);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 const handleCopyRoutine = async () => {
   if (!newTitle.trim()) {
@@ -30,24 +34,15 @@ const handleCopyRoutine = async () => {
     return;
   }
 
-  setIsLoading(true);
+  setIsSubmitting(true);
   try {
-    // Fetch the original routine to copy start_time
-    const { data: originalRoutine, error: routineFetchErr } = await supabase
-      .from("routines")
-      .select("start_time")
-      .eq("id", routineId)
-      .single();
-
-    if (routineFetchErr) throw routineFetchErr;
-
-    // 1. Create a new routine
+    // Create a new routine (use passed routineStartTime to avoid extra fetch)
     const { data: newRoutine, error: routineError } = await supabase
       .from("routines")
       .insert({
         title: newTitle,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        start_time: originalRoutine?.start_time ?? null,
+        user_id: userId,
+        start_time: routineStartTime || null,
       })
       .select()
       .single();
@@ -82,12 +77,16 @@ const handleCopyRoutine = async () => {
 
       toast.success("Routine copied successfully!");
       setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["routines"] });
+      invalidateRoutineQueries(queryClient, userId);
     } catch (error) {
-      console.error("Error copying routine:", error);
+      logError("Failed to copy routine", error, {
+        component: "CopyRoutineDialog",
+        action: "handleCopyRoutine",
+        routineId,
+      });
       toast.error("Failed to copy routine");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -128,9 +127,9 @@ const handleCopyRoutine = async () => {
           </Button>
           <Button
             onClick={handleCopyRoutine}
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
-            {isLoading ? "Copying..." : "Copy Routine"}
+            {isSubmitting ? "Copying..." : "Copy Routine"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
+import { invalidateRoutineQueries } from "@/lib/queryKeys";
+import { logError } from "@/lib/errorLogger";
 
 interface EditTaskDialogProps {
   taskId: string;
@@ -23,20 +25,20 @@ interface EditTaskDialogProps {
     type?: 'regular' | 'focus';
   };
   supabase: SupabaseClient;
-  onEditComplete: () => void;
+  userId: string;
 }
 
 const EditTaskDialog = ({
   taskId,
   task,
   supabase,
-  onEditComplete,
+  userId,
 }: EditTaskDialogProps) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [duration, setDuration] = useState(task.duration.toString());
   const [taskType, setTaskType] = useState<'regular' | 'focus'>(task.type || 'regular');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
   const handleSave = async () => {
@@ -45,7 +47,7 @@ const EditTaskDialog = ({
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       const { error } = await supabase
         .from("routine_tasks")
@@ -60,12 +62,16 @@ const EditTaskDialog = ({
 
       toast.success("Task updated successfully");
       setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["routines"] });
+      invalidateRoutineQueries(queryClient, userId);
     } catch (error) {
-      console.error("Error updating task:", error);
+      logError("Failed to update task", error, {
+        component: "EditTaskDialog",
+        action: "handleSave",
+        taskId,
+      });
       toast.error("Failed to update task");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -131,9 +137,9 @@ const EditTaskDialog = ({
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
-            {isLoading ? "Saving..." : "Save Changes"}
+            {isSubmitting ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>
       </DialogContent>

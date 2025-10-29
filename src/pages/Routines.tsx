@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { User } from "@supabase/supabase-js";
 import { SupabaseClient } from "@supabase/supabase-js";
 import SidebarLayout from "@/components/SidebarLayout";
@@ -9,7 +9,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AddRoutineDialog } from "@/components/AddRoutineDialog";
 import RoutineItem from "@/components/RoutineItem";
 import { toast } from "sonner";
-import { queryKeys } from "@/lib/queryKeys";
+import { queryKeys, invalidateRoutineQueries } from "@/lib/queryKeys";
+import { logError } from "@/lib/errorLogger";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface RoutinesProps {
   user: User;
@@ -35,11 +38,21 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
     },
   });
 
+  // Fetch all tasks for user's routines
+  // This query is independent of routines query to avoid race conditions
   const { data: tasks, isLoading: isLoadingTasks } = useQuery({
     queryKey: queryKeys.allRoutineTasks(user.id),
     queryFn: async () => {
-      const routineIds = routines?.map(r => r.id) || [];
-      if (routineIds.length === 0) return [];
+      // Fetch routine IDs internally to avoid race conditions
+      const { data: userRoutines, error: routinesError } = await supabase
+        .from("routines")
+        .select("id")
+        .eq("user_id", user.id);
+
+      if (routinesError) throw routinesError;
+      if (!userRoutines || userRoutines.length === 0) return [];
+      
+      const routineIds = userRoutines.map(r => r.id);
       
       const { data, error } = await supabase
         .from("routine_tasks")
@@ -50,8 +63,18 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!routines && routines.length > 0,
   });
+
+  // Create a Map for O(1) task lookup by routine_id (eliminates N+1 filtering)
+  const tasksByRoutineId = useMemo(() => {
+    const map = new Map<string, typeof tasks>();
+    tasks?.forEach(task => {
+      const routineTasks = map.get(task.routine_id) || [];
+      routineTasks.push(task);
+      map.set(task.routine_id, routineTasks);
+    });
+    return map;
+  }, [tasks]);
 
 
   const handleSignOut = async () => {
@@ -63,14 +86,29 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
   };
 
   const handleDeleteRoutine = async (routineId: string) => {
+    // Optimistic update - remove routine from UI immediately
+    const previousRoutines = routines;
+    queryClient.setQueryData(
+      queryKeys.routines(user.id),
+      (old: any) => old?.filter((r: any) => r.id !== routineId) || []
+    );
+
     try {
       const { error } = await supabase.from("routines").delete().eq("id", routineId);
       if (error) throw error;
       
       toast.success("Routine deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["routines"] });
+      invalidateRoutineQueries(queryClient, user.id);
     } catch (error) {
-      console.error("Error deleting routine:", error);
+      // Rollback on error
+      queryClient.setQueryData(queryKeys.routines(user.id), previousRoutines);
+      
+      logError("Failed to delete routine", error, {
+        component: "Routines",
+        action: "handleDeleteRoutine",
+        routineId,
+      });
+      
       toast.error("Failed to delete routine", {
         action: {
           label: "Retry",
@@ -80,13 +118,10 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
     }
   };
 
-  const handleRoutineUpdate = () => {
-    queryClient.invalidateQueries({ queryKey: ["routines"] });
-  };
-
   return (
-    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
-      <div className="container mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
+    <ErrorBoundary>
+      <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
+        <div className="container mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
         
         {/* Page Header */}
         <div className="text-center">
@@ -116,10 +151,19 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         {isLoadingRoutines && (
           <div className="grid gap-6">
             {[1, 2, 3].map(i => (
-              <div key={i} className="clay-element-with-transition p-4 animate-pulse">
-                <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
-                <div className="h-4 bg-muted rounded w-2/3 mb-2"></div>
-                <div className="h-4 bg-muted rounded w-1/2"></div>
+              <div key={i} className="clay-element-with-transition p-6 space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <Skeleton className="h-5 w-5 rounded" />
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </div>
+                  <Skeleton className="h-8 w-24" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
               </div>
             ))}
           </div>
@@ -137,23 +181,28 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         )}
 
         {/* Tasks Loading Indicator */}
-        {isLoadingTasks && routines && routines.length > 0 && (
-          <div className="text-center text-muted-foreground animate-pulse">
-            Loading tasks...
+        {isLoadingTasks && (
+          <div className="clay-element-with-transition p-4 text-center">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <span className="ml-3 text-muted-foreground">Loading tasks...</span>
+            </div>
           </div>
         )}
 
         {/* Routines Grid */}
-        {!isLoadingRoutines && !routinesError && (
+        {!isLoadingRoutines && !routinesError && routines && routines.length > 0 && (
           <div className="grid gap-6">
-            {routines?.map((routine) => (
+            {routines.map((routine) => (
               <RoutineItem
-                key={routine.id}
+                key={`${routine.id}-${tasksByRoutineId.get(routine.id)?.length || 0}`}
                 routine={routine}
-                tasks={tasks?.filter((task) => task.routine_id === routine.id) || []}
+                tasks={tasksByRoutineId.get(routine.id) || []}
                 onDelete={handleDeleteRoutine}
                 supabase={supabase}
-                onTasksUpdate={handleRoutineUpdate}
+                userId={user.id}
               />
             ))}
           </div>
@@ -178,10 +227,11 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           open={isAddRoutineOpen}
           onOpenChange={setIsAddRoutineOpen}
           supabase={supabase}
-          onRoutineAdded={handleRoutineUpdate}
+          userId={user.id}
         />
-      </div>
-    </SidebarLayout>
+        </div>
+      </SidebarLayout>
+    </ErrorBoundary>
   );
 };
 
