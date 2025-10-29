@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PinPrompt from './PinPrompt';
 import { supabase } from '@/integrations/supabase/client';
+import { logError } from '@/lib/errorLogger';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -32,7 +33,7 @@ const ProtectedRoute = ({ children, userId, requirePin = true }: ProtectedRouteP
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error checking PIN requirement:', error);
+        logError('Error checking PIN requirement', error, { component: 'ProtectedRoute', action: 'checkPinRequirement', userId });
         setIsAuthorized(true); // Allow access if there's an error
         return;
       }
@@ -45,7 +46,7 @@ const ProtectedRoute = ({ children, userId, requirePin = true }: ProtectedRouteP
         setIsAuthorized(true);
       }
     } catch (error) {
-      console.error('Error checking PIN requirement:', error);
+      logError('Error checking PIN requirement', error, { component: 'ProtectedRoute', action: 'checkPinRequirement', userId });
       setIsAuthorized(true); // Allow access if there's an error
     }
   };

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { logError } from "@/lib/errorLogger";
 
 interface AddRewardDialogProps {
   open: boolean;
@@ -39,7 +40,7 @@ export const AddRewardDialog = ({
     });
 
     if (error) {
-      console.error("Error creating reward:", error);
+      logError("Error creating reward", error, { component: "AddRewardDialog", action: "handleSubmit" });
       toast.error("Failed to create reward");
       return;
     }

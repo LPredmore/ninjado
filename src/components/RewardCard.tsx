@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
+import { logError } from "@/lib/errorLogger";
 
 interface RewardCardProps {
   reward: Database["public"]["Tables"]["rewards"]["Row"];
@@ -27,7 +28,7 @@ const RewardCardComponent = ({ reward, onRewardChange, supabase }: RewardCardPro
     const { error } = await supabase.from("rewards").delete().eq("id", reward.id);
 
     if (error) {
-      console.error("Error deleting reward:", error);
+      logError("Error deleting reward", error, { component: "RewardCard", action: "handleDelete", rewardId: reward.id });
       toast.error("Failed to delete reward");
       return;
     }
@@ -58,7 +59,7 @@ const RewardCardComponent = ({ reward, onRewardChange, supabase }: RewardCardPro
         .eq("user_id", userId);
 
       if (timeError) {
-        console.error("Error checking available time:", timeError);
+        logError("Error checking available time", timeError, { component: "RewardCard", action: "handleRedeem", userId });
         toast.error("Failed to check available time");
         return;
       }
@@ -72,7 +73,7 @@ const RewardCardComponent = ({ reward, onRewardChange, supabase }: RewardCardPro
         .eq("user_id", userId);
 
       if (redemptionsError) {
-        console.error("Error checking redemption history:", redemptionsError);
+        logError("Error checking redemption history", redemptionsError, { component: "RewardCard", action: "handleRedeem", userId });
         toast.error("Failed to check redemption history");
         return;
       }
@@ -97,7 +98,7 @@ const RewardCardComponent = ({ reward, onRewardChange, supabase }: RewardCardPro
         });
 
       if (redemptionError) {
-        console.error("Error redeeming reward:", redemptionError);
+        logError("Error redeeming reward", redemptionError, { component: "RewardCard", action: "handleRedeem", rewardId: reward.id, userId });
         toast.error("Failed to redeem reward");
         return;
       }

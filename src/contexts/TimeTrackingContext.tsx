@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
+import { logError } from '@/lib/errorLogger';
 
 interface TimeTrackingContextType {
   totalTimeSaved: number;
@@ -21,7 +22,7 @@ export function TimeTrackingProvider({ children, user }: { children: React.React
       .eq('user_id', user.id);
 
     if (timeError) {
-      console.error('Error fetching total time saved:', timeError);
+      logError('Error fetching total time saved', timeError, { component: 'TimeTrackingContext', action: 'fetchTotalTimeSaved', userId: user.id });
       return;
     }
 
@@ -34,7 +35,7 @@ export function TimeTrackingProvider({ children, user }: { children: React.React
       .eq('user_id', user.id);
 
     if (redemptionsError) {
-      console.error('Error fetching reward redemptions:', redemptionsError);
+      logError('Error fetching reward redemptions', redemptionsError, { component: 'TimeTrackingContext', action: 'fetchTotalTimeSaved', userId: user.id });
       return;
     }
 
@@ -56,7 +57,7 @@ export function TimeTrackingProvider({ children, user }: { children: React.React
       ]);
 
     if (error) {
-      console.error('Error recording task completion:', error);
+      logError('Error recording task completion', error, { component: 'TimeTrackingContext', action: 'recordTaskCompletion', userId: user.id, taskTitle });
       toast.error('Failed to record task completion');
       return;
     }

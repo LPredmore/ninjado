@@ -13,6 +13,7 @@ import { queryKeys, invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RoutineTask } from "@/types";
 
 interface RoutinesProps {
   user: User;
@@ -67,7 +68,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
 
   // Create a Map for O(1) task lookup by routine_id (eliminates N+1 filtering)
   const tasksByRoutineId = useMemo(() => {
-    const map = new Map<string, typeof tasks>();
+    const map = new Map<string, RoutineTask[]>();
     tasks?.forEach(task => {
       const routineTasks = map.get(task.routine_id) || [];
       routineTasks.push(task);
@@ -174,7 +175,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           <div className="clay-element-with-transition text-center p-12 border-destructive/50">
             <h3 className="text-xl font-bold text-destructive mb-3">Failed to Load Routines</h3>
             <p className="text-muted-foreground mb-6">{routinesError.message}</p>
-            <Button variant="clay-jade" onClick={() => queryClient.invalidateQueries({ queryKey: ["routines"] })}>
+            <Button variant="clay-jade" onClick={() => queryClient.invalidateQueries({ queryKey: queryKeys.routines(user.id) })}>
               Try Again
             </Button>
           </div>

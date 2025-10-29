@@ -8,6 +8,7 @@ import SidebarLayout from '@/components/SidebarLayout';
 import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 import { toast } from '@/hooks/use-toast';
 import bcrypt from 'bcryptjs';
+import { logError } from '@/lib/errorLogger';
 interface ParentProps {
   user: User;
   supabase: SupabaseClient;
@@ -40,13 +41,13 @@ const Parent = ({
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error checking PIN:', error);
+        logError('Error checking PIN', error, { component: 'Parent', action: 'checkExistingPin', userId: user.id });
         return;
       }
 
       setHasPin(!!data?.is_active);
     } catch (error) {
-      console.error('Error checking existing PIN:', error);
+      logError('Error checking existing PIN', error, { component: 'Parent', action: 'checkExistingPin', userId: user.id });
     }
   };
 
@@ -78,7 +79,7 @@ const Parent = ({
         });
       }
     } catch (error) {
-      console.error('Error migrating PIN:', error);
+      logError('Error migrating PIN', error, { component: 'Parent', action: 'migrateFromLocalStorage', userId: user.id });
     }
   };
   const handleSignOut = async () => {
@@ -125,7 +126,7 @@ const Parent = ({
         description: "PIN has been set successfully. Security protocols are now active."
       });
     } catch (error) {
-      console.error('Error setting PIN:', error);
+      logError('Error setting PIN', error, { component: 'Parent', action: 'handleSetPin', userId: user.id });
       toast({
         title: "Error",
         description: "Failed to set PIN. Please try again.",
@@ -153,7 +154,7 @@ const Parent = ({
         description: "PIN has been removed. All restrictions are lifted."
       });
     } catch (error) {
-      console.error('Error removing PIN:', error);
+      logError('Error removing PIN', error, { component: 'Parent', action: 'handleRemovePin', userId: user.id });
       toast({
         title: "Error",
         description: "Failed to remove PIN. Please try again.",

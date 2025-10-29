@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Shield, X, Eye, EyeOff } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { logError } from '@/lib/errorLogger';
 
 interface PinPromptProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ const PinPrompt = ({ isOpen, onClose, onSuccess, title, description, userId }: P
       });
 
       if (error) {
-        console.error('Error verifying PIN:', error);
+        logError('Error verifying PIN', error, { component: 'PinPrompt', action: 'handleSubmit', userId });
         toast({
           title: "Error",
           description: "Failed to verify PIN. Please try again.",
@@ -60,7 +61,7 @@ const PinPrompt = ({ isOpen, onClose, onSuccess, title, description, userId }: P
         setPin('');
       }
     } catch (error) {
-      console.error('Error verifying PIN:', error);
+      logError('Error verifying PIN', error, { component: 'PinPrompt', action: 'handleSubmit', userId });
       toast({
         title: "Error",
         description: "Failed to verify PIN. Please try again.",

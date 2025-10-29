@@ -10,6 +10,7 @@ import { NinjaScrollCard } from "@/components/ninja/NinjaScrollCard";
 import { Mail, Lock, MessageSquare, Trash2, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { logError } from "@/lib/errorLogger";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -107,7 +108,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
       }, 1500);
       
     } catch (error) {
-      console.error("Error deleting account:", error);
+      logError("Error deleting account", error, { component: "Profile", action: "handleDeleteAccount", userId: user.id });
       toast.error("An error occurred while deleting your account");
       setIsDeletingAccount(false);
     }

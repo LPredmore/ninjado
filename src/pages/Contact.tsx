@@ -12,6 +12,7 @@ import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { MessageSquare, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { logError } from "@/lib/errorLogger";
 
 // Schema validation for contact form
 const contactSchema = z.object({
@@ -78,7 +79,7 @@ const Contact = ({ user, supabase }: ContactProps) => {
       setTopic("");
       setMessage("");
     } catch (error) {
-      console.error("Error sending message:", error);
+      logError("Error sending message", error, { component: "Contact", action: "handleSubmit", userId: user.id });
       toast.error("Failed to send message. Please try again.");
     } finally {
       setIsSubmitting(false);
