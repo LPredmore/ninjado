@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Trash2, GripVertical } from 'lucide-react';
+import { Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from "sonner";
-import { Draggable } from 'react-beautiful-dnd';
 import EditTaskDialog from './EditTaskDialog';
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries, queryKeys } from "@/lib/queryKeys";
@@ -17,9 +16,13 @@ interface TaskItemProps {
   supabase: SupabaseClient;
   userId: string;
   index: number;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
 }
 
-const TaskItem = ({ task, supabase, userId, index }: TaskItemProps) => {
+const TaskItem = ({ task, supabase, userId, index, onMoveUp, onMoveDown, isFirst, isLast }: TaskItemProps) => {
   const queryClient = useQueryClient();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
@@ -64,56 +67,61 @@ const TaskItem = ({ task, supabase, userId, index }: TaskItemProps) => {
 
   return (
     <>
-      <Draggable draggableId={task.id} index={index}>
-        {(provided) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            style={{
-              ...provided.draggableProps.style,
-              transform: provided.draggableProps.style?.transform 
-                ? `${provided.draggableProps.style.transform} scale(1.02)`
-                : undefined,
-            }}
-            className="clay-element-draggable px-3 py-2 gradient-clay-accent mb-2 flex items-center justify-between transition-transform hover:scale-105"
-          >
-            <div className="flex items-center gap-2">
-            <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing mr-2" aria-label="Drag to reorder">
-              <GripVertical className="h-5 w-5 text-accent-foreground/70" />
-            </div>
-              <span className="text-sm font-medium text-accent-foreground">{task.title}</span>
-              {task.type === 'focus' ? (
-                <Badge variant="focus" className="text-xs">
-                  Focus
-                </Badge>
-              ) : (
-                <Badge variant="speed" className="text-xs">
-                  Speed
-                </Badge>
-              )}
-              <span className="text-sm text-accent-foreground/70">({task.duration} min)</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <EditTaskDialog
-                taskId={task.id}
-                task={task}
-                supabase={supabase}
-                userId={userId}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setDeleteConfirmOpen(true)}
-                className="h-8 w-8 text-accent-foreground/70 hover:text-accent-foreground hover:bg-accent-foreground/10"
-                aria-label="Delete task"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+      <div className="clay-element-draggable px-3 py-2 gradient-clay-accent mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-1 mr-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onMoveUp}
+              disabled={isFirst}
+              className="h-6 w-6 p-0 hover:bg-accent-foreground/10 disabled:opacity-30"
+              aria-label="Move task up"
+            >
+              <ChevronUp className="h-4 w-4 text-accent-foreground/70" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onMoveDown}
+              disabled={isLast}
+              className="h-6 w-6 p-0 hover:bg-accent-foreground/10 disabled:opacity-30"
+              aria-label="Move task down"
+            >
+              <ChevronDown className="h-4 w-4 text-accent-foreground/70" />
+            </Button>
           </div>
-        )}
-      </Draggable>
+          <span className="text-sm font-medium text-accent-foreground">{task.title}</span>
+          {task.type === 'focus' ? (
+            <Badge variant="focus" className="text-xs">
+              Focus
+            </Badge>
+          ) : (
+            <Badge variant="speed" className="text-xs">
+              Speed
+            </Badge>
+          )}
+          <span className="text-sm text-accent-foreground/70">({task.duration} min)</span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <EditTaskDialog
+            taskId={task.id}
+            task={task}
+            supabase={supabase}
+            userId={userId}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setDeleteConfirmOpen(true)}
+            className="h-8 w-8 text-accent-foreground/70 hover:text-accent-foreground hover:bg-accent-foreground/10"
+            aria-label="Delete task"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
       
       <ConfirmDialog
         open={deleteConfirmOpen}

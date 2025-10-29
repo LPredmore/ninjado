@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import TaskItem from './TaskItem';
 import AddTaskDialog from './AddTaskDialog';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { toast } from 'sonner';
 import CopyRoutineDialog from './CopyRoutineDialog';
 import EditRoutineDialog from './EditRoutineDialog';
@@ -46,21 +45,19 @@ const RoutineItem = ({
     setLocalTasks(tasks);
   }, [tasks]);
   
-  const handleDragEnd = async (result: any) => {
-    if (!result.destination) return;
-    if (result.source.index === result.destination.index) return;
+  const handleMoveTaskUp = async (index: number) => {
+    if (index === 0) return; // Already at top
     
-    // Optimistic update - update UI immediately
+    // Optimistic update - swap with previous task
     const items = Array.from(localTasks);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    [items[index - 1], items[index]] = [items[index], items[index - 1]];
     setLocalTasks(items);
     
-    // Update positions in database using batch RPC
+    // Update positions in database
     try {
-      const taskUpdates = items.map((item, index) => ({
+      const taskUpdates = items.map((item, idx) => ({
         id: item.id,
-        position: index,
+        position: idx,
       }));
 
       const { error } = await supabase.rpc("update_task_positions", {
@@ -70,12 +67,45 @@ const RoutineItem = ({
       if (error) throw error;
       invalidateRoutineQueries(queryClient, userId);
     } catch (error) {
-      logError("Failed to reorder tasks", error, {
+      logError("Failed to move task up", error, {
         component: "RoutineItem",
-        action: "handleDragEnd",
+        action: "handleMoveTaskUp",
         routineId: routine.id,
       });
-      toast.error("Failed to reorder tasks");
+      toast.error("Failed to move task");
+      // Rollback to original order
+      setLocalTasks(tasks);
+    }
+  };
+
+  const handleMoveTaskDown = async (index: number) => {
+    if (index === localTasks.length - 1) return; // Already at bottom
+    
+    // Optimistic update - swap with next task
+    const items = Array.from(localTasks);
+    [items[index], items[index + 1]] = [items[index + 1], items[index]];
+    setLocalTasks(items);
+    
+    // Update positions in database
+    try {
+      const taskUpdates = items.map((item, idx) => ({
+        id: item.id,
+        position: idx,
+      }));
+
+      const { error } = await supabase.rpc("update_task_positions", {
+        task_updates: taskUpdates,
+      });
+
+      if (error) throw error;
+      invalidateRoutineQueries(queryClient, userId);
+    } catch (error) {
+      logError("Failed to move task down", error, {
+        component: "RoutineItem",
+        action: "handleMoveTaskDown",
+        routineId: routine.id,
+      });
+      toast.error("Failed to move task");
       // Rollback to original order
       setLocalTasks(tasks);
     }
@@ -186,34 +216,27 @@ const RoutineItem = ({
       </div>
 
       <div className="mt-4 space-y-2" onClick={(e) => e.stopPropagation()}>
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId={`routine-${routine.id}`}>
-            {(provided) => (
-            <div 
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="min-h-[50px] space-y-2"
-            >
-              {localTasks.length === 0 ? (
-                <div className="clay-element-with-transition p-4 text-center text-muted-foreground text-sm">
-                  No tasks yet. Add your first task below!
-                </div>
-              ) : (
-                localTasks.map((task, index) => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    supabase={supabase}
-                    userId={userId}
-                    index={index}
-                  />
-                ))
-              )}
-              {provided.placeholder}
+        <div className="min-h-[50px] space-y-2">
+          {localTasks.length === 0 ? (
+            <div className="clay-element-with-transition p-4 text-center text-muted-foreground text-sm">
+              No tasks yet. Add your first task below!
             </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+          ) : (
+            localTasks.map((task, index) => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                supabase={supabase}
+                userId={userId}
+                index={index}
+                onMoveUp={() => handleMoveTaskUp(index)}
+                onMoveDown={() => handleMoveTaskDown(index)}
+                isFirst={index === 0}
+                isLast={index === localTasks.length - 1}
+              />
+            ))
+          )}
+        </div>
 
         <AddTaskDialog
           routineId={routine.id}
