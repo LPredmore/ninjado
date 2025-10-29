@@ -11,6 +11,8 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
+let swRegistration: ServiceWorkerRegistration | null = null;
+let updateAvailableCallback: (() => void) | null = null;
 
 // Listen for the beforeinstallprompt event
 export const initializePWA = (): void => {
@@ -30,6 +32,42 @@ export const initializePWA = (): void => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/sw.js')
+      .then((registration) => {
+        console.log('[PWA] Service worker registered:', registration);
+        swRegistration = registration;
+
+        // Check for updates on registration
+        registration.update();
+
+        // Listen for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          console.log('[PWA] Update found, new worker installing');
+
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              console.log('[PWA] New worker state:', newWorker.state);
+              
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // New service worker installed and old one is still controlling
+                console.log('[PWA] New version available!');
+                if (updateAvailableCallback) {
+                  updateAvailableCallback();
+                }
+              }
+            });
+          }
+        });
+
+        // Reload page when new service worker takes control
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          console.log('[PWA] Controller changed, reloading page');
+          refreshing = true;
+          window.location.reload();
+        });
+      })
       .catch((registrationError) => {
         logError('Service worker registration failed', registrationError, {
           component: 'pwa',
@@ -37,6 +75,32 @@ export const initializePWA = (): void => {
         });
       });
   }
+};
+
+// Set callback for when update is available
+export const onUpdateAvailable = (callback: () => void): void => {
+  updateAvailableCallback = callback;
+};
+
+// Check for service worker updates
+export const checkForUpdates = async (): Promise<void> => {
+  if (swRegistration) {
+    console.log('[PWA] Checking for updates...');
+    await swRegistration.update();
+  }
+};
+
+// Apply the waiting service worker update
+export const applyUpdate = (): void => {
+  if (swRegistration && swRegistration.waiting) {
+    console.log('[PWA] Applying update by sending SKIP_WAITING message');
+    swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+  }
+};
+
+// Check if update is available
+export const isUpdateAvailable = (): boolean => {
+  return !!(swRegistration && swRegistration.waiting);
 };
 
 // Show the install prompt

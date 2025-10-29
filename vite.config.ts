@@ -13,6 +13,15 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     host: true, // Changed from "::" to true to enable all network interfaces properly
   },
+  build: {
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
+      }
+    }
+  },
   plugins: [
     react(),
     mode === 'development' &&

@@ -14,6 +14,7 @@ import Profile from "./pages/Profile";
 import Contact from "./pages/Contact";
 import Parent from "./pages/Parent";
 import ProtectedRoute from "./components/ProtectedRoute";
+import UpdatePrompt from "./components/UpdatePrompt";
 import { User } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 import { TimeTrackingProvider } from "./contexts/TimeTrackingContext";
@@ -47,6 +48,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <BrowserRouter>
+          <UpdatePrompt />
           {user ? (
             <TimeTrackingProvider user={user}>
               <Toaster />
