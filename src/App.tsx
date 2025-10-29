@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Routines from "./pages/Routines";
 import Rewards from "./pages/Rewards";
+import Reports from "./pages/Reports";
 import HowToUse from "./pages/HowToUse";
 import Profile from "./pages/Profile";
 import Contact from "./pages/Contact";
@@ -61,6 +62,7 @@ const App = () => {
                   } 
                 />
                 <Route path="/rewards" element={<Rewards user={user} supabase={supabase} />} />
+                <Route path="/reports" element={<Reports />} />
                 <Route 
                   path="/parent" 
                   element={

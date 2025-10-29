@@ -13,6 +13,7 @@ import { Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { queryKeys } from "@/lib/queryKeys";
+import { updateTaskPerformanceMetrics } from '@/lib/taskPerformance';
 
 interface IndexProps {
   user: User;
@@ -93,6 +94,9 @@ const Index = ({ user, supabase }: IndexProps) => {
 
     setCompletedTaskIds(prev => [...prev, taskId]);
     await recordTaskCompletion(task.title, timeSaved);
+    
+    // Update task performance metrics
+    await updateTaskPerformanceMetrics(taskId, user.id, timeSaved);
 
     const updatedCompletedTasks = [...completedTaskIds, taskId];
     if (orderedTasks && updatedCompletedTasks.length === orderedTasks.length) {

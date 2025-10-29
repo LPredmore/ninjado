@@ -271,6 +271,44 @@ export type Database = {
           },
         ]
       }
+      task_performance_metrics: {
+        Row: {
+          average_time_variance: number
+          created_at: string
+          id: string
+          task_id: string
+          total_executions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_time_variance?: number
+          created_at?: string
+          id?: string
+          task_id: string
+          total_executions?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_time_variance?: number
+          created_at?: string
+          id?: string
+          task_id?: string
+          total_executions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_performance_metrics_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "routine_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       parental_controls_safe: {
