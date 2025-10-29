@@ -93,7 +93,7 @@ const RoutineItem = ({
   const endTime = calculateEndTime();
   
   return (
-    <div className="clay-element p-4 bg-card border-2 border-border/30 transition-clay clay-hover hover:border-accent/30">
+    <div className="clay-element-with-transition p-4 bg-card border-2 border-border/30 clay-hover hover:border-accent/30">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <List className="w-5 h-5 text-accent" />
@@ -187,8 +187,6 @@ const RoutineItem = ({
                   <TaskItem
                     key={task.id}
                     task={task}
-                    isFirst={index === 0}
-                    isLast={index === localTasks.length - 1}
                     onTaskUpdate={onTasksUpdate}
                     supabase={supabase}
                     index={index}

@@ -71,11 +71,6 @@ const AddTaskDialog = ({
     setOpen(false);
     onTasksUpdate();
     toast.success('Task added successfully');
-    
-    // Refresh the page after a short delay to ensure database updates are reflected
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
   };
 
   return (

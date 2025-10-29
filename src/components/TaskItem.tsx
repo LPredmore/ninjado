@@ -16,8 +16,6 @@ interface TaskItemProps {
     position: number;
     type?: 'regular' | 'focus';
   };
-  isFirst: boolean;
-  isLast: boolean;
   onTaskUpdate: () => void;
   supabase: SupabaseClient;
   index: number;
@@ -45,6 +43,7 @@ const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
+          style={provided.draggableProps.style}
           className="clay-element-draggable px-3 py-2 gradient-clay-accent mb-2 flex items-center justify-between"
         >
           <div className="flex items-center gap-2">
