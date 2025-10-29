@@ -3,11 +3,10 @@ import React from 'react';
 import TaskCard from './TaskCard';
 import { Task } from '@/types';
 import { Button } from './ui/button';
-import { SkipForwardIcon, Plus, GripVertical } from 'lucide-react';
+import { SkipForwardIcon, Plus, ChevronUp, ChevronDown } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Input } from './ui/input';
 import { toast } from 'sonner';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useParentalControls } from '@/hooks/useParentalControls';
 import PinPrompt from '@/components/PinPrompt';
 
@@ -75,84 +74,78 @@ const TaskList = ({
     handlePinSuccess();
   };
 
-  const handleDragEnd = (result: any) => {
-    // Dropped outside the list
-    if (!result.destination) {
-      return;
-    }
-
+  const handleMoveTaskUp = (index: number) => {
+    if (index === 0) return;
     const items = Array.from(localTasks);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
+    [items[index - 1], items[index]] = [items[index], items[index - 1]];
     setLocalTasks(items);
     onTaskReorder(items);
+    toast.success('Task moved up');
+  };
+
+  const handleMoveTaskDown = (index: number) => {
+    if (index === localTasks.length - 1) return;
+    const items = Array.from(localTasks);
+    [items[index], items[index + 1]] = [items[index + 1], items[index]];
+    setLocalTasks(items);
+    onTaskReorder(items);
+    toast.success('Task moved down');
   };
 
   return (
     <div className="space-y-4">
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="tasks-list">
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="space-y-4"
-            >
-              {localTasks.map((task, index) => (
-                <Draggable 
-                  key={task.id} 
-                  draggableId={task.id} 
-                  index={index}
-                  isDragDisabled={isRoutineStarted}
-                >
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      className={`relative group ${snapshot.isDragging ? 'z-50' : ''}`}
-                    >
-                      <div className="flex">
-                        {!isRoutineStarted && (
-                          <div 
-                            {...provided.dragHandleProps}
-                            className="flex items-center px-2 cursor-grab active:cursor-grabbing"
-                          >
-                            <GripVertical className="h-5 w-5 text-gray-400" />
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <TaskCard
-                            task={task}
-                            onComplete={(timeSaved) => onTaskComplete(task.id, timeSaved)}
-                            onEdit={() => {}}
-                            onDelete={() => {}}
-                            isRoutineStarted={isRoutineStarted}
-                            isPaused={isPaused}
-                          />
-                        </div>
-                      </div>
-                      {!isRoutineStarted && (
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleSkipTask(task.id)}
-                            className="bg-white/90 hover:bg-white"
-                          >
-                            <SkipForwardIcon className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
+      <div className="space-y-4">
+        {localTasks.map((task, index) => (
+          <div key={task.id} className="relative group">
+            <div className="flex gap-2">
+              {!isRoutineStarted && (
+                <div className="flex flex-col gap-1 pt-6">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleMoveTaskUp(index)}
+                    disabled={index === 0}
+                    className="h-8 w-8"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleMoveTaskDown(index)}
+                    disabled={index === localTasks.length - 1}
+                    className="h-8 w-8"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              <div className="flex-1">
+                <TaskCard
+                  task={task}
+                  onComplete={(timeSaved) => onTaskComplete(task.id, timeSaved)}
+                  onEdit={() => {}}
+                  onDelete={() => {}}
+                  isRoutineStarted={isRoutineStarted}
+                  isPaused={isPaused}
+                />
+              </div>
             </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+            {!isRoutineStarted && (
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleSkipTask(task.id)}
+                  className="bg-white/90 hover:bg-white"
+                >
+                  <SkipForwardIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
 
       {!isRoutineStarted && (
         <>
