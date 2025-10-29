@@ -77,6 +77,12 @@
     --transition-clay: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-squish: transform 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --transition-float: transform 0.3s ease-out;
+    
+    /* Animation Delays */
+    --delay-stagger-1: 50ms;
+    --delay-stagger-2: 100ms;
+    --delay-stagger-3: 150ms;
+    --delay-stagger-4: 200ms;
   }
 }
 

@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
+import { calculateEndTime, formatDuration } from "@/lib/timeUtils";
 import type { RoutineTask } from "@/types";
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface RoutineItemProps {
   routine: {
@@ -87,16 +89,7 @@ const RoutineItem = ({
   
   // Calculate the end time if start time is set (memoized)
   const endTime = useMemo(() => {
-    if (!routine.start_time) return null;
-    
-    const [hours, minutes] = routine.start_time.split(':').map(Number);
-    const startDate = new Date();
-    startDate.setHours(hours, minutes, 0);
-    
-    const endDate = new Date(startDate);
-    endDate.setMinutes(endDate.getMinutes() + totalDurationMinutes);
-    
-    return endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return calculateEndTime(routine.start_time || null, totalDurationMinutes);
   }, [routine.start_time, totalDurationMinutes]);
   
   return (
@@ -139,13 +132,23 @@ const RoutineItem = ({
       </div>
 
       <div className="mt-3 flex justify-between items-center">
-        <div className="flex flex-wrap gap-2 items-center">
-          {localTasks.length > 0 && (
-            <Badge variant="outline" className="clay-element-with-transition bg-accent/20 text-accent border-accent/30 text-xs">
-              {totalDurationMinutes} min total
-            </Badge>
-          )}
-        </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            {localTasks.length > 0 ? (
+              <>
+                <Badge variant="success" className="text-xs">
+                  {formatDuration(totalDurationMinutes)}
+                </Badge>
+                <Badge variant="speed" className="text-xs">
+                  {localTasks.filter(t => t.type === 'regular').length} speed
+                </Badge>
+                <Badge variant="focus" className="text-xs">
+                  {localTasks.filter(t => t.type === 'focus').length} focus
+                </Badge>
+              </>
+            ) : (
+              <span className="text-sm text-muted-foreground">No tasks yet</span>
+            )}
+          </div>
         
         <div className="flex gap-4 items-center">
           {routine.start_time ? (
@@ -164,7 +167,7 @@ const RoutineItem = ({
             </div>
           )}
           
-          {endTime ? (
+          {endTime && endTime !== "N/A" ? (
             <div className="clay-element-with-transition px-3 py-2 gradient-clay-accent">
               <div className="flex items-center">
                 <CalendarClock className="w-4 h-4 mr-2 text-accent-foreground" />
@@ -186,12 +189,17 @@ const RoutineItem = ({
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId={`routine-${routine.id}`}>
             {(provided) => (
-              <div 
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="min-h-[50px]"
-              >
-                {localTasks.map((task, index) => (
+            <div 
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="min-h-[50px] space-y-2"
+            >
+              {localTasks.length === 0 ? (
+                <div className="clay-element-with-transition p-4 text-center text-muted-foreground text-sm">
+                  No tasks yet. Add your first task below!
+                </div>
+              ) : (
+                localTasks.map((task, index) => (
                   <TaskItem
                     key={task.id}
                     task={task}
@@ -199,9 +207,10 @@ const RoutineItem = ({
                     userId={userId}
                     index={index}
                   />
-                ))}
-                {provided.placeholder}
-              </div>
+                ))
+              )}
+              {provided.placeholder}
+            </div>
             )}
           </Droppable>
         </DragDropContext>

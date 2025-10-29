@@ -1,11 +1,10 @@
-
-import { useState } from "react";
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Pencil } from "lucide-react";
+import { Pencil, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -97,6 +96,7 @@ const EditTaskDialog = ({
           <div className="space-y-2">
             <label className="text-sm font-medium">Task Name</label>
             <Input
+              autoFocus
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter task name"
@@ -139,7 +139,14 @@ const EditTaskDialog = ({
             onClick={handleSave}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save Changes"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

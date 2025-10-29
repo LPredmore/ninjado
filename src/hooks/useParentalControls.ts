@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logError } from '@/lib/errorLogger';
 
 export const useParentalControls = (userId: string) => {
   const [isPinPromptOpen, setIsPinPromptOpen] = useState(false);
@@ -20,13 +21,21 @@ export const useParentalControls = (userId: string) => {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error checking PIN requirement:', error);
+        logError('Error checking PIN requirement', error, {
+          component: 'useParentalControls',
+          action: 'checkPinRequired',
+          userId,
+        });
         return;
       }
 
       setPinRequired(!!data?.is_active);
     } catch (error) {
-      console.error('Error checking PIN requirement:', error);
+      logError('Error checking PIN requirement', error, {
+        component: 'useParentalControls',
+        action: 'checkPinRequired',
+        userId,
+      });
     }
   }, [userId]);
 

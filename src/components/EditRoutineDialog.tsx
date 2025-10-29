@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Pencil, Clock } from "lucide-react";
+import { Pencil, Clock, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
@@ -100,6 +100,7 @@ const EditRoutineDialog = ({
           <div className="space-y-2">
             <label className="text-sm font-medium">Routine Title</label>
             <Input
+              autoFocus
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Routine title"
@@ -126,7 +127,14 @@ const EditRoutineDialog = ({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save Changes"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

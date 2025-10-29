@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { logError } from '@/lib/errorLogger';
 
 export const isNativePlatform = (): boolean => {
   return Capacitor.isNativePlatform();
@@ -26,7 +27,10 @@ export const initializeNativeFeatures = async (): Promise<void> => {
     }
     
   } catch (error) {
-    console.error('Error initializing native features:', error);
+    logError('Error initializing native features', error, {
+      component: 'native',
+      action: 'initializeNativeFeatures',
+    });
   }
 };
 
@@ -40,6 +44,10 @@ export const setStatusBarStyle = async (isDark: boolean): Promise<void> => {
       style: isDark ? Style.Dark : Style.Light 
     });
   } catch (error) {
-    console.error('Error setting status bar style:', error);
+    logError('Error setting status bar style', error, {
+      component: 'native',
+      action: 'setStatusBarStyle',
+      isDark,
+    });
   }
 };

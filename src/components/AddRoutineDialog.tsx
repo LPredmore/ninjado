@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Clock } from "lucide-react";
+import { Clock, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
@@ -70,6 +69,7 @@ export const AddRoutineDialog = ({
               <label className="text-sm font-medium">Routine Title</label>
               <Input
                 id="title"
+                autoFocus
                 placeholder="Routine title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -101,7 +101,14 @@ export const AddRoutineDialog = ({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Routine"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Routine"
+              )}
             </Button>
           </DialogFooter>
         </form>

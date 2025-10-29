@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -105,6 +105,7 @@ const AddTaskDialog = ({
           <div className="space-y-2">
             <label className="text-sm font-medium">Task Name</label>
             <Input
+              autoFocus
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
               placeholder="Enter task name"
@@ -140,7 +141,14 @@ const AddTaskDialog = ({
             onClick={handleCreateTask}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Adding..." : "Add Task"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              "Add Task"
+            )}
           </Button>
         </div>
       </DialogContent>

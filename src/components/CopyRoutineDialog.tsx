@@ -1,10 +1,10 @@
-import { useState } from "react";
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Copy } from "lucide-react";
+import { Copy, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
@@ -109,6 +109,7 @@ const handleCopyRoutine = async () => {
           <div className="space-y-2">
             <label className="text-sm font-medium">New Routine Title</label>
             <Input
+              autoFocus
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Enter new routine title"
@@ -129,7 +130,14 @@ const handleCopyRoutine = async () => {
             onClick={handleCopyRoutine}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Copying..." : "Copy Routine"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Copying...
+              </>
+            ) : (
+              "Copy Routine"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

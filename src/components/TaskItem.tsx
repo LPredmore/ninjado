@@ -67,17 +67,26 @@ const TaskItem = ({ task, supabase, userId, index }: TaskItemProps) => {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          style={provided.draggableProps.style}
-          className="clay-element-draggable px-3 py-2 gradient-clay-accent mb-2 flex items-center justify-between"
+          style={{
+            ...provided.draggableProps.style,
+            transform: provided.draggableProps.style?.transform 
+              ? `${provided.draggableProps.style.transform} scale(1.02)`
+              : undefined,
+          }}
+          className="clay-element-draggable px-3 py-2 gradient-clay-accent mb-2 flex items-center justify-between transition-transform hover:scale-105"
         >
           <div className="flex items-center gap-2">
-            <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing mr-2">
-              <GripVertical className="h-5 w-5 text-accent-foreground/70" />
-            </div>
+          <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing mr-2" aria-label="Drag to reorder">
+            <GripVertical className="h-5 w-5 text-accent-foreground/70" />
+          </div>
             <span className="text-sm font-medium text-accent-foreground">{task.title}</span>
-            {task.type === 'focus' && (
-              <Badge variant="secondary" className="bg-accent-foreground/20 text-accent-foreground border-accent-foreground/30">
+            {task.type === 'focus' ? (
+              <Badge variant="focus" className="text-xs">
                 Focus
+              </Badge>
+            ) : (
+              <Badge variant="speed" className="text-xs">
+                Speed
               </Badge>
             )}
             <span className="text-sm text-accent-foreground/70">({task.duration} min)</span>

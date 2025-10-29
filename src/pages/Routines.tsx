@@ -14,6 +14,8 @@ import { logError } from "@/lib/errorLogger";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RoutineTask } from "@/types";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface RoutinesProps {
   user: User;
@@ -23,7 +25,30 @@ interface RoutinesProps {
 const Routines = ({ user, supabase }: RoutinesProps) => {
   const { totalTimeSaved } = useTimeTracking();
   const [isAddRoutineOpen, setIsAddRoutineOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [routineToDelete, setRoutineToDelete] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'n',
+      metaKey: true,
+      handler: () => setIsAddRoutineOpen(true),
+    },
+    {
+      key: 'n',
+      ctrlKey: true,
+      handler: () => setIsAddRoutineOpen(true),
+    },
+    {
+      key: 'Escape',
+      handler: () => {
+        setIsAddRoutineOpen(false);
+        setDeleteConfirmOpen(false);
+      },
+    },
+  ]);
 
   const { data: routines, isLoading: isLoadingRoutines, error: routinesError } = useQuery({
     queryKey: queryKeys.routines(user.id),
@@ -37,23 +62,16 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
       if (error) throw error;
       return data;
     },
+    refetchOnWindowFocus: true,
   });
 
-  // Fetch all tasks for user's routines
-  // This query is independent of routines query to avoid race conditions
+  // Fetch all tasks for user's routines - optimized to use routines data
   const { data: tasks, isLoading: isLoadingTasks } = useQuery({
     queryKey: queryKeys.allRoutineTasks(user.id),
     queryFn: async () => {
-      // Fetch routine IDs internally to avoid race conditions
-      const { data: userRoutines, error: routinesError } = await supabase
-        .from("routines")
-        .select("id")
-        .eq("user_id", user.id);
-
-      if (routinesError) throw routinesError;
-      if (!userRoutines || userRoutines.length === 0) return [];
+      if (!routines || routines.length === 0) return [];
       
-      const routineIds = userRoutines.map(r => r.id);
+      const routineIds = routines.map(r => r.id);
       
       const { data, error } = await supabase
         .from("routine_tasks")
@@ -64,6 +82,8 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
       if (error) throw error;
       return data || [];
     },
+    enabled: !!routines && routines.length > 0,
+    refetchOnWindowFocus: true,
   });
 
   // Create a Map for O(1) task lookup by routine_id (eliminates N+1 filtering)
@@ -86,7 +106,18 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
     setIsAddRoutineOpen(true);
   };
 
-  const handleDeleteRoutine = async (routineId: string) => {
+  const handleDeleteRoutineClick = (routineId: string) => {
+    setRoutineToDelete(routineId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteRoutineConfirm = async () => {
+    if (!routineToDelete) return;
+
+    const routineId = routineToDelete;
+    setDeleteConfirmOpen(false);
+    setRoutineToDelete(null);
+
     // Optimistic update - remove routine from UI immediately
     const previousRoutines = routines;
     queryClient.setQueryData(
@@ -98,24 +129,40 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
       const { error } = await supabase.from("routines").delete().eq("id", routineId);
       if (error) throw error;
       
-      toast.success("Routine deleted successfully");
+      toast.success("Routine deleted successfully", {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            queryClient.setQueryData(queryKeys.routines(user.id), previousRoutines);
+            toast.success("Routine restored");
+          },
+        },
+      });
       invalidateRoutineQueries(queryClient, user.id);
     } catch (error) {
       // Rollback on error
       queryClient.setQueryData(queryKeys.routines(user.id), previousRoutines);
       
+      const errorType = error instanceof Error && error.message.toLowerCase().includes('network') ? 'network' : 'unknown';
+      
       logError("Failed to delete routine", error, {
         component: "Routines",
-        action: "handleDeleteRoutine",
+        action: "handleDeleteRoutineConfirm",
         routineId,
+        errorType,
       });
       
-      toast.error("Failed to delete routine", {
-        action: {
-          label: "Retry",
-          onClick: () => handleDeleteRoutine(routineId),
-        },
-      });
+      toast.error(
+        errorType === 'network' 
+          ? "Network error - check your connection" 
+          : "Failed to delete routine",
+        {
+          action: {
+            label: "Retry",
+            onClick: () => handleDeleteRoutineClick(routineId),
+          },
+        }
+      );
     }
   };
 
@@ -151,8 +198,8 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         {/* Loading State */}
         {isLoadingRoutines && (
           <div className="grid gap-6">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="clay-element-with-transition p-6 space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="clay-element-with-transition p-6 space-y-4" style={{ animationDelay: `${i * 50}ms` }}>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-2">
                     <Skeleton className="h-5 w-5 rounded" />
@@ -181,14 +228,16 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           </div>
         )}
 
-        {/* Tasks Loading Indicator */}
-        {isLoadingTasks && (
-          <div className="clay-element-with-transition p-4 text-center">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              <span className="ml-3 text-muted-foreground">Loading tasks...</span>
+        {/* Tasks Loading Overlay */}
+        {isLoadingTasks && !isLoadingRoutines && (
+          <div className="fixed inset-0 bg-background/60 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="clay-element-with-transition p-6 text-center bg-card">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-3 h-3 bg-accent rounded-full animate-bounce" style={{ animationDelay: 'var(--delay-stagger-1)' }}></div>
+                <div className="w-3 h-3 bg-accent rounded-full animate-bounce" style={{ animationDelay: 'var(--delay-stagger-2)' }}></div>
+                <div className="w-3 h-3 bg-accent rounded-full animate-bounce" style={{ animationDelay: 'var(--delay-stagger-3)' }}></div>
+                <span className="ml-3 text-muted-foreground">Loading tasks...</span>
+              </div>
             </div>
           </div>
         )}
@@ -196,27 +245,32 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         {/* Routines Grid */}
         {!isLoadingRoutines && !routinesError && routines && routines.length > 0 && (
           <div className="grid gap-6">
-            {routines.map((routine) => (
-              <RoutineItem
+            {routines.map((routine, idx) => (
+              <div
                 key={`${routine.id}-${tasksByRoutineId.get(routine.id)?.length || 0}`}
-                routine={routine}
-                tasks={tasksByRoutineId.get(routine.id) || []}
-                onDelete={handleDeleteRoutine}
-                supabase={supabase}
-                userId={user.id}
-              />
+                style={{ animationDelay: `${idx * 50}ms` }}
+              >
+                <RoutineItem
+                  routine={routine}
+                  tasks={tasksByRoutineId.get(routine.id) || []}
+                  onDelete={handleDeleteRoutineClick}
+                  supabase={supabase}
+                  userId={user.id}
+                />
+              </div>
             ))}
           </div>
         )}
 
         {/* Empty State */}
-        {!isLoadingRoutines && (!routines || routines.length === 0) && (
+        {!isLoadingRoutines && !isLoadingTasks && (!routines || routines.length === 0) && (
           <div className="clay-element-with-transition text-center p-12">
             <div className="clay-element-with-transition w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-6 flex items-center justify-center glow-jade">
               <List className="w-10 h-10 text-accent-foreground" />
             </div>
             <h3 className="text-xl font-bold text-foreground mb-3">No Training Routines Yet</h3>
             <p className="text-muted-foreground mb-6">Create your first routine to start your ninja training journey.</p>
+            <p className="text-sm text-muted-foreground mb-6">💡 Tip: Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Cmd/Ctrl + N</kbd> to quickly add a routine</p>
             <Button variant="clay-jade" size="lg" onClick={handleAddRoutineClick}>
               <Plus className="w-5 h-5 mr-2" />
               Create First Routine
@@ -229,6 +283,17 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           onOpenChange={setIsAddRoutineOpen}
           supabase={supabase}
           userId={user.id}
+        />
+
+        <ConfirmDialog
+          open={deleteConfirmOpen}
+          onOpenChange={setDeleteConfirmOpen}
+          title="Delete Routine?"
+          description="This will permanently delete the routine and all its tasks. This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={handleDeleteRoutineConfirm}
+          variant="destructive"
         />
         </div>
       </SidebarLayout>
