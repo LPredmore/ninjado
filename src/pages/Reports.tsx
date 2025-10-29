@@ -1,4 +1,4 @@
-import { useSessionContext } from '@supabase/auth-helpers-react';
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import SidebarLayout from '@/components/SidebarLayout';
@@ -16,8 +16,19 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { useEffect } from 'react';
 
 const Reports = () => {
-  const { session } = useSessionContext();
-  const user = session?.user;
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
   const queryClient = useQueryClient();
 
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
