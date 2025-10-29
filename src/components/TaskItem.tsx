@@ -45,9 +45,13 @@ const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`clay-element px-3 py-2 gradient-clay-accent mb-2 flex items-center justify-between transition-all ${
+          className={`clay-element px-3 py-2 gradient-clay-accent mb-2 flex items-center justify-between ${
             snapshot.isDragging ? 'opacity-50 rotate-2 scale-105' : 'opacity-100'
           }`}
+          style={{
+            ...provided.draggableProps.style,
+            transition: snapshot.isDragging ? 'none' : undefined,
+          }}
         >
           <div className="flex items-center gap-2">
             <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing mr-2">
