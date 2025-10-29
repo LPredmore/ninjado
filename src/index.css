@@ -154,7 +154,14 @@
   
   /* Clay Tactile States */
   .clay-element {
-    @apply rounded-xl shadow-clay transition-clay;
+    @apply rounded-xl shadow-clay;
+  }
+  .clay-element-with-transition {
+    @apply clay-element transition-clay;
+  }
+  .clay-element-draggable {
+    @apply clay-element;
+    transition: none !important;
   }
   .clay-hover:hover {
     @apply shadow-clay-hover transform -translate-y-1;
