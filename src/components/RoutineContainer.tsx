@@ -16,6 +16,7 @@ interface RoutineContainerProps {
   onTaskComplete: (taskId: string, timeSaved: number) => Promise<void>;
   onTaskReorder: (tasks: Task[]) => void;
   userId: string;
+  routineStartTime: number | null;
 }
 
 const RoutineContainer = ({
@@ -29,6 +30,7 @@ const RoutineContainer = ({
   onTaskComplete,
   onTaskReorder,
   userId,
+  routineStartTime,
 }: RoutineContainerProps) => {
   return (
     <NinjaScrollCard 
@@ -46,6 +48,8 @@ const RoutineContainer = ({
           onStartRoutine={onStartRoutine}
           onPauseRoutine={onPauseRoutine}
           userId={userId}
+          tasks={tasks}
+          routineStartTime={routineStartTime}
         />
         
         <div className="clay-element p-6">

@@ -209,6 +209,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
     setTimers,
     completedTaskIds,
     setCompletedTaskIds,
+    lastUpdated,
     resetRoutineState,
   };
 };

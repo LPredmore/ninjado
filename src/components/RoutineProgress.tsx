@@ -2,10 +2,10 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ShurikenButton } from '@/components/ninja/ShurikenButton';
-import { Progress } from '@/components/ui/progress';
 import { Play, Pause } from 'lucide-react';
 import { useParentalControls } from '@/hooks/useParentalControls';
 import PinPrompt from '@/components/PinPrompt';
+import ScheduleTracker from '@/components/ScheduleTracker';
 
 interface RoutineProgressProps {
   routineTitle: string;
@@ -16,6 +16,8 @@ interface RoutineProgressProps {
   onStartRoutine: () => void;
   onPauseRoutine: () => void;
   userId: string;
+  tasks: any[];
+  routineStartTime: number | null;
 }
 
 const RoutineProgress = ({
@@ -26,9 +28,10 @@ const RoutineProgress = ({
   isPaused,
   onStartRoutine,
   onPauseRoutine,
-  userId
+  userId,
+  tasks,
+  routineStartTime
 }: RoutineProgressProps) => {
-  const percentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   const { isPinPromptOpen, requestAccess, handlePinSuccess, handlePinCancel } = useParentalControls(userId);
 
   return (
@@ -76,14 +79,18 @@ const RoutineProgress = ({
         )}
       </div>
       
-      {/* Katana Progress Bar */}
-      <div className="clay-element-with-transition p-4">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-sm font-bold text-foreground">Katana Power:</span>
-          <span className="text-sm text-muted-foreground">{Math.round(percentage)}% charged</span>
+      {/* Schedule Tracker - Only show when routine has started */}
+      {isRoutineStarted && routineStartTime && (
+        <div className="clay-element-with-transition p-4">
+          <ScheduleTracker
+            tasks={tasks}
+            completedTasks={completedTasks}
+            totalTasks={totalTasks}
+            routineStartTime={routineStartTime}
+            isPaused={isPaused}
+          />
         </div>
-        <Progress value={percentage} className="h-6 clay-element-with-transition" />
-      </div>
+      )}
       
       <PinPrompt
         isOpen={isPinPromptOpen}

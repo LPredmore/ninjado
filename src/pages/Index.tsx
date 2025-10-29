@@ -35,6 +35,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     setTimers,
     completedTaskIds,
     setCompletedTaskIds,
+    lastUpdated,
     resetRoutineState
   } = useRoutineState(selectedRoutineId);
 
@@ -171,6 +172,7 @@ const Index = ({ user, supabase }: IndexProps) => {
               onTaskComplete={handleTaskComplete}
               onTaskReorder={handleTaskReorder}
               userId={user.id}
+              routineStartTime={isRoutineStarted ? lastUpdated : null}
             />
           </div>
         )}
