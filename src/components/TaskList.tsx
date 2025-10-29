@@ -93,34 +93,34 @@ const TaskList = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-full overflow-hidden">
       <div className="space-y-4">
         {localTasks.map((task, index) => (
-          <div key={task.id} className="relative group">
-            <div className="flex gap-2">
+          <div key={task.id} className="relative group max-w-full">
+            <div className="flex gap-2 max-w-full">
               {!isRoutineStarted && (
-                <div className="flex flex-col gap-1 pt-6">
+                <div className="flex flex-col gap-1 pt-4 md:pt-6 shrink-0">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleMoveTaskUp(index)}
                     disabled={index === 0}
-                    className="h-8 w-8"
+                    className="h-6 w-6 md:h-8 md:w-8"
                   >
-                    <ChevronUp className="h-4 w-4" />
+                    <ChevronUp className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleMoveTaskDown(index)}
                     disabled={index === localTasks.length - 1}
-                    className="h-8 w-8"
+                    className="h-6 w-6 md:h-8 md:w-8"
                   >
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
                 </div>
               )}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <TaskCard
                   task={task}
                   onComplete={(timeSaved) => onTaskComplete(task.id, timeSaved)}

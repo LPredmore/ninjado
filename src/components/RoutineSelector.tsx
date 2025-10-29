@@ -21,17 +21,17 @@ const RoutineSelector = ({ routines, selectedRoutineId, onRoutineSelect }: Routi
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-full">
       <Select
         value={selectedRoutineId || ''}
         onValueChange={onRoutineSelect}
       >
-        <SelectTrigger className="clay-element h-14 text-lg font-medium clay-hover">
-          <div className="flex items-center gap-3">
-            <span className="clay-element w-8 h-8 gradient-clay-accent rounded-lg flex items-center justify-center text-sm">
+        <SelectTrigger className="clay-element h-12 md:h-14 text-base md:text-lg font-medium clay-hover max-w-full">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+            <span className="clay-element w-7 h-7 md:w-8 md:h-8 gradient-clay-accent rounded-lg flex items-center justify-center text-xs md:text-sm shrink-0">
               📜
             </span>
-            <SelectValue placeholder="Choose your mission scroll..." />
+            <SelectValue placeholder="Choose your mission scroll..." className="truncate" />
           </div>
         </SelectTrigger>
         <SelectContent className="clay-element border-border/50 backdrop-blur-md">

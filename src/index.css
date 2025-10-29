@@ -95,6 +95,9 @@
     background: var(--gradient-dojo-bg);
     background-attachment: fixed;
     min-height: 100vh;
+    overflow-x: hidden;
+    width: 100vw;
+    max-width: 100%;
     /* Playful cloud pattern */
     background-image: 
       var(--gradient-dojo-bg),

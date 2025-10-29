@@ -34,7 +34,7 @@ const RoutineContainer = ({
     <NinjaScrollCard 
       title={`🥷 ${routineTitle} - Training Session`}
       variant="mission"
-      className="p-6"
+      className="p-3 md:p-6 max-w-full overflow-hidden"
     >
       <div className="space-y-8">
         <RoutineProgress

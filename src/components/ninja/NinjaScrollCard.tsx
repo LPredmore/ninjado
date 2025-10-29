@@ -26,7 +26,7 @@ export const NinjaScrollCard = ({
   return (
     <Card 
       className={cn(
-        'ninja-scroll border-2 border-border/30 backdrop-blur-sm',
+        'ninja-scroll border-2 border-border/30 backdrop-blur-sm max-w-full overflow-hidden',
         variantClasses[variant],
         glowing && 'glow-jade',
         className

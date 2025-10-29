@@ -123,11 +123,11 @@ const RoutineItem = ({
   }, [routine.start_time, totalDurationMinutes]);
   
   return (
-    <div className="clay-element-with-transition p-4 bg-card border-2 border-border/30 clay-hover hover:border-accent/30">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <List className="w-5 h-5 text-accent" />
-          <span className="font-medium text-card-foreground">{routine.title}</span>
+    <div className="clay-element-with-transition p-3 md:p-4 bg-card border-2 border-border/30 clay-hover hover:border-accent/30 max-w-full overflow-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex items-center space-x-2 min-w-0 flex-1">
+          <List className="w-4 h-4 md:w-5 md:h-5 text-accent shrink-0" />
+          <span className="font-medium text-sm md:text-base text-card-foreground break-words">{routine.title}</span>
           <Badge variant="outline" className="clay-element-with-transition bg-primary/20 text-primary border-primary/30 text-xs">
             {localTasks.length} task{localTasks.length !== 1 ? 's' : ''}
           </Badge>
@@ -161,8 +161,8 @@ const RoutineItem = ({
         </div>
       </div>
 
-      <div className="mt-3 flex justify-between items-center">
-          <div className="flex flex-wrap gap-2 items-center">
+      <div className="mt-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex flex-wrap gap-1.5 md:gap-2 items-center">
             {localTasks.length > 0 ? (
               <>
                 <Badge variant="success" className="text-xs">
@@ -180,35 +180,35 @@ const RoutineItem = ({
             )}
           </div>
         
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center w-full sm:w-auto">
           {routine.start_time ? (
-            <div className="clay-element-with-transition px-3 py-2 gradient-clay-primary">
+            <div className="clay-element-with-transition px-2 md:px-3 py-1.5 md:py-2 gradient-clay-primary">
               <div className="flex items-center">
-                <Clock className="w-4 h-4 mr-2 text-primary-foreground" />
-                <span className="text-sm font-medium text-primary-foreground">Start: {routine.start_time}</span>
+                <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2 text-primary-foreground shrink-0" />
+                <span className="text-xs md:text-sm font-medium text-primary-foreground truncate">Start: {routine.start_time}</span>
               </div>
             </div>
           ) : (
-            <div className="clay-element-with-transition px-3 py-2 bg-muted/50">
+            <div className="clay-element-with-transition px-2 md:px-3 py-1.5 md:py-2 bg-muted/50">
               <div className="flex items-center">
-                <Clock className="w-4 h-4 mr-2 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">No start time</span>
+                <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2 text-muted-foreground shrink-0" />
+                <span className="text-xs md:text-sm text-muted-foreground">No start time</span>
               </div>
             </div>
           )}
           
           {endTime && endTime !== "N/A" ? (
-            <div className="clay-element-with-transition px-3 py-2 gradient-clay-accent">
+            <div className="clay-element-with-transition px-2 md:px-3 py-1.5 md:py-2 gradient-clay-accent">
               <div className="flex items-center">
-                <CalendarClock className="w-4 h-4 mr-2 text-accent-foreground" />
-                <span className="text-sm font-medium text-accent-foreground">End: {endTime}</span>
+                <CalendarClock className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2 text-accent-foreground shrink-0" />
+                <span className="text-xs md:text-sm font-medium text-accent-foreground truncate">End: {endTime}</span>
               </div>
             </div>
           ) : (
-            <div className="clay-element-with-transition px-3 py-2 bg-muted/50">
+            <div className="clay-element-with-transition px-2 md:px-3 py-1.5 md:py-2 bg-muted/50">
               <div className="flex items-center">
-                <CalendarClock className="w-4 h-4 mr-2 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Set start time</span>
+                <CalendarClock className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2 text-muted-foreground shrink-0" />
+                <span className="text-xs md:text-sm text-muted-foreground">Set start time</span>
               </div>
             </div>
           )}

@@ -138,7 +138,7 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   return (
     <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
-      <div className="space-y-6 md:space-y-8 p-4 md:p-6">
+      <div className="space-y-4 md:space-y-6 p-3 md:p-6 max-w-full overflow-hidden">
         
         {/* Routine Selector - Ninja Scroll Style */}
         <div className="clay-element-with-transition">

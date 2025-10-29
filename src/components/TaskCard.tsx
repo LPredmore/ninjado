@@ -38,11 +38,11 @@ const TaskCard = ({
   };
 
   return (
-    <Card className={task.isCompleted ? "opacity-50" : ""}>
-      <div className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold text-ninja-text">{task.title}</h2>
+    <Card className={`max-w-full ${task.isCompleted ? "opacity-50" : ""}`}>
+      <div className="p-4 md:p-6 space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <h2 className="text-lg md:text-xl font-semibold text-ninja-text break-words">{task.title}</h2>
             {task.type === 'focus' && (
               <Badge variant="secondary" className="bg-purple-100 text-purple-800">
                 Focus

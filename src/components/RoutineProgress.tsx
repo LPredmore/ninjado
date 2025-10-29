@@ -32,16 +32,16 @@ const RoutineProgress = ({
   const { isPinPromptOpen, requestAccess, handlePinSuccess, handlePinCancel } = useParentalControls(userId);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-            <span className="clay-element-with-transition w-8 h-8 gradient-clay-accent rounded-xl flex items-center justify-center text-sm">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-2 flex-1">
+          <h2 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2 md:gap-3">
+            <span className="clay-element-with-transition w-7 h-7 md:w-8 md:h-8 gradient-clay-accent rounded-xl flex items-center justify-center text-xs md:text-sm shrink-0">
               ⚔️
             </span>
-            Training Progress
+            <span className="break-words">Training Progress</span>
           </h2>
-          <p className="text-muted-foreground font-medium">
+          <p className="text-sm md:text-base text-muted-foreground font-medium">
             🎯 {completedTasks} of {totalTasks} missions completed
           </p>
         </div>
@@ -50,7 +50,7 @@ const RoutineProgress = ({
           <ShurikenButton
             onClick={onStartRoutine}
             variant="jade"
-            className="text-lg px-8 py-4"
+            className="w-full md:w-auto text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
           >
             ⚡ Begin Training
           </ShurikenButton>
@@ -59,17 +59,17 @@ const RoutineProgress = ({
             onClick={() => requestAccess(onPauseRoutine)}
             variant="ninja-scroll"
             size="lg"
-            className="flex items-center gap-2"
+            className="w-full md:w-auto flex items-center justify-center gap-2"
           >
             {isPaused ? (
               <>
-                <Play className="h-5 w-5" />
-                Resume Mission
+                <Play className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-sm md:text-base">Resume Mission</span>
               </>
             ) : (
               <>
-                <Pause className="h-5 w-5" />
-                Pause Training
+                <Pause className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="text-sm md:text-base">Pause Training</span>
               </>
             )}
           </Button>

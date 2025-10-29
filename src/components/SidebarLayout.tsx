@@ -15,9 +15,9 @@ const SidebarLayout = ({ children, onSignOut, totalTimeSaved }: SidebarLayoutPro
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background overflow-x-hidden">
         <AppSidebar onSignOut={onSignOut} />
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 max-w-full overflow-x-hidden">
           <div className="flex flex-col min-h-screen">
             <header 
               className="sticky top-0 z-10 flex h-14 md:h-16 shrink-0 items-center justify-between gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4"
