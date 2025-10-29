@@ -1,20 +1,24 @@
 import { useSessionContext } from '@supabase/auth-helpers-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import SidebarLayout from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { TrendingUp, TrendingDown, Target, RotateCcw } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, RotateCcw, RefreshCw, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAllTaskPerformanceMetrics, resetTaskPerformanceMetrics } from '@/lib/taskPerformance';
+import { queryKeys } from '@/lib/queryKeys';
 import { RoutineTask } from '@/types';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useEffect } from 'react';
 
 const Reports = () => {
   const { session } = useSessionContext();
   const user = session?.user;
+  const queryClient = useQueryClient();
 
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
     queryKey: ['task-performance-metrics', user?.id],
@@ -23,10 +27,13 @@ const Reports = () => {
       return await getAllTaskPerformanceMetrics(user.id);
     },
     enabled: !!user,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
   });
 
-  const { data: tasks, isLoading: tasksLoading } = useQuery({
-    queryKey: ['all-routine-tasks', user?.id],
+  const { data: tasks, isLoading: tasksLoading, refetch } = useQuery({
+    queryKey: user?.id ? queryKeys.allRoutineTasks(user.id) : ['all-routine-tasks'],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
@@ -38,10 +45,32 @@ const Reports = () => {
       return data as RoutineTask[];
     },
     enabled: !!user,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
   });
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+  };
+
+  const handleRefreshData = async () => {
+    if (!user) return;
+    
+    try {
+      // Clear React Query cache for this page
+      await queryClient.invalidateQueries({ queryKey: ['task-performance-metrics'] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.allRoutineTasks(user.id) });
+      
+      // Force refetch with no cache
+      await refetchMetrics();
+      await refetch();
+      
+      toast.success('Data refreshed!');
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      toast.error('Failed to refresh data');
+    }
   };
 
   const handleResetMetric = async (taskId: string) => {
@@ -66,6 +95,13 @@ const Reports = () => {
     };
   }).filter(m => m.total_executions > 0);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[Reports Debug] Metrics:', metrics);
+    console.log('[Reports Debug] Tasks:', tasks);
+    console.log('[Reports Debug] Enriched:', enrichedMetrics);
+  }, [metrics, tasks, enrichedMetrics]);
+
   const formatTime = (seconds: number) => {
     const absSeconds = Math.abs(seconds);
     if (absSeconds < 60) return `${absSeconds}s`;
@@ -83,16 +119,30 @@ const Reports = () => {
         <div className="space-y-6 p-4 md:p-6 max-w-full overflow-hidden">
           
           <div className="clay-element-with-transition p-6">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="clay-element-with-transition w-12 h-12 gradient-clay-primary rounded-xl flex items-center justify-center">
-                📊
+            <div className="flex items-center justify-between gap-4 mb-2">
+              <div className="flex items-center gap-4">
+                <div className="clay-element-with-transition w-12 h-12 gradient-clay-primary rounded-xl flex items-center justify-center">
+                  📊
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground">Performance Reports</h1>
+                  <p className="text-muted-foreground">Track your task completion efficiency</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">Performance Reports</h1>
-                <p className="text-muted-foreground">Track your task completion efficiency</p>
-              </div>
+              <Button onClick={handleRefreshData} variant="outline" size="sm">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh Data
+              </Button>
             </div>
           </div>
+
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertTitle>First time here?</AlertTitle>
+            <AlertDescription>
+              If you don't see your data, try clicking the "Refresh Data" button above, or hard reload (Ctrl+Shift+R or Cmd+Shift+R).
+            </AlertDescription>
+          </Alert>
 
           {isLoading && (
             <div className="text-center py-12">
