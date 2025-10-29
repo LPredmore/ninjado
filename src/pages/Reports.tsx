@@ -5,9 +5,8 @@ import SidebarLayout from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { TrendingUp, TrendingDown, Target, RotateCcw, RefreshCw, Info } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAllTaskPerformanceMetrics, resetTaskPerformanceMetrics } from '@/lib/taskPerformance';
 import { queryKeys } from '@/lib/queryKeys';
@@ -65,25 +64,6 @@ const Reports = () => {
     await supabase.auth.signOut();
   };
 
-  const handleRefreshData = async () => {
-    if (!user) return;
-    
-    try {
-      // Clear React Query cache for this page
-      await queryClient.invalidateQueries({ queryKey: ['task-performance-metrics'] });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.allRoutineTasks(user.id) });
-      
-      // Force refetch with no cache
-      await refetchMetrics();
-      await refetch();
-      
-      toast.success('Data refreshed!');
-    } catch (error) {
-      console.error('Error refreshing data:', error);
-      toast.error('Failed to refresh data');
-    }
-  };
-
   const handleResetMetric = async (taskId: string) => {
     if (!user) return;
     
@@ -130,30 +110,16 @@ const Reports = () => {
         <div className="space-y-6 p-4 md:p-6 max-w-full overflow-hidden">
           
           <div className="clay-element-with-transition p-6">
-            <div className="flex items-center justify-between gap-4 mb-2">
-              <div className="flex items-center gap-4">
-                <div className="clay-element-with-transition w-12 h-12 gradient-clay-primary rounded-xl flex items-center justify-center">
-                  📊
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">Performance Reports</h1>
-                  <p className="text-muted-foreground">Track your task completion efficiency</p>
-                </div>
+            <div className="flex items-center gap-4 mb-2">
+              <div className="clay-element-with-transition w-12 h-12 gradient-clay-primary rounded-xl flex items-center justify-center">
+                📊
               </div>
-              <Button onClick={handleRefreshData} variant="outline" size="sm">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh Data
-              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Performance Reports</h1>
+                <p className="text-muted-foreground">Track your task completion efficiency</p>
+              </div>
             </div>
           </div>
-
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertTitle>First time here?</AlertTitle>
-            <AlertDescription>
-              If you don't see your data, try clicking the "Refresh Data" button above, or hard reload (Ctrl+Shift+R or Cmd+Shift+R).
-            </AlertDescription>
-          </Alert>
 
           {isLoading && (
             <div className="text-center py-12">
