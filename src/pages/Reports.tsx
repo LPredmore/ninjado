@@ -1,3 +1,4 @@
+import { useSessionContext } from '@supabase/auth-helpers-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import SidebarLayout from '@/components/SidebarLayout';
@@ -12,25 +13,12 @@ import { getAllTaskPerformanceMetrics, resetTaskPerformanceMetrics } from '@/lib
 import { queryKeys } from '@/lib/queryKeys';
 import { RoutineTask } from '@/types';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { useEffect, useState } from 'react';
-import type { User } from '@supabase/supabase-js';
+import { useEffect } from 'react';
 
 const Reports = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { session } = useSessionContext();
+  const user = session?.user;
   const queryClient = useQueryClient();
-
-  // Get authenticated user
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
     queryKey: ['task-performance-metrics', user?.id],
