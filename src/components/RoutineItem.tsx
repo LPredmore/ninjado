@@ -181,6 +181,7 @@ const RoutineItem = ({
               <div 
                 {...provided.droppableProps}
                 ref={provided.innerRef}
+                className="min-h-[50px]"
               >
                 {localTasks.map((task, index) => (
                   <TaskItem
