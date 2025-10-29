@@ -36,11 +36,11 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
   });
 
   const { data: tasks, isLoading: isLoadingTasks } = useQuery({
-    queryKey: queryKeys.allRoutineTasks(routines?.map(r => r.id) || []),
+    queryKey: queryKeys.allRoutineTasks(user.id),
     queryFn: async () => {
-      if (!routines || routines.length === 0) return [];
+      const routineIds = routines?.map(r => r.id) || [];
+      if (routineIds.length === 0) return [];
       
-      const routineIds = routines.map(r => r.id);
       const { data, error } = await supabase
         .from("routine_tasks")
         .select("*")
@@ -48,7 +48,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         .order("position", { ascending: true });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!routines && routines.length > 0,
   });
