@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Clock } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AddRoutineDialogProps {
   open: boolean;
@@ -23,6 +24,7 @@ export const AddRoutineDialog = ({
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,12 +40,13 @@ export const AddRoutineDialog = ({
 
       if (error) throw error;
 
-      toast.success("Routine created successfully");
-      onRoutineAdded();
-      onOpenChange(false);
+      toast.success("Routine created successfully!");
       setTitle("");
       setStartTime("");
+      onOpenChange(false);
+      queryClient.invalidateQueries({ queryKey: ["routines"] });
     } catch (error) {
+      console.error("Error creating routine:", error);
       toast.error("Failed to create routine");
     } finally {
       setIsSubmitting(false);
@@ -71,7 +74,7 @@ export const AddRoutineDialog = ({
             <div className="space-y-2">
               <label className="text-sm font-medium">Start Time (optional)</label>
               <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-gray-500" />
+                <Clock className="h-4 w-4 text-muted-foreground" />
                 <Input
                   type="time"
                   value={startTime}
@@ -79,7 +82,7 @@ export const AddRoutineDialog = ({
                   placeholder="Start time"
                 />
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Set the time when you usually start this routine
               </p>
             </div>

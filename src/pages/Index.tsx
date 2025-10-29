@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
+import { queryKeys } from "@/lib/queryKeys";
 
 interface IndexProps {
   user: User;
@@ -38,7 +39,7 @@ const Index = ({ user, supabase }: IndexProps) => {
   } = useRoutineState(selectedRoutineId);
 
   const { data: routines } = useQuery({
-    queryKey: ["routines"],
+    queryKey: queryKeys.routines(user.id),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('routines')
@@ -51,7 +52,7 @@ const Index = ({ user, supabase }: IndexProps) => {
   });
 
   const { data: tasks } = useQuery({
-    queryKey: ["tasks", selectedRoutineId],
+    queryKey: queryKeys.tasks(selectedRoutineId),
     enabled: !!selectedRoutineId,
     queryFn: async () => {
       if (!selectedRoutineId) return [];

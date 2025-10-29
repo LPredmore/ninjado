@@ -300,6 +300,10 @@ export type Database = {
     }
     Functions: {
       delete_user: { Args: never; Returns: undefined }
+      update_task_positions: {
+        Args: { task_updates: Json }
+        Returns: undefined
+      }
       verify_parental_pin: { Args: { pin_input: string }; Returns: boolean }
     }
     Enums: {

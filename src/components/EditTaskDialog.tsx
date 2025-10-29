@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EditTaskDialogProps {
   taskId: string;
@@ -36,6 +37,7 @@ const EditTaskDialog = ({
   const [duration, setDuration] = useState(task.duration.toString());
   const [taskType, setTaskType] = useState<'regular' | 'focus'>(task.type || 'regular');
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSave = async () => {
     if (!title.trim() || !duration.trim()) {
@@ -58,7 +60,7 @@ const EditTaskDialog = ({
 
       toast.success("Task updated successfully");
       setOpen(false);
-      onEditComplete();
+      queryClient.invalidateQueries({ queryKey: ["routines"] });
     } catch (error) {
       console.error("Error updating task:", error);
       toast.error("Failed to update task");
@@ -77,8 +79,9 @@ const EditTaskDialog = ({
         variant="ghost"
         size="sm"
         className="h-8 w-8 p-0"
+        aria-label="Edit task"
       >
-        <Pencil className="h-4 w-4 text-gray-500" />
+        <Pencil className="h-4 w-4 text-muted-foreground" />
       </Button>
       <DialogContent onClick={(e) => e.stopPropagation()}>
         <DialogHeader>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { List, Trash2, Clock, CalendarClock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TaskItem from './TaskItem';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import CopyRoutineDialog from './CopyRoutineDialog';
 import EditRoutineDialog from './EditRoutineDialog';
 import { Badge } from "@/components/ui/badge";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface RoutineItemProps {
   routine: {
@@ -38,11 +39,7 @@ const RoutineItem = ({
 }: RoutineItemProps) => {
   // Local state for optimistic updates
   const [localTasks, setLocalTasks] = useState(tasks);
-  
-  // Sync local tasks with prop changes
-  useEffect(() => {
-    setLocalTasks(tasks);
-  }, [tasks]);
+  const queryClient = useQueryClient();
   
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
@@ -54,21 +51,22 @@ const RoutineItem = ({
     items.splice(result.destination.index, 0, reorderedItem);
     setLocalTasks(items);
     
-    // Update positions in database using parallel requests
+    // Update positions in database using batch RPC
     try {
-      const updatePromises = items.map((item, index) => 
-        supabase
-          .from('routine_tasks')
-          .update({ position: index })
-          .eq('id', item.id)
-      );
-      
-      await Promise.all(updatePromises);
-      onTasksUpdate();
+      const taskUpdates = items.map((item, index) => ({
+        id: item.id,
+        position: index,
+      }));
+
+      const { error } = await supabase.rpc("update_task_positions", {
+        task_updates: taskUpdates,
+      });
+
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["routines"] });
     } catch (error) {
       console.error("Error updating task positions:", error);
-      toast.error("Failed to update task positions");
-      // Revert optimistic update on error
+      toast.error("Failed to reorder tasks");
       setLocalTasks(tasks);
     }
   };

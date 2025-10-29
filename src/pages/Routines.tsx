@@ -5,10 +5,11 @@ import SidebarLayout from "@/components/SidebarLayout";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { Button } from "@/components/ui/button";
 import { Plus, List } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AddRoutineDialog } from "@/components/AddRoutineDialog";
 import RoutineItem from "@/components/RoutineItem";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface RoutinesProps {
   user: User;
@@ -18,9 +19,10 @@ interface RoutinesProps {
 const Routines = ({ user, supabase }: RoutinesProps) => {
   const { totalTimeSaved } = useTimeTracking();
   const [isAddRoutineOpen, setIsAddRoutineOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  const { data: routines, refetch: refetchRoutines, isLoading: isLoadingRoutines, error: routinesError } = useQuery({
-    queryKey: ["routines", user.id],
+  const { data: routines, isLoading: isLoadingRoutines, error: routinesError } = useQuery({
+    queryKey: queryKeys.routines(user.id),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routines")
@@ -33,8 +35,8 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
     },
   });
 
-  const { data: tasks, refetch: refetchTasks, isLoading: isLoadingTasks, error: tasksError } = useQuery({
-    queryKey: ["routines", "tasks", routines?.map(r => r.id)],
+  const { data: tasks, isLoading: isLoadingTasks } = useQuery({
+    queryKey: queryKeys.allRoutineTasks(routines?.map(r => r.id) || []),
     queryFn: async () => {
       if (!routines || routines.length === 0) return [];
       
@@ -61,19 +63,25 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
   };
 
   const handleDeleteRoutine = async (routineId: string) => {
-    const { error } = await supabase.from("routines").delete().eq("id", routineId);
-    if (error) {
+    try {
+      const { error } = await supabase.from("routines").delete().eq("id", routineId);
+      if (error) throw error;
+      
+      toast.success("Routine deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["routines"] });
+    } catch (error) {
       console.error("Error deleting routine:", error);
-      toast.error("Failed to delete routine");
-      return;
+      toast.error("Failed to delete routine", {
+        action: {
+          label: "Retry",
+          onClick: () => handleDeleteRoutine(routineId),
+        },
+      });
     }
-    toast.success("Routine deleted successfully");
-    refetchRoutines();
   };
 
   const handleRoutineUpdate = () => {
-    refetchRoutines();
-    refetchTasks();
+    queryClient.invalidateQueries({ queryKey: ["routines"] });
   };
 
   return (
@@ -122,9 +130,16 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           <div className="clay-element-with-transition text-center p-12 border-destructive/50">
             <h3 className="text-xl font-bold text-destructive mb-3">Failed to Load Routines</h3>
             <p className="text-muted-foreground mb-6">{routinesError.message}</p>
-            <Button variant="clay-jade" onClick={() => refetchRoutines()}>
+            <Button variant="clay-jade" onClick={() => queryClient.invalidateQueries({ queryKey: ["routines"] })}>
               Try Again
             </Button>
+          </div>
+        )}
+
+        {/* Tasks Loading Indicator */}
+        {isLoadingTasks && routines && routines.length > 0 && (
+          <div className="text-center text-muted-foreground animate-pulse">
+            Loading tasks...
           </div>
         )}
 
@@ -145,7 +160,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         )}
 
         {/* Empty State */}
-        {!isLoadingRoutines && !routinesError && (!routines || routines.length === 0) && (
+        {!isLoadingRoutines && (!routines || routines.length === 0) && (
           <div className="clay-element-with-transition text-center p-12">
             <div className="clay-element-with-transition w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-6 flex items-center justify-center glow-jade">
               <List className="w-10 h-10 text-accent-foreground" />

@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AddTaskDialogProps {
   routineId: string;
@@ -39,38 +40,45 @@ const AddTaskDialog = ({
   const [newTaskDuration, setNewTaskDuration] = useState('');
   const [taskType, setTaskType] = useState<'regular' | 'focus'>('regular');
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleCreateTask = async () => {
-  const durationMinutes = parseInt(newTaskDuration, 10);
+    const durationMinutes = parseInt(newTaskDuration, 10);
 
-  if (!newTaskTitle.trim() || isNaN(durationMinutes) || durationMinutes <= 0) {
-    toast.error('Please fill in all task details');
-    return;
-  }
-
-  const { error } = await supabase
-    .from('routine_tasks')
-    .insert([
-      {
-        routine_id: routineId,
-        title: newTaskTitle,
-        duration: durationMinutes,
-        position: tasksCount,
-        type: taskType,
-      },
-    ]);
-
-    if (error) {
-      toast.error('Failed to create task');
+    if (!newTaskTitle.trim() || isNaN(durationMinutes) || durationMinutes <= 0) {
+      toast.error('Please fill in all task details');
       return;
     }
 
-    setNewTaskTitle('');
-    setNewTaskDuration('');
-    setTaskType('regular');
-    setOpen(false);
-    onTasksUpdate();
-    toast.success('Task added successfully');
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('routine_tasks')
+        .insert([
+          {
+            routine_id: routineId,
+            title: newTaskTitle,
+            duration: durationMinutes,
+            position: tasksCount,
+            type: taskType,
+          },
+        ]);
+
+      if (error) throw error;
+
+      setNewTaskTitle('');
+      setNewTaskDuration('');
+      setTaskType('regular');
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["routines"] });
+      toast.success('Task added successfully');
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast.error('Failed to create task');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -124,8 +132,9 @@ const AddTaskDialog = ({
           <Button
             className="w-full bg-ninja-primary text-white hover:bg-ninja-primary/90"
             onClick={handleCreateTask}
+            disabled={isSubmitting}
           >
-            Add Task
+            {isSubmitting ? "Adding..." : "Add Task"}
           </Button>
         </div>
       </DialogContent>

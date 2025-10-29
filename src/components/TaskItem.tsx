@@ -7,6 +7,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from "sonner";
 import { Draggable } from 'react-beautiful-dnd';
 import EditTaskDialog from './EditTaskDialog';
+import { useQueryClient } from "@tanstack/react-query";
 
 interface TaskItemProps {
   task: {
@@ -22,24 +23,33 @@ interface TaskItemProps {
 }
 
 const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
+  const queryClient = useQueryClient();
+
   const handleDelete = async () => {
-    const { error } = await supabase
-      .from('routine_tasks')
-      .delete()
-      .eq('id', task.id);
+    try {
+      const { error } = await supabase
+        .from('routine_tasks')
+        .delete()
+        .eq('id', task.id);
 
-    if (error) {
-      toast.error('Failed to delete task');
-      return;
+      if (error) throw error;
+
+      toast.success('Task deleted');
+      queryClient.invalidateQueries({ queryKey: ["routines"] });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast.error('Failed to delete task', {
+        action: {
+          label: "Retry",
+          onClick: handleDelete,
+        },
+      });
     }
-
-    onTaskUpdate();
-    toast.success('Task deleted successfully');
   };
 
   return (
     <Draggable draggableId={task.id} index={index}>
-      {(provided, snapshot) => (
+      {(provided) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
@@ -71,6 +81,7 @@ const TaskItem = ({ task, onTaskUpdate, supabase, index }: TaskItemProps) => {
               size="icon"
               onClick={handleDelete}
               className="h-8 w-8 text-accent-foreground/70 hover:text-accent-foreground hover:bg-accent-foreground/10"
+              aria-label="Delete task"
             >
               <Trash2 className="h-4 w-4" />
             </Button>

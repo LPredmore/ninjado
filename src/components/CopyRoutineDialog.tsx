@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Copy } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CopyRoutineDialogProps {
   routineId: string;
@@ -23,8 +23,7 @@ const CopyRoutineDialog = ({
   const [open, setOpen] = useState(false);
   const [newTitle, setNewTitle] = useState(`Copy of ${routineTitle}`);
   const [isLoading, setIsLoading] = useState(false);
-
-  // ...
+  const queryClient = useQueryClient();
 const handleCopyRoutine = async () => {
   if (!newTitle.trim()) {
     toast.error("Please provide a title for the copied routine");
@@ -83,7 +82,7 @@ const handleCopyRoutine = async () => {
 
       toast.success("Routine copied successfully!");
       setOpen(false);
-      onCopyComplete();
+      queryClient.invalidateQueries({ queryKey: ["routines"] });
     } catch (error) {
       console.error("Error copying routine:", error);
       toast.error("Failed to copy routine");
@@ -115,10 +114,10 @@ const handleCopyRoutine = async () => {
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Enter new routine title"
             />
-          </div>
-          <p className="text-sm text-gray-500">
-            This will create a copy of "{routineTitle}" with all its tasks.
-          </p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              This will create a copy of "{routineTitle}" with all its tasks.
+            </p>
         </div>
         <DialogFooter>
           <Button

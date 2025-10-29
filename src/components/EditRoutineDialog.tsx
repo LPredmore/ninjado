@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Pencil, Clock } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EditRoutineDialogProps {
   routineId: string;
@@ -31,12 +32,7 @@ const EditRoutineDialog = ({
   const [title, setTitle] = useState(routineTitle);
   const [startTime, setStartTime] = useState(routineStartTime || "");
   const [isLoading, setIsLoading] = useState(false);
-
-  // Update local state when props change
-  useEffect(() => {
-    setTitle(routineTitle);
-    setStartTime(routineStartTime || "");
-  }, [routineTitle, routineStartTime, open]);
+  const queryClient = useQueryClient();
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -58,7 +54,7 @@ const EditRoutineDialog = ({
 
       toast.success("Routine updated successfully");
       setOpen(false);
-      onEditComplete();
+      queryClient.invalidateQueries({ queryKey: ["routines"] });
     } catch (error) {
       console.error("Error updating routine:", error);
       toast.error("Failed to update routine");
@@ -67,8 +63,17 @@ const EditRoutineDialog = ({
     }
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen) {
+      // Reset form when opening
+      setTitle(routineTitle);
+      setStartTime(routineStartTime || "");
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <Button
         onClick={(e) => {
           e.stopPropagation();
@@ -77,8 +82,9 @@ const EditRoutineDialog = ({
         variant="ghost"
         size="sm"
         className="h-8 w-8 p-0"
+        aria-label="Edit routine"
       >
-        <Pencil className="h-4 w-4 text-gray-500" />
+        <Pencil className="h-4 w-4 text-muted-foreground" />
       </Button>
       <DialogContent>
         <DialogHeader>
@@ -104,7 +110,7 @@ const EditRoutineDialog = ({
                 placeholder="Start time"
               />
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Set the time when you usually start this routine
             </p>
           </div>

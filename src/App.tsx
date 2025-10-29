@@ -42,17 +42,6 @@ const App = () => {
     </div>;
   }
 
-  // Check if Supabase is configured
-  if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
-    return <div className="min-h-screen bg-red-100 flex items-center justify-center p-4">
-      <div className="text-center">
-        <h1 className="text-xl font-bold text-red-800 mb-2">Configuration Error</h1>
-        <p className="text-red-700">Supabase environment variables are not configured.</p>
-        <p className="text-sm text-red-600 mt-2">Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY</p>
-      </div>
-    </div>;
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
