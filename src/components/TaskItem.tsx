@@ -1,5 +1,4 @@
-
-import React from 'react';
+import { useState } from 'react';
 import { Trash2, GripVertical } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +21,7 @@ interface TaskItemProps {
 
 const TaskItem = ({ task, supabase, userId, index }: TaskItemProps) => {
   const queryClient = useQueryClient();
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const handleDelete = async () => {
     // Optimistic update - get current tasks from cache

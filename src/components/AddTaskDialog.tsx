@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateRoutineQueries } from "@/lib/queryKeys";
+import { invalidateRoutineQueries, queryKeys } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
 import ErrorBoundary from "./ErrorBoundary";
 
@@ -65,6 +65,26 @@ const AddTaskDialog = ({
     }
 
     setIsSubmitting(true);
+
+    // Optimistic update
+    const tempId = crypto.randomUUID();
+    const newTask = {
+      id: tempId,
+      routine_id: routineId,
+      title: newTaskTitle,
+      duration: durationMinutes,
+      position: tasksCount,
+      type: taskType,
+      created_at: new Date().toISOString(),
+    };
+
+    const previousTasks = queryClient.getQueryData(queryKeys.allRoutineTasks(userId));
+    
+    queryClient.setQueryData(
+      queryKeys.allRoutineTasks(userId),
+      (old: any) => [...(old || []), newTask]
+    );
+
     try {
       const { error } = await supabase
         .from('routine_tasks')
@@ -87,6 +107,9 @@ const AddTaskDialog = ({
       invalidateRoutineQueries(queryClient, userId);
       toast.success('Task added successfully');
     } catch (error) {
+      // Rollback on error
+      queryClient.setQueryData(queryKeys.allRoutineTasks(userId), previousTasks);
+      
       logError('Failed to create task', error, {
         component: 'AddTaskDialog',
         action: 'handleCreateTask',

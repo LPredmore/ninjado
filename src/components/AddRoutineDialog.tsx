@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Clock, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateRoutineQueries } from "@/lib/queryKeys";
+import { invalidateRoutineQueries, queryKeys } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
 import ErrorBoundary from "./ErrorBoundary";
 
@@ -31,7 +31,29 @@ export const AddRoutineDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (title.length > 100) {
+      toast.error("Routine title must be less than 100 characters");
+      return;
+    }
+
     setIsSubmitting(true);
+
+    // Optimistic update
+    const tempId = crypto.randomUUID();
+    const newRoutine = {
+      id: tempId,
+      title,
+      user_id: userId,
+      start_time: startTime || null,
+      created_at: new Date().toISOString(),
+    };
+
+    const previousRoutines = queryClient.getQueryData(queryKeys.routines(userId));
+    
+    queryClient.setQueryData(
+      queryKeys.routines(userId),
+      (old: any) => [...(old || []), newRoutine]
+    );
 
     try {
       const { error } = await supabase.from("routines").insert({
@@ -48,6 +70,9 @@ export const AddRoutineDialog = ({
       onOpenChange(false);
       invalidateRoutineQueries(queryClient, userId);
     } catch (error) {
+      // Rollback on error
+      queryClient.setQueryData(queryKeys.routines(userId), previousRoutines);
+      
       logError("Failed to create routine", error, {
         component: "AddRoutineDialog",
         action: "handleSubmit",
