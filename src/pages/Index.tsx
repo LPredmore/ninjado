@@ -140,10 +140,10 @@ const Index = ({ user, supabase }: IndexProps) => {
       <div className="space-y-6 md:space-y-8 p-4 md:p-6">
         
         {/* Routine Selector - Ninja Scroll Style */}
-        <div className="clay-element">
+        <div className="clay-element-with-transition">
           <div className="p-6">
             <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-              <span className="clay-element w-10 h-10 gradient-clay-primary rounded-xl flex items-center justify-center">
+              <span className="clay-element-with-transition w-10 h-10 gradient-clay-primary rounded-xl flex items-center justify-center">
                 🎯
               </span>
               Choose Your Mission Scroll
@@ -158,7 +158,7 @@ const Index = ({ user, supabase }: IndexProps) => {
 
         {/* Main Routine Container */}
         {selectedRoutineId && (
-          <div className="clay-element">
+          <div className="clay-element-with-transition">
             <RoutineContainer
               routineTitle={selectedRoutine?.title || "Ninja Mission"}
               tasks={processedTasks}
@@ -176,8 +176,8 @@ const Index = ({ user, supabase }: IndexProps) => {
         
         {/* Empty State - Encouraging message */}
         {!selectedRoutineId && routines && routines.length === 0 && (
-          <div className="clay-element text-center p-12">
-            <div className="clay-element w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-6 flex items-center justify-center glow-jade">
+          <div className="clay-element-with-transition text-center p-12">
+            <div className="clay-element-with-transition w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-6 flex items-center justify-center glow-jade">
               <span className="text-4xl">🥷</span>
             </div>
             <h3 className="text-xl font-bold text-foreground mb-3">Welcome to the Dojo, Young Ninja!</h3>

@@ -91,7 +91,7 @@ const Contact = ({ user, supabase }: ContactProps) => {
         
         {/* Page Header */}
         <div className="text-center">
-          <div className="clay-element w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
+          <div className="clay-element-with-transition w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
             <MessageSquare className="w-10 h-10 text-accent-foreground" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-2">
@@ -114,7 +114,7 @@ const Contact = ({ user, supabase }: ContactProps) => {
                 id="email"
                 value={user.email || ""}
                 disabled
-                className="clay-element bg-muted/50 border-border/50"
+                className="clay-element-with-transition bg-muted/50 border-border/50"
               />
             </div>
 
@@ -124,7 +124,7 @@ const Contact = ({ user, supabase }: ContactProps) => {
                 Topic
               </Label>
               <Select value={topic} onValueChange={setTopic} required>
-                <SelectTrigger className="clay-element">
+                <SelectTrigger className="clay-element-with-transition">
                   <SelectValue placeholder="Select a topic" />
                 </SelectTrigger>
                 <SelectContent>
@@ -145,7 +145,7 @@ const Contact = ({ user, supabase }: ContactProps) => {
                 placeholder="Tell us what's on your mind..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="clay-element min-h-32 resize-none"
+                className="clay-element-with-transition min-h-32 resize-none"
                 required
               />
             </div>
@@ -173,21 +173,21 @@ const Contact = ({ user, supabase }: ContactProps) => {
         {/* Additional Info */}
         <NinjaScrollCard title="💡 Quick Tips" variant="default">
           <div className="space-y-4">
-            <div className="clay-element p-4 bg-muted/30">
+            <div className="clay-element-with-transition p-4 bg-muted/30">
               <h3 className="font-semibold text-foreground mb-2">🐛 Reporting a Bug?</h3>
               <p className="text-sm text-muted-foreground">
                 Please describe what you were doing when the bug occurred, and what you expected to happen instead.
               </p>
             </div>
             
-            <div className="clay-element p-4 bg-muted/30">
+            <div className="clay-element-with-transition p-4 bg-muted/30">
               <h3 className="font-semibold text-foreground mb-2">💡 Have a Feature Idea?</h3>
               <p className="text-sm text-muted-foreground">
                 We love hearing new ideas! Tell us how you think we can make NinjaDo even better.
               </p>
             </div>
             
-            <div className="clay-element p-4 bg-muted/30">
+            <div className="clay-element-with-transition p-4 bg-muted/30">
               <h3 className="font-semibold text-foreground mb-2">❓ Need Help?</h3>
               <p className="text-sm text-muted-foreground">
                 Check out our "How to Use" page first, but don't hesitate to reach out if you're still stuck!

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { List, Trash2, Clock, CalendarClock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TaskItem from './TaskItem';
@@ -73,11 +73,14 @@ const RoutineItem = ({
     }
   };
 
-  // Calculate the total duration of all tasks in minutes
-  const totalDurationMinutes = localTasks.reduce((total, task) => total + task.duration, 0);
+  // Calculate the total duration of all tasks in minutes (memoized)
+  const totalDurationMinutes = useMemo(
+    () => localTasks.reduce((total, task) => total + task.duration, 0),
+    [localTasks]
+  );
   
-  // Calculate the end time if start time is set
-  const calculateEndTime = () => {
+  // Calculate the end time if start time is set (memoized)
+  const endTime = useMemo(() => {
     if (!routine.start_time) return null;
     
     const [hours, minutes] = routine.start_time.split(':').map(Number);
@@ -88,9 +91,7 @@ const RoutineItem = ({
     endDate.setMinutes(endDate.getMinutes() + totalDurationMinutes);
     
     return endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  
-  const endTime = calculateEndTime();
+  }, [routine.start_time, totalDurationMinutes]);
   
   return (
     <div className="clay-element-with-transition p-4 bg-card border-2 border-border/30 clay-hover hover:border-accent/30">
@@ -98,7 +99,7 @@ const RoutineItem = ({
         <div className="flex items-center space-x-2">
           <List className="w-5 h-5 text-accent" />
           <span className="font-medium text-card-foreground">{routine.title}</span>
-          <Badge variant="outline" className="clay-element bg-primary/20 text-primary border-primary/30 text-xs">
+          <Badge variant="outline" className="clay-element-with-transition bg-primary/20 text-primary border-primary/30 text-xs">
             {localTasks.length} task{localTasks.length !== 1 ? 's' : ''}
           </Badge>
           <EditRoutineDialog 
@@ -133,7 +134,7 @@ const RoutineItem = ({
       <div className="mt-3 flex justify-between items-center">
         <div className="flex flex-wrap gap-2 items-center">
           {localTasks.length > 0 && (
-            <Badge variant="outline" className="clay-element bg-accent/20 text-accent border-accent/30 text-xs">
+            <Badge variant="outline" className="clay-element-with-transition bg-accent/20 text-accent border-accent/30 text-xs">
               {totalDurationMinutes} min total
             </Badge>
           )}
@@ -141,14 +142,14 @@ const RoutineItem = ({
         
         <div className="flex gap-4 items-center">
           {routine.start_time ? (
-            <div className="clay-element px-3 py-2 gradient-clay-primary">
+            <div className="clay-element-with-transition px-3 py-2 gradient-clay-primary">
               <div className="flex items-center">
                 <Clock className="w-4 h-4 mr-2 text-primary-foreground" />
                 <span className="text-sm font-medium text-primary-foreground">Start: {routine.start_time}</span>
               </div>
             </div>
           ) : (
-            <div className="clay-element px-3 py-2 bg-muted/50">
+            <div className="clay-element-with-transition px-3 py-2 bg-muted/50">
               <div className="flex items-center">
                 <Clock className="w-4 h-4 mr-2 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">No start time</span>
@@ -157,14 +158,14 @@ const RoutineItem = ({
           )}
           
           {endTime ? (
-            <div className="clay-element px-3 py-2 gradient-clay-accent">
+            <div className="clay-element-with-transition px-3 py-2 gradient-clay-accent">
               <div className="flex items-center">
                 <CalendarClock className="w-4 h-4 mr-2 text-accent-foreground" />
                 <span className="text-sm font-medium text-accent-foreground">End: {endTime}</span>
               </div>
             </div>
           ) : (
-            <div className="clay-element px-3 py-2 bg-muted/50">
+            <div className="clay-element-with-transition px-3 py-2 bg-muted/50">
               <div className="flex items-center">
                 <CalendarClock className="w-4 h-4 mr-2 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">Set start time</span>

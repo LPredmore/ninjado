@@ -19,8 +19,8 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
   const { totalTimeSaved } = useTimeTracking();
   const [isAddRoutineOpen, setIsAddRoutineOpen] = useState(false);
 
-  const { data: routines, refetch: refetchRoutines } = useQuery({
-    queryKey: ["routines"],
+  const { data: routines, refetch: refetchRoutines, isLoading: isLoadingRoutines, error: routinesError } = useQuery({
+    queryKey: ["routines", user.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routines")
@@ -33,8 +33,8 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
     },
   });
 
-  const { data: tasks, refetch: refetchTasks } = useQuery({
-    queryKey: ["all-tasks"],
+  const { data: tasks, refetch: refetchTasks, isLoading: isLoadingTasks, error: tasksError } = useQuery({
+    queryKey: ["routines", "tasks", routines?.map(r => r.id)],
     queryFn: async () => {
       if (!routines || routines.length === 0) return [];
       
@@ -82,7 +82,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
         
         {/* Page Header */}
         <div className="text-center">
-          <div className="clay-element w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
+          <div className="clay-element-with-transition w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
             <List className="w-10 h-10 text-accent-foreground" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-2">
@@ -104,24 +104,50 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           </Button>
         </div>
 
+        {/* Loading State */}
+        {isLoadingRoutines && (
+          <div className="grid gap-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="clay-element-with-transition p-4 animate-pulse">
+                <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
+                <div className="h-4 bg-muted rounded w-2/3 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error State */}
+        {routinesError && (
+          <div className="clay-element-with-transition text-center p-12 border-destructive/50">
+            <h3 className="text-xl font-bold text-destructive mb-3">Failed to Load Routines</h3>
+            <p className="text-muted-foreground mb-6">{routinesError.message}</p>
+            <Button variant="clay-jade" onClick={() => refetchRoutines()}>
+              Try Again
+            </Button>
+          </div>
+        )}
+
         {/* Routines Grid */}
-        <div className="grid gap-6">
-          {routines?.map((routine) => (
-            <RoutineItem
-              key={routine.id}
-              routine={routine}
-              tasks={tasks?.filter((task) => task.routine_id === routine.id) || []}
-              onDelete={handleDeleteRoutine}
-              supabase={supabase}
-              onTasksUpdate={handleRoutineUpdate}
-            />
-          ))}
-        </div>
+        {!isLoadingRoutines && !routinesError && (
+          <div className="grid gap-6">
+            {routines?.map((routine) => (
+              <RoutineItem
+                key={routine.id}
+                routine={routine}
+                tasks={tasks?.filter((task) => task.routine_id === routine.id) || []}
+                onDelete={handleDeleteRoutine}
+                supabase={supabase}
+                onTasksUpdate={handleRoutineUpdate}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Empty State */}
-        {(!routines || routines.length === 0) && (
-          <div className="clay-element text-center p-12">
-            <div className="clay-element w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-6 flex items-center justify-center glow-jade">
+        {!isLoadingRoutines && !routinesError && (!routines || routines.length === 0) && (
+          <div className="clay-element-with-transition text-center p-12">
+            <div className="clay-element-with-transition w-20 h-20 gradient-clay-accent rounded-full mx-auto mb-6 flex items-center justify-center glow-jade">
               <List className="w-10 h-10 text-accent-foreground" />
             </div>
             <h3 className="text-xl font-bold text-foreground mb-3">No Training Routines Yet</h3>

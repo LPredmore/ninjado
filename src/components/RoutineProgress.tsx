@@ -36,7 +36,7 @@ const RoutineProgress = ({
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-            <span className="clay-element w-8 h-8 gradient-clay-accent rounded-xl flex items-center justify-center text-sm">
+            <span className="clay-element-with-transition w-8 h-8 gradient-clay-accent rounded-xl flex items-center justify-center text-sm">
               ⚔️
             </span>
             Training Progress
@@ -77,12 +77,12 @@ const RoutineProgress = ({
       </div>
       
       {/* Katana Progress Bar */}
-      <div className="clay-element p-4">
+      <div className="clay-element-with-transition p-4">
         <div className="flex items-center gap-3 mb-2">
           <span className="text-sm font-bold text-foreground">Katana Power:</span>
           <span className="text-sm text-muted-foreground">{Math.round(percentage)}% charged</span>
         </div>
-        <Progress value={percentage} className="h-6 clay-element" />
+        <Progress value={percentage} className="h-6 clay-element-with-transition" />
       </div>
       
       <PinPrompt

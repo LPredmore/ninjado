@@ -119,7 +119,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
         
         {/* Profile Header */}
         <div className="text-center">
-          <div className="clay-element w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
+          <div className="clay-element-with-transition w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center glow-jade">
             <img 
               src="/lovable-uploads/3b625771-568e-4e81-9f85-dd2963292f55.png" 
               alt="Ninja Avatar"
@@ -161,14 +161,14 @@ const Profile = ({ user, supabase }: ProfileProps) => {
                   placeholder="New password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="clay-element"
+                  className="clay-element-with-transition"
                 />
                 <Input
                   type="password"
                   placeholder="Confirm new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="clay-element"
+                  className="clay-element-with-transition"
                 />
                 <Button 
                   onClick={handlePasswordUpdate}

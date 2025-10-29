@@ -167,7 +167,7 @@ const Parent = ({
       <div className="container mx-auto p-4 md:p-6 max-w-4xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl clay-element flex items-center justify-center glow-jade">
+            <div className="w-12 h-12 rounded-xl clay-element-with-transition flex items-center justify-center glow-jade">
               <Shield className="w-6 h-6 text-accent-foreground" />
             </div>
             <div>
@@ -181,7 +181,7 @@ const Parent = ({
 
         <div className="grid gap-6">
           {/* PIN Status Card */}
-          <Card className="clay-element">
+          <Card className="clay-element-with-transition">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 {hasPin ? <Lock className="w-5 h-5 text-green-500" /> : <Unlock className="w-5 h-5 text-orange-500" />}
@@ -194,7 +194,7 @@ const Parent = ({
           </Card>
 
           {/* PIN Management */}
-          {!hasPin ? <Card className="clay-element">
+          {!hasPin ? <Card className="clay-element-with-transition">
               <CardHeader>
                 <CardTitle>Set Parental PIN</CardTitle>
                 <CardDescription>
@@ -216,7 +216,7 @@ const Parent = ({
                   {loading ? "Activating..." : "Activate Parental Controls"}
                 </Button>
               </CardContent>
-            </Card> : <Card className="clay-element">
+            </Card> : <Card className="clay-element-with-transition">
               <CardHeader>
                 <CardTitle>PIN Management</CardTitle>
                 <CardDescription>
@@ -232,7 +232,7 @@ const Parent = ({
             </Card>}
 
           {/* Information Cards */}
-          <Card className="clay-element">
+          <Card className="clay-element-with-transition">
             <CardHeader>
               <CardTitle>What gets protected?</CardTitle>
               <CardDescription>
