@@ -37,7 +37,9 @@ const Index = ({ user, supabase }: IndexProps) => {
     completedTaskIds,
     setCompletedTaskIds,
     lastUpdated,
-    resetRoutineState
+    resetRoutineState,
+    cumulativeTimeSaved,
+    setCumulativeTimeSaved,
   } = useRoutineState(selectedRoutineId);
 
   const { data: routines } = useQuery({
@@ -93,6 +95,16 @@ const Index = ({ user, supabase }: IndexProps) => {
     if (!task) return;
 
     setCompletedTaskIds(prev => [...prev, taskId]);
+    
+    // Update cumulative time saved for this routine session
+    setCumulativeTimeSaved(prev => {
+      const newTotal = prev + timeSaved;
+      if (selectedRoutineId) {
+        localStorage.setItem(`routine-${selectedRoutineId}-cumulative-time`, newTotal.toString());
+      }
+      return newTotal;
+    });
+    
     await recordTaskCompletion(task.title, timeSaved);
     
     // Update task performance metrics
@@ -177,6 +189,7 @@ const Index = ({ user, supabase }: IndexProps) => {
               onTaskReorder={handleTaskReorder}
               userId={user.id}
               routineStartTime={isRoutineStarted ? lastUpdated : null}
+              cumulativeTimeSaved={cumulativeTimeSaved}
             />
           </div>
         )}

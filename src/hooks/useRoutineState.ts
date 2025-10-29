@@ -17,6 +17,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
   const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
   const [pausedAt, setPausedAt] = useState<number | null>(null);
+  const [cumulativeTimeSaved, setCumulativeTimeSaved] = useState<number>(0);
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -24,6 +25,8 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
   useEffect(() => {
     if (selectedRoutineId) {
       const savedState = localStorage.getItem(`routineState_${selectedRoutineId}`);
+      const savedCumulativeTime = localStorage.getItem(`routine-${selectedRoutineId}-cumulative-time`);
+      
       if (savedState) {
         const parsed = JSON.parse(savedState) as RoutineState;
         setIsRoutineStarted(parsed.isRoutineStarted);
@@ -32,6 +35,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
         setCompletedTaskIds(parsed.completedTaskIds);
         setLastUpdated(parsed.lastUpdated || Date.now());
         setPausedAt(parsed.pausedAt);
+        setCumulativeTimeSaved(savedCumulativeTime ? parseInt(savedCumulativeTime) : 0);
         
         // If routine was started but not paused, calculate elapsed time since last update
         if (parsed.isRoutineStarted && !parsed.isPaused) {
@@ -67,6 +71,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
         setCompletedTaskIds([]);
         setLastUpdated(Date.now());
         setPausedAt(null);
+        setCumulativeTimeSaved(0);
       }
     }
     
@@ -191,12 +196,14 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
   const resetRoutineState = () => {
     if (selectedRoutineId) {
       localStorage.removeItem(`routineState_${selectedRoutineId}`);
+      localStorage.removeItem(`routine-${selectedRoutineId}-cumulative-time`);
       setIsRoutineStarted(false);
       setIsPaused(false);
       setTimers({});
       setCompletedTaskIds([]);
       setLastUpdated(Date.now());
       setPausedAt(null);
+      setCumulativeTimeSaved(0);
     }
   };
 
@@ -211,5 +218,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
     setCompletedTaskIds,
     lastUpdated,
     resetRoutineState,
+    cumulativeTimeSaved,
+    setCumulativeTimeSaved,
   };
 };

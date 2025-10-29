@@ -18,6 +18,7 @@ interface RoutineProgressProps {
   userId: string;
   tasks: any[];
   routineStartTime: number | null;
+  cumulativeTimeSaved: number;
 }
 
 const RoutineProgress = ({
@@ -30,7 +31,8 @@ const RoutineProgress = ({
   onPauseRoutine,
   userId,
   tasks,
-  routineStartTime
+  routineStartTime,
+  cumulativeTimeSaved
 }: RoutineProgressProps) => {
   const { isPinPromptOpen, requestAccess, handlePinSuccess, handlePinCancel } = useParentalControls(userId);
 
@@ -88,6 +90,7 @@ const RoutineProgress = ({
             totalTasks={totalTasks}
             routineStartTime={routineStartTime}
             isPaused={isPaused}
+            cumulativeTimeSaved={cumulativeTimeSaved}
           />
         </div>
       )}
