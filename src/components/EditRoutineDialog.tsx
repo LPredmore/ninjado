@@ -14,6 +14,7 @@ import { Pencil, Clock, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
+import ErrorBoundary from "./ErrorBoundary";
 
 interface EditRoutineDialogProps {
   routineId: string;
@@ -79,7 +80,8 @@ const EditRoutineDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <ErrorBoundary>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
       <Button
         onClick={(e) => {
           e.stopPropagation();
@@ -139,6 +141,7 @@ const EditRoutineDialog = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </ErrorBoundary>
   );
 };
 

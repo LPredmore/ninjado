@@ -15,6 +15,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
+import ErrorBoundary from "./ErrorBoundary";
 
 interface EditTaskDialogProps {
   taskId: string;
@@ -43,6 +44,17 @@ const EditTaskDialog = ({
   const handleSave = async () => {
     if (!title.trim() || !duration.trim()) {
       toast.error("Please fill in all fields");
+      return;
+    }
+
+    const durationNum = parseInt(duration);
+    if (isNaN(durationNum) || durationNum < 1 || durationNum > 480) {
+      toast.error("Duration must be between 1 and 480 minutes");
+      return;
+    }
+
+    if (!title.trim() || title.length > 100) {
+      toast.error("Task name must be between 1 and 100 characters");
       return;
     }
 
@@ -75,7 +87,8 @@ const EditTaskDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <ErrorBoundary>
+      <Dialog open={open} onOpenChange={setOpen}>
       <Button
         onClick={(e) => {
           e.stopPropagation();
@@ -110,6 +123,8 @@ const EditTaskDialog = ({
               onChange={(e) => setDuration(e.target.value)}
               placeholder="Enter duration in minutes"
               min="1"
+              max="480"
+              step="1"
             />
           </div>
           <div className="space-y-2">
@@ -151,6 +166,7 @@ const EditTaskDialog = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </ErrorBoundary>
   );
 };
 

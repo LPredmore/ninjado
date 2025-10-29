@@ -22,6 +22,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
+import ErrorBoundary from "./ErrorBoundary";
 
 interface AddTaskDialogProps {
   routineId: string;
@@ -50,6 +51,16 @@ const AddTaskDialog = ({
 
     if (!newTaskTitle.trim() || isNaN(durationMinutes) || durationMinutes <= 0) {
       toast.error('Please fill in all task details');
+      return;
+    }
+
+    if (durationMinutes < 1 || durationMinutes > 480) {
+      toast.error("Duration must be between 1 and 480 minutes");
+      return;
+    }
+
+    if (newTaskTitle.length > 100) {
+      toast.error("Task name must be less than 100 characters");
       return;
     }
 
@@ -88,7 +99,8 @@ const AddTaskDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <ErrorBoundary>
+      <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button 
           className="w-full mt-2 bg-ninja-accent text-white hover:bg-ninja-accent/90"
@@ -119,6 +131,8 @@ const AddTaskDialog = ({
               onChange={(e) => setNewTaskDuration(e.target.value)}
               placeholder="Enter duration in minutes"
               min="1"
+              max="480"
+              step="1"
             />
           </div>
           <div className="space-y-2">
@@ -153,6 +167,7 @@ const AddTaskDialog = ({
         </div>
       </DialogContent>
     </Dialog>
+    </ErrorBoundary>
   );
 };
 

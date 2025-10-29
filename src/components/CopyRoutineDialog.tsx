@@ -8,6 +8,7 @@ import { Copy, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
+import ErrorBoundary from "./ErrorBoundary";
 
 interface CopyRoutineDialogProps {
   routineId: string;
@@ -91,7 +92,8 @@ const handleCopyRoutine = async () => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <ErrorBoundary>
+      <Dialog open={open} onOpenChange={setOpen}>
       <Button
         onClick={() => setOpen(true)}
         variant="outline"
@@ -142,6 +144,7 @@ const handleCopyRoutine = async () => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </ErrorBoundary>
   );
 };
 

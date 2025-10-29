@@ -8,6 +8,7 @@ import { Clock, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
 import { logError } from "@/lib/errorLogger";
+import ErrorBoundary from "./ErrorBoundary";
 
 interface AddRoutineDialogProps {
   open: boolean;
@@ -58,7 +59,8 @@ export const AddRoutineDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <ErrorBoundary>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Routine</DialogTitle>
@@ -114,5 +116,6 @@ export const AddRoutineDialog = ({
         </form>
       </DialogContent>
     </Dialog>
+    </ErrorBoundary>
   );
 };

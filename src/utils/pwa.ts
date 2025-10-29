@@ -1,4 +1,5 @@
 // PWA Utilities for NinjaDo
+import { logError } from '@/lib/errorLogger';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: Array<string>;
@@ -15,7 +16,6 @@ let deferredPrompt: BeforeInstallPromptEvent | null = null;
 export const initializePWA = (): void => {
   // Don't register service worker if running in Capacitor
   if ((window as any).Capacitor) {
-    console.log('Running in Capacitor - skipping service worker registration');
     return;
   }
 
@@ -30,11 +30,11 @@ export const initializePWA = (): void => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/sw.js')
-      .then((registration) => {
-        console.log('SW registered: ', registration);
-      })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+        logError('Service worker registration failed', registrationError, {
+          component: 'pwa',
+          action: 'initializePWA',
+        });
       });
   }
 };
@@ -53,15 +53,16 @@ export const showInstallPrompt = async (): Promise<boolean> => {
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
       deferredPrompt = null;
       return true;
     } else {
-      console.log('User dismissed the install prompt');
       return false;
     }
   } catch (error) {
-    console.error('Error showing install prompt:', error);
+    logError('Error showing install prompt', error, {
+      component: 'pwa',
+      action: 'showInstallPrompt',
+    });
     return false;
   }
 };
@@ -90,7 +91,6 @@ export const supportsPWA = (): boolean => {
 // Request notification permission
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (!('Notification' in window)) {
-    console.log('This browser does not support notifications');
     return false;
   }
 
