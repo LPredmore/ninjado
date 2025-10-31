@@ -495,7 +495,7 @@ export async function migrateHistoricalEfficiencyData(
       }
     }
 
-    console.log(`Migration completed: ${updated} records updated, ${errors} errors`);
+
     return { updated, errors };
   } catch (error) {
     console.error("Migration failed:", error);

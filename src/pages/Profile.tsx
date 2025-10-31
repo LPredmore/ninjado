@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { SupabaseClient } from "@supabase/supabase-js";
 import SidebarLayout from "@/components/SidebarLayout";
@@ -60,7 +60,6 @@ const Profile = ({ user, supabase }: ProfileProps) => {
 
       // If no profile exists, create one
       if (!data) {
-        console.log('No profile found, creating new profile for user:', user.id);
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
           .insert({
@@ -75,7 +74,6 @@ const Profile = ({ user, supabase }: ProfileProps) => {
           throw createError;
         }
 
-        console.log('Created new profile:', newProfile);
         return newProfile;
       }
 

@@ -89,12 +89,7 @@ const Reports = () => {
     };
   }).filter(m => m.total_executions > 0);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('[Reports Debug] Metrics:', metrics);
-    console.log('[Reports Debug] Tasks:', tasks);
-    console.log('[Reports Debug] Enriched:', enrichedMetrics);
-  }, [metrics, tasks, enrichedMetrics]);
+
 
   const formatTime = (seconds: number) => {
     const absSeconds = Math.abs(seconds);

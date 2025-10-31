@@ -33,7 +33,6 @@ export const initializePWA = (): void => {
     navigator.serviceWorker
       .register('/sw.js')
       .then((registration) => {
-        console.log('[PWA] Service worker registered:', registration);
         swRegistration = registration;
 
         // Check for updates on registration
@@ -42,15 +41,11 @@ export const initializePWA = (): void => {
         // Listen for updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
-          console.log('[PWA] Update found, new worker installing');
 
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
-              console.log('[PWA] New worker state:', newWorker.state);
-              
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 // New service worker installed and old one is still controlling
-                console.log('[PWA] New version available!');
                 if (updateAvailableCallback) {
                   updateAvailableCallback();
                 }
@@ -63,7 +58,6 @@ export const initializePWA = (): void => {
         let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           if (refreshing) return;
-          console.log('[PWA] Controller changed, reloading page');
           refreshing = true;
           window.location.reload();
         });
@@ -85,7 +79,6 @@ export const onUpdateAvailable = (callback: () => void): void => {
 // Check for service worker updates
 export const checkForUpdates = async (): Promise<void> => {
   if (swRegistration) {
-    console.log('[PWA] Checking for updates...');
     await swRegistration.update();
   }
 };
@@ -93,7 +86,6 @@ export const checkForUpdates = async (): Promise<void> => {
 // Apply the waiting service worker update
 export const applyUpdate = (): void => {
   if (swRegistration && swRegistration.waiting) {
-    console.log('[PWA] Applying update by sending SKIP_WAITING message');
     swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
   }
 };

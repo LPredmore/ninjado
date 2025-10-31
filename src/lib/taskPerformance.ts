@@ -65,7 +65,7 @@ export async function updateTaskPerformanceMetrics(
       if (insertError) throw insertError;
     }
 
-    console.log(`✅ Task performance updated: taskId=${taskId}, variance=${timeVariance}s`);
+
   } catch (error) {
     console.error('Error updating task performance metrics:', error);
     // Don't throw - we don't want to block task completion if metrics fail
@@ -92,7 +92,7 @@ export async function resetTaskPerformanceMetrics(
       .eq('user_id', userId);
 
     if (error) throw error;
-    console.log(`✅ Task performance reset: taskId=${taskId}`);
+
   } catch (error) {
     console.error('Error resetting task performance metrics:', error);
     throw error;
