@@ -34,18 +34,14 @@ const Parent = ({
 
   const checkExistingPin = async () => {
     try {
-      const { data, error } = await supabase
-        .from('parental_controls')
-        .select('is_active')
-        .eq('user_id', user.id)
-        .single();
+      const { data, error } = await supabase.rpc('check_pin_exists');
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         logError('Error checking PIN', error, { component: 'Parent', action: 'checkExistingPin', userId: user.id });
         return;
       }
 
-      setHasPin(!!data?.is_active);
+      setHasPin(data === true);
     } catch (error) {
       logError('Error checking existing PIN', error, { component: 'Parent', action: 'checkExistingPin', userId: user.id });
     }
@@ -141,7 +137,7 @@ const Parent = ({
     try {
       const { error } = await supabase
         .from('parental_controls')
-        .update({ is_active: false })
+        .delete()
         .eq('user_id', user.id);
 
       if (error) throw error;

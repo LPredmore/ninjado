@@ -26,23 +26,19 @@ const ProtectedRoute = ({ children, userId, requirePin = true }: ProtectedRouteP
     }
 
     try {
-      const { data, error } = await supabase
-        .from('parental_controls')
-        .select('is_active')
-        .eq('user_id', userId)
-        .single();
+      const { data, error } = await supabase.rpc('check_pin_exists');
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         logError('Error checking PIN requirement', error, { component: 'ProtectedRoute', action: 'checkPinRequirement', userId });
         setIsAuthorized(true); // Allow access if there's an error
         return;
       }
 
-      if (data?.is_active) {
-        // PIN is active, show prompt
+      if (data === true) {
+        // PIN exists, show prompt
         setShowPinPrompt(true);
       } else {
-        // No PIN set or not active, allow access
+        // No PIN set, allow access
         setIsAuthorized(true);
       }
     } catch (error) {

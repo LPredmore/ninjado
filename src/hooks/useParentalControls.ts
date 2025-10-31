@@ -13,29 +13,26 @@ export const useParentalControls = (userId: string) => {
 
   const checkPinRequired = useCallback(async () => {
     try {
-      // Use safe view that doesn't expose pin_hash
-      const { data, error } = await supabase
-        .from('parental_controls_safe')
-        .select('is_active')
-        .eq('user_id', userId)
-        .single();
+      const { data, error } = await supabase.rpc('check_pin_exists');
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         logError('Error checking PIN requirement', error, {
           component: 'useParentalControls',
           action: 'checkPinRequired',
           userId,
         });
+        setPinRequired(false); // Default to no restrictions on error
         return;
       }
 
-      setPinRequired(!!data?.is_active);
+      setPinRequired(data === true);
     } catch (error) {
       logError('Error checking PIN requirement', error, {
         component: 'useParentalControls',
         action: 'checkPinRequired',
         userId,
       });
+      setPinRequired(false);
     }
   }, [userId]);
 

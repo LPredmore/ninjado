@@ -19,7 +19,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
-          pin_hash: string
+          pin_hash: string | null
           updated_at: string
           user_id: string
         }
@@ -27,7 +27,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
-          pin_hash: string
+          pin_hash?: string | null
           updated_at?: string
           user_id: string
         }
@@ -35,7 +35,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
-          pin_hash?: string
+          pin_hash?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -337,6 +337,7 @@ export type Database = {
       }
     }
     Functions: {
+      check_pin_exists: { Args: never; Returns: boolean }
       delete_user: { Args: never; Returns: undefined }
       update_task_positions: {
         Args: { task_updates: Json }
