@@ -27,11 +27,12 @@ const TaskCard = ({
   const handleComplete = () => {
     if (task.timeLeft !== undefined) {
       if (task.type === 'focus') {
-        // For focus tasks, only record negative time when over the limit
+        // For focus tasks, only record negative time when over the limit (overrun detection)
+        // Positive timeLeft means completed early (no penalty), negative means overrun (penalty)
         const timeSaved = task.timeLeft < 0 ? task.timeLeft : 0;
         onComplete(timeSaved);
       } else {
-        // For regular tasks, record any remaining time as saved
+        // For regular tasks, record any remaining time as saved (positive = faster, negative = slower)
         onComplete(task.timeLeft);
       }
     }

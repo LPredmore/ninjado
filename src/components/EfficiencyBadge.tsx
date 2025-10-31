@@ -88,8 +88,14 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
   }
 
   const username = profile?.username || "Ninja";
+  
+  // Ensure efficiency value is valid for new scoring system
+  const safeEfficiency = stats.averageEfficiency !== null && !isNaN(stats.averageEfficiency) 
+    ? stats.averageEfficiency 
+    : 0;
+    
   const progressToNext = getBeltProgressPercentage(
-    stats.averageEfficiency || 0, 
+    safeEfficiency, 
     stats.currentBelt
   );
 
@@ -106,10 +112,10 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
               />
               <div className="flex flex-col">
                 <span className="text-sm font-bold text-foreground">
-                  {stats.averageEfficiency?.toFixed(1)}% Efficiency
+                  {safeEfficiency.toFixed(1)}% Efficiency
                 </span>
                 {stats.hasEnoughData && (
-                  <TrendIcon efficiency={stats.averageEfficiency || 0} />
+                  <TrendIcon efficiency={safeEfficiency} />
                 )}
               </div>
             </div>
@@ -146,7 +152,7 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
           <div className="flex flex-col md:flex-row items-center gap-6">
             {/* Belt Display */}
             <div className="relative">
-              <div className={`w-24 h-24 clay-element-with-transition rounded-full flex items-center justify-center ${stats.averageEfficiency && stats.averageEfficiency > 80 ? 'animate-pulse' : ''}`}>
+              <div className={`w-24 h-24 clay-element-with-transition rounded-full flex items-center justify-center ${safeEfficiency >= 75 ? 'animate-pulse' : ''}`}>
                 <img 
                   src={stats.currentBelt.imageUrl} 
                   alt={`${stats.currentBelt.name} Belt`}
@@ -165,7 +171,7 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
                   {stats.currentBelt.name} Belt
                 </Badge>
                 <span className="text-4xl font-bold text-foreground">
-                  {stats.averageEfficiency?.toFixed(1)}% Efficiency
+                  {safeEfficiency.toFixed(1)}% Efficiency
                 </span>
               </div>
             </div>
@@ -247,7 +253,7 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
       <div className="flex flex-col sm:flex-row items-center gap-6">
         {/* Belt Display */}
         <div className="relative">
-          <div className={`w-20 h-20 clay-element-with-transition rounded-full flex items-center justify-center ${stats.averageEfficiency && stats.averageEfficiency > 80 ? 'animate-bounce' : ''} glow-jade`}>
+          <div className={`w-20 h-20 clay-element-with-transition rounded-full flex items-center justify-center ${safeEfficiency >= 75 ? 'animate-bounce' : ''} glow-jade`}>
             <img 
               src={stats.currentBelt.imageUrl} 
               alt={`${stats.currentBelt.name} Belt`}
@@ -266,7 +272,7 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
               {stats.currentBelt.name}
             </Badge>
             <span className="text-3xl font-bold text-foreground drop-shadow-md">
-              {stats.averageEfficiency?.toFixed(1)}% Efficiency
+              {safeEfficiency.toFixed(1)}% Efficiency
             </span>
           </div>
         </div>
@@ -287,8 +293,11 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
 };
 
 const TrendIcon = ({ efficiency }: { efficiency: number }) => {
-  if (efficiency > 75) return <TrendingUp className="w-3 h-3 text-success" />;
-  if (efficiency < 60) return <TrendingDown className="w-3 h-3 text-destructive" />;
+  // Updated thresholds for new efficiency scoring system
+  // Good performance: 65%+ (Advanced belt level)
+  // Poor performance: Below 45% (below Apprentice belt level)
+  if (efficiency >= 65) return <TrendingUp className="w-3 h-3 text-success" />;
+  if (efficiency < 45) return <TrendingDown className="w-3 h-3 text-destructive" />;
   return <Minus className="w-3 h-3 text-muted-foreground" />;
 };
 

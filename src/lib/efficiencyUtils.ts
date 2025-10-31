@@ -13,10 +13,10 @@ export interface BeltRank {
 }
 
 export interface EfficiencyStats {
-  averageEfficiency: number | null; // Final efficiency after penalty
-  rawAverageEfficiency: number | null; // Before penalty
-  penalty: number; // Penalty amount deducted
-  overrunCount: number; // Number of overruns detected
+  averageEfficiency: number | null; // Final efficiency after Grace System penalty
+  finalEfficiency: number | null; // Same as averageEfficiency for backward compatibility
+  graceSystemPenalty: number; // Grace System penalty amount
+  negativeRoutineCount: number; // Number of negative routines in past 30 days
   completionCount: number; // Total completions in last 30 days
   currentBelt: BeltRank;
   hasEnoughData: boolean;
@@ -27,7 +27,7 @@ export interface EfficiencyStats {
   }>;
 }
 
-// Belt rank definitions - Updated ranges
+// Belt rank definitions - Optimized for new efficiency scoring system
 const BELT_RANKS: BeltRank[] = [
   {
     color: "white",
@@ -112,19 +112,156 @@ const BELT_RANKS: BeltRank[] = [
 ];
 
 /**
- * Calculate efficiency percentage from time saved and total duration
+ * Calculate efficiency percentage from time saved and actual time spent
  * @param timeSaved - Total time saved in seconds (can be negative)
- * @param totalDuration - Total routine duration in seconds
+ * @param actualTimeSpent - Actual time spent on tasks in seconds
  * @returns Efficiency percentage or null if division by zero
  */
 export function calculateEfficiencyPercentage(
   timeSaved: number,
-  totalDuration: number
+  actualTimeSpent: number
 ): number | null {
-  if (totalDuration === 0) {
+  if (actualTimeSpent === 0) {
     return null;
   }
-  return (timeSaved / totalDuration) * 100;
+  return (timeSaved / actualTimeSpent) * 100;
+}
+
+/**
+ * Task completion interface for new efficiency calculation
+ */
+export interface TaskCompletion {
+  type: 'regular' | 'focus';
+  plannedDuration: number; // seconds
+  actualDuration: number; // seconds
+}
+
+/**
+ * Result interface for routine efficiency calculation
+ */
+export interface RoutineEfficiencyResult {
+  efficiency: number | null; // The calculated efficiency score
+  breakdown: {
+    totalRegularActual: number;
+    totalRegularPlanned: number;
+    ratio: number;
+    isFasterThanPlanned: boolean;
+  };
+}
+
+/**
+ * Result interface for overall efficiency calculation with Grace System
+ */
+export interface OverallEfficiencyResult {
+  averageEfficiency: number;
+  graceSystemPenalty: number;
+  finalEfficiency: number;
+  negativeRoutineCount: number;
+}
+
+/**
+ * Calculate routine efficiency using the new ratio-based formula
+ * Formula: ratio = actual_time_regular_tasks / total_planned_time_regular_tasks
+ * If ratio < 1 (faster than planned): efficiency = ratio
+ * If ratio >= 1 (slower than planned): efficiency = 1 - ratio
+ * Focus tasks are ignored in efficiency calculation
+ * 
+ * @param tasks - Array of task completions with type, planned and actual durations
+ * @returns Efficiency calculation result with breakdown
+ */
+export function calculateRoutineEfficiency(
+  tasks: TaskCompletion[]
+): RoutineEfficiencyResult {
+  let totalRegularPlanned = 0;
+  let totalRegularActual = 0;
+
+  // Process only regular tasks for efficiency calculation
+  for (const task of tasks) {
+    if (task.type === 'regular') {
+      totalRegularPlanned += task.plannedDuration;
+      totalRegularActual += task.actualDuration;
+    }
+    // Focus tasks are ignored in efficiency calculation
+  }
+
+  // Return null efficiency if no regular tasks or zero planned time
+  if (totalRegularPlanned === 0 || totalRegularActual === 0) {
+    return {
+      efficiency: null,
+      breakdown: {
+        totalRegularActual,
+        totalRegularPlanned,
+        ratio: 0,
+        isFasterThanPlanned: false,
+      },
+    };
+  }
+
+  // Calculate ratio: actual_time / planned_time
+  const ratio = totalRegularActual / totalRegularPlanned;
+  const isFasterThanPlanned = ratio < 1;
+
+  // Apply conditional logic based on ratio
+  let efficiency: number;
+  if (ratio < 1) {
+    // Faster than planned: efficiency = ratio
+    efficiency = ratio;
+  } else {
+    // Slower than planned: efficiency = 1 - ratio
+    efficiency = 1 - ratio;
+  }
+
+  return {
+    efficiency,
+    breakdown: {
+      totalRegularActual,
+      totalRegularPlanned,
+      ratio,
+      isFasterThanPlanned,
+    },
+  };
+}
+
+/**
+ * Calculate overall efficiency with Grace System penalty
+ * Grace System Rules:
+ * - If ≤ 3 negative routines: no penalty
+ * - If ≥ 4 negative routines: penalty = 2 × sum of all negative efficiency scores
+ * 
+ * @param routineEfficiencies - Array of efficiency scores from past 30 days
+ * @returns Overall efficiency calculation with Grace System applied
+ */
+export function calculateOverallEfficiency(
+  routineEfficiencies: number[]
+): OverallEfficiencyResult {
+  // Calculate average efficiency from all routine scores
+  const averageEfficiency = routineEfficiencies.length > 0
+    ? routineEfficiencies.reduce((sum, efficiency) => sum + efficiency, 0) / routineEfficiencies.length
+    : 0;
+
+  // Count routines with negative efficiency ratings
+  const negativeEfficiencies = routineEfficiencies.filter(efficiency => efficiency < 0);
+  const negativeRoutineCount = negativeEfficiencies.length;
+
+  // Apply Grace System penalty logic
+  let graceSystemPenalty = 0;
+  
+  if (negativeRoutineCount >= 4) {
+    // Calculate penalty: 2 × sum of all negative efficiency scores
+    const sumOfNegativeScores = negativeEfficiencies.reduce((sum, efficiency) => sum + efficiency, 0);
+    graceSystemPenalty = 2 * Math.abs(sumOfNegativeScores); // Make penalty positive
+  }
+  // If ≤ 3 negative routines: no penalty (graceSystemPenalty remains 0)
+
+  // Apply penalty to average efficiency for final rating
+  const finalEfficiency = averageEfficiency - graceSystemPenalty;
+
+  return {
+    averageEfficiency,
+    graceSystemPenalty,
+    finalEfficiency,
+    negativeRoutineCount,
+  };
 }
 
 /**
@@ -156,6 +293,7 @@ export function getBeltRank(
 
 /**
  * Calculate overrun penalty based on number of times user went over routine time
+ * Updated for new efficiency scoring system with adjusted penalty rates
  * @param completions - Last 30 completions with total_time_saved
  * @returns Penalty percentage to deduct from efficiency score
  */
@@ -169,24 +307,28 @@ export function calculateOverrunPenalty(
     return { penalty: 0, overrunCount };
   }
 
-  // Penalty formula: overrunCount × 1.5
-  // Cap at 50% to prevent extreme negatives
-  const penalty = Math.min(overrunCount * 1.5, 50);
+  // Updated penalty formula for new scoring system:
+  // Reduced penalty rate since new system produces higher efficiency scores
+  // Penalty formula: (overrunCount - 3) × 1.0 (reduced from 1.5)
+  // Cap at 30% to maintain meaningful belt progression (reduced from 50%)
+  const penalty = Math.min((overrunCount - 3) * 1.0, 30);
 
   return { penalty, overrunCount };
 }
 
 /**
  * Fetch user's efficiency stats from last 30 routine completions
+ * Uses new ratio-based calculation with Grace System for overall user rating
+ * Handles backward compatibility with existing data that may have null efficiency values
  * @param userId - User ID
- * @returns Efficiency statistics with overrun penalty applied
+ * @returns Efficiency statistics with Grace System penalty applied
  */
 export async function fetchUserEfficiencyStats(
   userId: string
 ): Promise<EfficiencyStats> {
   const { data, error } = await supabase
     .from("routine_completions")
-    .select("completed_at, efficiency_percentage, total_time_saved")
+    .select("completed_at, efficiency_percentage, total_time_saved, total_routine_duration")
     .eq("user_id", userId)
     .eq("has_regular_tasks", true)
     .order("completed_at", { ascending: false })
@@ -196,9 +338,9 @@ export async function fetchUserEfficiencyStats(
     console.error("Error fetching efficiency stats:", error);
     return {
       averageEfficiency: null,
-      rawAverageEfficiency: null,
-      penalty: 0,
-      overrunCount: 0,
+      finalEfficiency: null,
+      graceSystemPenalty: 0,
+      negativeRoutineCount: 0,
       completionCount: 0,
       currentBelt: BELT_RANKS[0],
       hasEnoughData: false,
@@ -210,34 +352,55 @@ export async function fetchUserEfficiencyStats(
   const totalCompletions = completions.length;
   const hasEnoughData = totalCompletions >= 30;
 
-  // Calculate raw average efficiency (only from non-null values)
-  const validEfficiencies = completions
+  // Handle backward compatibility: calculate efficiency for records with null efficiency_percentage
+  // but valid total_time_saved and total_routine_duration
+  const processedCompletions = completions.map((completion) => {
+    if (completion.efficiency_percentage === null && 
+        completion.total_time_saved !== null && 
+        completion.total_routine_duration !== null &&
+        completion.total_routine_duration > 0) {
+      // Use legacy formula for backward compatibility: (time_saved / routine_duration) * 100
+      const legacyEfficiency = (completion.total_time_saved / completion.total_routine_duration) * 100;
+      return {
+        ...completion,
+        efficiency_percentage: legacyEfficiency,
+      };
+    }
+    return completion;
+  });
+
+  // Get valid efficiency scores for Grace System calculation
+  const validEfficiencies = processedCompletions
     .map((c) => c.efficiency_percentage)
     .filter((e): e is number => e !== null);
 
-  const rawAverageEfficiency =
-    validEfficiencies.length > 0
-      ? validEfficiencies.reduce((sum, e) => sum + e, 0) / validEfficiencies.length
-      : null;
+  if (validEfficiencies.length === 0) {
+    return {
+      averageEfficiency: null,
+      finalEfficiency: null,
+      graceSystemPenalty: 0,
+      negativeRoutineCount: 0,
+      completionCount: totalCompletions,
+      currentBelt: BELT_RANKS[0],
+      hasEnoughData,
+      last30Days: processedCompletions,
+    };
+  }
 
-  // Calculate overrun penalty
-  const { penalty, overrunCount } = calculateOverrunPenalty(completions);
+  // Apply Grace System calculation for overall user rating
+  const graceSystemResult = calculateOverallEfficiency(validEfficiencies);
 
-  // Apply penalty to get final efficiency
-  const averageEfficiency =
-    rawAverageEfficiency !== null ? rawAverageEfficiency - penalty : null;
-
-  const currentBelt = getBeltRank(averageEfficiency, hasEnoughData);
+  const currentBelt = getBeltRank(graceSystemResult.finalEfficiency, hasEnoughData);
 
   return {
-    averageEfficiency,
-    rawAverageEfficiency,
-    penalty,
-    overrunCount,
+    averageEfficiency: graceSystemResult.finalEfficiency,
+    finalEfficiency: graceSystemResult.finalEfficiency,
+    graceSystemPenalty: graceSystemResult.graceSystemPenalty,
+    negativeRoutineCount: graceSystemResult.negativeRoutineCount,
     completionCount: totalCompletions,
     currentBelt,
     hasEnoughData,
-    last30Days: completions,
+    last30Days: processedCompletions,
   };
 }
 
@@ -276,4 +439,66 @@ export function getBeltProgressPercentage(
  */
 export function getAllBeltRanks(): BeltRank[] {
   return BELT_RANKS;
+}
+
+/**
+ * Migration utility to backfill efficiency percentages for existing routine completions
+ * This function can be called to update historical data with calculated efficiency values
+ * @param userId - User ID to migrate data for
+ * @returns Promise with migration results
+ */
+export async function migrateHistoricalEfficiencyData(
+  userId: string
+): Promise<{ updated: number; errors: number }> {
+  let updated = 0;
+  let errors = 0;
+
+  try {
+    // Fetch completions with null efficiency but valid time data
+    const { data: completions, error: fetchError } = await supabase
+      .from("routine_completions")
+      .select("id, total_time_saved, total_routine_duration")
+      .eq("user_id", userId)
+      .is("efficiency_percentage", null)
+      .not("total_time_saved", "is", null)
+      .not("total_routine_duration", "is", null)
+      .gt("total_routine_duration", 0);
+
+    if (fetchError) {
+      console.error("Error fetching completions for migration:", fetchError);
+      return { updated: 0, errors: 1 };
+    }
+
+    if (!completions || completions.length === 0) {
+      return { updated: 0, errors: 0 };
+    }
+
+    // Update each completion with calculated efficiency
+    for (const completion of completions) {
+      try {
+        const efficiency = (completion.total_time_saved / completion.total_routine_duration) * 100;
+        
+        const { error: updateError } = await supabase
+          .from("routine_completions")
+          .update({ efficiency_percentage: efficiency })
+          .eq("id", completion.id);
+
+        if (updateError) {
+          console.error(`Error updating completion ${completion.id}:`, updateError);
+          errors++;
+        } else {
+          updated++;
+        }
+      } catch (error) {
+        console.error(`Error processing completion ${completion.id}:`, error);
+        errors++;
+      }
+    }
+
+    console.log(`Migration completed: ${updated} records updated, ${errors} errors`);
+    return { updated, errors };
+  } catch (error) {
+    console.error("Migration failed:", error);
+    return { updated: 0, errors: 1 };
+  }
 }

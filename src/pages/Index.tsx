@@ -15,7 +15,7 @@ import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { queryKeys } from "@/lib/queryKeys";
 import { updateTaskPerformanceMetrics } from '@/lib/taskPerformance';
 import { EfficiencyBadge } from '@/components/EfficiencyBadge';
-import { calculateEfficiencyPercentage } from '@/lib/efficiencyUtils';
+import { calculateEfficiencyPercentage, calculateRoutineEfficiency, TaskCompletion } from '@/lib/efficiencyUtils';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface IndexProps {
@@ -30,6 +30,8 @@ const Index = ({ user, supabase }: IndexProps) => {
     () => localStorage.getItem('selectedRoutineId')
   );
   const [orderedTasks, setOrderedTasks] = useState<Task[]>([]);
+  const [taskStartTimes, setTaskStartTimes] = useState<{ [taskId: string]: number }>({});
+  const [taskCompletions, setTaskCompletions] = useState<TaskCompletion[]>([]);
   
   const {
     isRoutineStarted,
@@ -100,10 +102,26 @@ const Index = ({ user, supabase }: IndexProps) => {
     const task = orderedTasks.find(t => t.id === taskId);
     if (!task) return;
 
+    // Calculate actual completion time
+    const startTime = taskStartTimes[taskId];
+    const currentTime = Date.now();
+    const actualDuration = startTime ? Math.round((currentTime - startTime) / 1000) : task.duration * 60;
+    
+    // Ensure task type defaults to 'regular' if not specified (backward compatibility)
+    const taskType = task.type || 'regular';
+    
+    // Record task completion for new efficiency calculation
+    const taskCompletion: TaskCompletion = {
+      type: taskType,
+      plannedDuration: task.duration * 60, // Convert minutes to seconds
+      actualDuration: actualDuration,
+    };
+    
+    setTaskCompletions(prev => [...prev, taskCompletion]);
     setCompletedTaskIds(prev => [...prev, taskId]);
     
-    // Track speed task duration (regular tasks only)
-    if (task.type === 'regular') {
+    // Track speed task duration (regular tasks only) - keep for backward compatibility
+    if (taskType === 'regular') {
       setCumulativeSpeedTaskDuration(prev => {
         const newTotal = prev + (task.duration * 60);
         if (selectedRoutineId) {
@@ -113,7 +131,8 @@ const Index = ({ user, supabase }: IndexProps) => {
       });
     }
     
-    // Update cumulative time saved for this routine session
+    // Update cumulative time saved for this routine session - keep for backward compatibility
+    // Note: For focus tasks that go over time, this will be negative (penalty)
     setCumulativeTimeSaved(prev => {
       const newTotal = prev + timeSaved;
       if (selectedRoutineId) {
@@ -128,12 +147,45 @@ const Index = ({ user, supabase }: IndexProps) => {
     await updateTaskPerformanceMetrics(taskId, user.id, timeSaved);
 
     const updatedCompletedTasks = [...completedTaskIds, taskId];
+    const updatedTaskCompletions = [...taskCompletions, taskCompletion];
+    
     if (orderedTasks && updatedCompletedTasks.length === orderedTasks.length) {
-      // Log routine completion with speed-only duration
-      const hasRegularTasks = orderedTasks.some(t => t.type === 'regular');
+      // Calculate efficiency using new ratio-based formula
+      const hasRegularTasks = orderedTasks.some(t => (t.type || 'regular') === 'regular');
       
       if (hasRegularTasks && selectedRoutine) {
-        const totalSpeedDuration = cumulativeSpeedTaskDuration + (task.type === 'regular' ? task.duration * 60 : 0);
+        const efficiencyResult = calculateRoutineEfficiency(updatedTaskCompletions);
+        
+        // Calculate backward compatibility values for database storage
+        // For regular tasks: time saved = planned - actual
+        // For focus tasks: only count overruns as penalties (negative time saved)
+        const totalTimeSaved = updatedTaskCompletions.reduce((sum, taskComp) => {
+          if (taskComp.type === 'regular') {
+            return sum + (taskComp.plannedDuration - taskComp.actualDuration);
+          } else if (taskComp.type === 'focus') {
+            // Focus tasks: only count overruns as penalties
+            const overrun = taskComp.actualDuration - taskComp.plannedDuration;
+            return sum - Math.max(0, overrun); // Subtract overrun if positive
+          }
+          return sum;
+        }, 0);
+        
+        // Total routine duration: sum of actual time for regular tasks + focus task overruns
+        const totalRoutineDuration = updatedTaskCompletions.reduce((sum, taskComp) => {
+          if (taskComp.type === 'regular') {
+            return sum + taskComp.actualDuration;
+          } else if (taskComp.type === 'focus') {
+            // Focus tasks: only count overruns in total duration
+            const overrun = taskComp.actualDuration - taskComp.plannedDuration;
+            return sum + Math.max(0, overrun);
+          }
+          return sum;
+        }, 0);
+        
+        // Convert efficiency to percentage for storage (efficiency is already a ratio)
+        const efficiencyPercentage = efficiencyResult.efficiency !== null 
+          ? efficiencyResult.efficiency * 100 
+          : null;
         
         try {
           const { error } = await supabase
@@ -143,11 +195,9 @@ const Index = ({ user, supabase }: IndexProps) => {
               routine_id: selectedRoutineId,
               routine_title: selectedRoutine.title,
               user_email: user.email || '',
-              total_time_saved: cumulativeTimeSaved + timeSaved,
-              total_routine_duration: totalSpeedDuration,
-              efficiency_percentage: totalSpeedDuration > 0 
-                ? ((cumulativeTimeSaved + timeSaved) / totalSpeedDuration) * 100 
-                : null,
+              total_time_saved: totalTimeSaved,
+              total_routine_duration: totalRoutineDuration,
+              efficiency_percentage: efficiencyPercentage,
               has_regular_tasks: hasRegularTasks,
             });
           
@@ -156,23 +206,51 @@ const Index = ({ user, supabase }: IndexProps) => {
           // Invalidate efficiency stats to refresh badge
           queryClient.invalidateQueries({ queryKey: ['efficiency-stats', user.id] });
           
-          // Enhanced toast based on efficiency
-          const efficiencyPercent = totalSpeedDuration > 0 
-            ? ((cumulativeTimeSaved + timeSaved) / totalSpeedDuration) * 100 
-            : 0;
+          // Enhanced toast based on efficiency - Updated thresholds for new scoring system
+          const efficiencyPercent = efficiencyPercentage || 0;
           
-          if (efficiencyPercent >= 80) {
-            toast.success(`🏆 Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}%`);
+          // Thresholds aligned with new belt system: Grandmaster (85%+), Master (80%+), Expert (75%+), Advanced (70%+)
+          if (efficiencyPercent >= 85) {
+            toast.success(`🥷 Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}% - Grandmaster level!`);
+          } else if (efficiencyPercent >= 80) {
+            toast.success(`🏆 Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}% - Master level!`);
+          } else if (efficiencyPercent >= 75) {
+            toast.success(`⚡ Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}% - Expert level!`);
           } else if (efficiencyPercent >= 60) {
-            toast.success(`⚡ Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}%`);
-          } else {
             toast.success(`🎯 Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}%`);
+          } else {
+            toast.success(`📈 Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}%`);
           }
+        } catch (error) {
+          console.error('Failed to log routine completion:', error);
+        }
+      } else if (!hasRegularTasks && selectedRoutine) {
+        // Handle routines with only focus tasks - no efficiency calculation
+        try {
+          const { error } = await supabase
+            .from('routine_completions')
+            .insert({
+              user_id: user.id,
+              routine_id: selectedRoutineId,
+              routine_title: selectedRoutine.title,
+              user_email: user.email || '',
+              total_time_saved: 0,
+              total_routine_duration: 0,
+              efficiency_percentage: null,
+              has_regular_tasks: false,
+            });
+          
+          if (error) throw error;
+          
+          toast.success(`🧘 Focus routine complete! Great concentration work.`);
         } catch (error) {
           console.error('Failed to log routine completion:', error);
         }
       }
       
+      // Reset state including new tracking variables
+      setTaskStartTimes({});
+      setTaskCompletions([]);
       resetRoutineState();
       setSelectedRoutineId(null);
     }
@@ -180,11 +258,18 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   const handleStartRoutine = () => {
     const initialTimers: { [key: string]: number } = {};
+    const initialStartTimes: { [key: string]: number } = {};
+    const currentTime = Date.now();
+    
     orderedTasks.forEach(task => {
       initialTimers[task.id] = task.duration * 60;
+      // Set start time for all tasks to track actual completion time
+      initialStartTimes[task.id] = currentTime;
     });
     
     setTimers(initialTimers);
+    setTaskStartTimes(initialStartTimes);
+    setTaskCompletions([]); // Reset task completions for new routine
     setIsRoutineStarted(true);
     setIsPaused(false);
   };
@@ -195,6 +280,8 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   const handleRoutineSelect = (routineId: string) => {
     resetRoutineState();
+    setTaskStartTimes({});
+    setTaskCompletions([]); // Reset task completions when selecting new routine
     setSelectedRoutineId(routineId);
   };
 
