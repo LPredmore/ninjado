@@ -40,6 +40,8 @@ const Index = ({ user, supabase }: IndexProps) => {
     resetRoutineState,
     cumulativeTimeSaved,
     setCumulativeTimeSaved,
+    cumulativeSpeedTaskDuration,
+    setCumulativeSpeedTaskDuration,
   } = useRoutineState(selectedRoutineId);
 
   const { data: routines } = useQuery({
@@ -96,6 +98,17 @@ const Index = ({ user, supabase }: IndexProps) => {
 
     setCompletedTaskIds(prev => [...prev, taskId]);
     
+    // Track speed task duration (regular tasks only)
+    if (task.type === 'regular') {
+      setCumulativeSpeedTaskDuration(prev => {
+        const newTotal = prev + (task.duration * 60);
+        if (selectedRoutineId) {
+          localStorage.setItem(`routine-${selectedRoutineId}-speed-duration`, newTotal.toString());
+        }
+        return newTotal;
+      });
+    }
+    
     // Update cumulative time saved for this routine session
     setCumulativeTimeSaved(prev => {
       const newTotal = prev + timeSaved;
@@ -112,6 +125,36 @@ const Index = ({ user, supabase }: IndexProps) => {
 
     const updatedCompletedTasks = [...completedTaskIds, taskId];
     if (orderedTasks && updatedCompletedTasks.length === orderedTasks.length) {
+      // Log routine completion with speed-only duration
+      const hasRegularTasks = orderedTasks.some(t => t.type === 'regular');
+      
+      if (hasRegularTasks && selectedRoutine) {
+        const totalSpeedDuration = cumulativeSpeedTaskDuration + (task.type === 'regular' ? task.duration * 60 : 0);
+        
+        try {
+          const { error } = await supabase
+            .from('routine_completions')
+            .insert({
+              user_id: user.id,
+              routine_id: selectedRoutineId,
+              routine_title: selectedRoutine.title,
+              user_email: user.email || '',
+              total_time_saved: cumulativeTimeSaved + timeSaved,
+              total_routine_duration: totalSpeedDuration,
+              efficiency_percentage: totalSpeedDuration > 0 
+                ? ((cumulativeTimeSaved + timeSaved) / totalSpeedDuration) * 100 
+                : null,
+              has_regular_tasks: hasRegularTasks,
+            });
+          
+          if (error) throw error;
+          
+          toast.success('Routine completed! 🎉');
+        } catch (error) {
+          console.error('Failed to log routine completion:', error);
+        }
+      }
+      
       resetRoutineState();
       setSelectedRoutineId(null);
     }

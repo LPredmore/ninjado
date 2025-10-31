@@ -8,6 +8,7 @@ interface RoutineState {
   completedTaskIds: string[];
   lastUpdated: number; // Timestamp of last update
   pausedAt: number | null; // Timestamp when paused
+  cumulativeSpeedTaskDuration: number; // Total duration of speed tasks in seconds
 }
 
 export const useRoutineState = (selectedRoutineId: string | null) => {
@@ -18,6 +19,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
   const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
   const [pausedAt, setPausedAt] = useState<number | null>(null);
   const [cumulativeTimeSaved, setCumulativeTimeSaved] = useState<number>(0);
+  const [cumulativeSpeedTaskDuration, setCumulativeSpeedTaskDuration] = useState<number>(0);
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -26,6 +28,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
     if (selectedRoutineId) {
       const savedState = localStorage.getItem(`routineState_${selectedRoutineId}`);
       const savedCumulativeTime = localStorage.getItem(`routine-${selectedRoutineId}-cumulative-time`);
+      const savedSpeedTaskDuration = localStorage.getItem(`routine-${selectedRoutineId}-speed-duration`);
       
       if (savedState) {
         const parsed = JSON.parse(savedState) as RoutineState;
@@ -36,6 +39,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
         setLastUpdated(parsed.lastUpdated || Date.now());
         setPausedAt(parsed.pausedAt);
         setCumulativeTimeSaved(savedCumulativeTime ? parseInt(savedCumulativeTime) : 0);
+        setCumulativeSpeedTaskDuration(parsed.cumulativeSpeedTaskDuration || (savedSpeedTaskDuration ? parseInt(savedSpeedTaskDuration) : 0));
         
         // If routine was started but not paused, calculate elapsed time since last update
         if (parsed.isRoutineStarted && !parsed.isPaused) {
@@ -72,6 +76,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
         setLastUpdated(Date.now());
         setPausedAt(null);
         setCumulativeTimeSaved(0);
+        setCumulativeSpeedTaskDuration(0);
       }
     }
     
@@ -188,15 +193,17 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
         completedTaskIds,
         lastUpdated,
         pausedAt,
+        cumulativeSpeedTaskDuration,
       };
       localStorage.setItem(`routineState_${selectedRoutineId}`, JSON.stringify(state));
     }
-  }, [selectedRoutineId, isRoutineStarted, isPaused, timers, completedTaskIds, lastUpdated, pausedAt]);
+  }, [selectedRoutineId, isRoutineStarted, isPaused, timers, completedTaskIds, lastUpdated, pausedAt, cumulativeSpeedTaskDuration]);
 
   const resetRoutineState = () => {
     if (selectedRoutineId) {
       localStorage.removeItem(`routineState_${selectedRoutineId}`);
       localStorage.removeItem(`routine-${selectedRoutineId}-cumulative-time`);
+      localStorage.removeItem(`routine-${selectedRoutineId}-speed-duration`);
       setIsRoutineStarted(false);
       setIsPaused(false);
       setTimers({});
@@ -204,6 +211,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
       setLastUpdated(Date.now());
       setPausedAt(null);
       setCumulativeTimeSaved(0);
+      setCumulativeSpeedTaskDuration(0);
     }
   };
 
@@ -220,5 +228,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
     resetRoutineState,
     cumulativeTimeSaved,
     setCumulativeTimeSaved,
+    cumulativeSpeedTaskDuration,
+    setCumulativeSpeedTaskDuration,
   };
 };
