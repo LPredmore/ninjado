@@ -133,6 +133,47 @@ export type Database = {
           },
         ]
       }
+      routine_completions: {
+        Row: {
+          completed_at: string
+          id: string
+          ip_address: unknown
+          routine_id: string
+          routine_title: string
+          user_agent: string | null
+          user_email: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          ip_address?: unknown
+          routine_id: string
+          routine_title: string
+          user_agent?: string | null
+          user_email: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          ip_address?: unknown
+          routine_id?: string
+          routine_title?: string
+          user_agent?: string | null
+          user_email?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_completions_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       routine_tasks: {
         Row: {
           created_at: string
