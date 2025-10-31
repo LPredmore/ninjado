@@ -153,18 +153,19 @@ const SignupForm = ({ supabase, onSuccess }: SignupFormProps) => {
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Name Field */}
       <div className="space-y-2">
-        <Label htmlFor="name" className="flex items-center gap-2 text-foreground font-medium">
+        <Label htmlFor="signup-name" className="flex items-center gap-2 text-foreground font-medium">
           <User className="w-4 h-4 text-ninja-accent" />
           Name
         </Label>
         <Input
-          id="name"
+          id="signup-name"
           type="text"
           placeholder="Enter your name"
           value={formData.name}
           onChange={(e) => handleInputChange('name', e.target.value)}
           className={`clay-element-with-transition ${errors.name ? 'border-red-500' : ''}`}
           disabled={isLoading}
+          autoComplete="name"
         />
         {errors.name && (
           <p className="text-sm text-red-500">{errors.name}</p>

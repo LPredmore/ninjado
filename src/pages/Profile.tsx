@@ -262,6 +262,8 @@ const Profile = ({ user, supabase }: ProfileProps) => {
                     placeholder="Enter your name"
                     className="clay-element-with-transition flex-1"
                     disabled={isUpdatingName}
+                    autoComplete="name"
+                    autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         handleSaveName();
@@ -294,7 +296,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
               ) : (
                 <div className="flex gap-2">
                   <Input
-                    value={isLoadingProfile ? "Loading..." : (profile?.username || "No name set")}
+                    value={isLoadingProfile ? "Loading..." : (profile?.username || "Click edit to set your name")}
                     disabled
                     className="clay-element bg-muted/50 border-border/50 flex-1"
                   />
