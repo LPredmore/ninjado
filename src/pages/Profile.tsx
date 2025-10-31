@@ -54,11 +54,13 @@ const Profile = ({ user, supabase }: ProfileProps) => {
         .maybeSingle();
 
       if (error) {
+        console.error('Error fetching profile:', error);
         throw error;
       }
 
       // If no profile exists, create one
       if (!data) {
+        console.log('No profile found, creating new profile for user:', user.id);
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
           .insert({
@@ -69,14 +71,17 @@ const Profile = ({ user, supabase }: ProfileProps) => {
           .single();
 
         if (createError) {
+          console.error('Error creating profile:', createError);
           throw createError;
         }
 
+        console.log('Created new profile:', newProfile);
         return newProfile;
       }
 
       return data;
     },
+    retry: 1, // Only retry once to avoid infinite loops
   });
 
   const handleSignOut = async () => {
@@ -94,18 +99,26 @@ const Profile = ({ user, supabase }: ProfileProps) => {
   };
 
   const handleSaveName = async () => {
-    if (!editedName.trim()) {
+    const trimmedName = editedName.trim();
+    
+    if (!trimmedName) {
       toast.error("Name cannot be empty");
       return;
     }
 
-    if (editedName.trim().length < 2) {
+    if (trimmedName.length < 2) {
       toast.error("Name must be at least 2 characters");
       return;
     }
 
-    if (editedName.trim().length > 50) {
+    if (trimmedName.length > 50) {
       toast.error("Name must be less than 50 characters");
+      return;
+    }
+
+    // Don't save if name hasn't changed
+    if (trimmedName === profile?.username) {
+      setIsEditingName(false);
       return;
     }
 
@@ -114,7 +127,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ username: editedName.trim() })
+        .update({ username: trimmedName })
         .eq('id', user.id);
 
       if (error) {
@@ -124,7 +137,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
       // Update the query cache
       queryClient.setQueryData(["profile", user.id], (old: any) => ({
         ...old,
-        username: editedName.trim(),
+        username: trimmedName,
       }));
 
       toast.success("Name updated successfully");

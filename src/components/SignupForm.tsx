@@ -98,6 +98,7 @@ const SignupForm = ({ supabase, onSuccess }: SignupFormProps) => {
 
       if (data.user) {
         // Create profile with username
+        console.log('Creating profile for user:', data.user.id, 'with name:', formData.name.trim());
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -107,11 +108,37 @@ const SignupForm = ({ supabase, onSuccess }: SignupFormProps) => {
 
         if (profileError) {
           console.error('Error creating profile:', profileError);
-          // Don't show error to user as the account was created successfully
-          // The profile can be created later
+          // Check if it's a duplicate key error (profile already exists)
+          if (profileError.code === '23505') {
+            // Profile already exists, try to update it instead
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ username: formData.name.trim() })
+              .eq('id', data.user.id);
+            
+            if (updateError) {
+              console.error('Error updating existing profile:', updateError);
+              toast.success('Account created successfully! Please check your email to verify your account. Your profile will be set up on first login.');
+            } else {
+              toast.success('Account created successfully! Please check your email to verify your account.');
+            }
+          } else {
+            // Other error, still show success as the account was created
+            toast.success('Account created successfully! Please check your email to verify your account. Your profile will be set up on first login.');
+          }
+        } else {
+          console.log('Profile created successfully');
+          toast.success('Account created successfully! Please check your email to verify your account.');
         }
-
-        toast.success('Account created successfully! Please check your email to verify your account.');
+        
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: ''
+        });
+        
         onSuccess?.();
       }
     } catch (error) {

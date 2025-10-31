@@ -11,11 +11,14 @@
     - _Requirements: 1.1, 1.5_
 
 
-  - [ ] 1.2 Implement signup logic
+  - [x] 1.2 Implement signup logic
+
+
     - Add signup handler using Supabase auth.signUp()
     - Handle authentication errors and display user-friendly messages
     - Add loading states during signup process
     - _Requirements: 1.1, 1.4_
+
 
 
   - [ ] 1.3 Add profile creation after signup
@@ -27,11 +30,13 @@
 - [x] 2. Update Login page to include custom signup
 
 
+
   - [ ] 2.1 Modify Login page layout
     - Add tab or toggle between login and signup modes
     - Integrate custom SignupForm component
 
     - Maintain existing Supabase Auth UI for login
+
     - Ensure responsive design on all screen sizes
     - _Requirements: 4.1_
 
@@ -45,8 +50,11 @@
 
 
 
+
 - [ ] 3. Add profile data fetching to Profile page
   - [ ] 3.1 Implement profile data queries
+
+
     - Add React Query for fetching profile data from public.profiles
     - Create profile query key and fetch function
     - Handle loading and error states for profile data
@@ -68,22 +76,30 @@
     - _Requirements: 2.2, 2.3, 2.4_
 
 
+
+
   - [ ] 4.2 Implement name editing functionality
     - Create editable input field for username
 
+
     - Add save and cancel buttons for name editing
     - Implement inline editing with proper UX
+
+
     - _Requirements: 3.1, 3.2_
 
   - [ ] 4.3 Add name update logic
     - Implement username update using Supabase client
     - Add validation for username (length, characters)
+
     - Handle update success and error scenarios
     - Show appropriate success/error messages
     - _Requirements: 3.2, 3.3, 3.4, 3.5_
 
 - [ ] 5. Testing and validation
-  - [ ] 5.1 Test signup flow
+  - [x] 5.1 Test signup flow
+
+
     - Test new user signup with name collection
     - Verify profile creation with correct username
     - Test signup validation and error handling
