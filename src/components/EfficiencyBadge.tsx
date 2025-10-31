@@ -106,10 +106,16 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
     return null;
   }
 
-  const username = profile?.username || "Ninja";
-  
-  // Memoize efficiency calculations to prevent unnecessary recalculations
+  // Memoize efficiency calculations BEFORE early returns (hooks must be unconditional)
   const { safeEfficiency, progressToNext, displayEfficiency } = useMemo(() => {
+    if (!stats) {
+      return {
+        safeEfficiency: 0,
+        progressToNext: 0,
+        displayEfficiency: 0
+      };
+    }
+    
     // Use real-time efficiency if available, otherwise use stats
     const baseEfficiency = stats.averageEfficiency !== null && !isNaN(stats.averageEfficiency) 
       ? stats.averageEfficiency 
@@ -123,7 +129,17 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
       progressToNext: progress,
       displayEfficiency: currentEfficiency
     };
-  }, [stats.averageEfficiency, stats.currentBelt, realtimeEfficiency]);
+  }, [stats, realtimeEfficiency]);
+
+  if (isLoading) {
+    return <EfficiencyBadgeSkeleton variant={variant} />;
+  }
+
+  if (error || !stats) {
+    return null;
+  }
+
+  const username = profile?.username || "Ninja";
 
   if (variant === "compact") {
     return (
@@ -153,9 +169,9 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
               <p className="text-xs text-muted-foreground">
                 {progressToNext.toFixed(0)}% to next belt
               </p>
-              {stats.penalty > 0 && (
+              {stats.graceSystemPenalty > 0 && (
                 <p className="text-xs text-destructive">
-                  Penalty: -{stats.penalty.toFixed(1)}% ({stats.overrunCount} overruns)
+                  Penalty: -{stats.graceSystemPenalty.toFixed(1)}% ({stats.negativeRoutineCount} negative routines)
                 </p>
               )}
             </div>
@@ -216,20 +232,17 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
             </div>
           )}
 
-          {/* Penalty Breakdown */}
-          {stats.penalty > 0 && (
+          {/* Grace System Penalty Breakdown */}
+          {stats.graceSystemPenalty > 0 && (
             <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
               <div className="flex items-start gap-2">
                 <span className="text-xl">⚠️</span>
                 <div className="flex-1 space-y-1">
                   <p className="text-sm font-semibold text-destructive">
-                    Penalty Applied: -{stats.penalty.toFixed(1)}%
+                    Grace System Penalty: -{stats.graceSystemPenalty.toFixed(1)}%
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {stats.overrunCount} overruns detected (4+ overruns incur penalties)
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Raw efficiency: {stats.rawAverageEfficiency?.toFixed(1)}%
+                    {stats.negativeRoutineCount} negative routines detected (4+ incur penalties)
                   </p>
                 </div>
               </div>
