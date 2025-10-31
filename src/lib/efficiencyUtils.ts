@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface BeltRank {
   color: string;
   name: string;
-  emoji: string;
+  imageUrl: string;
   minPercentage: number;
   maxPercentage: number;
   className: string; // Tailwind classes for styling
@@ -32,7 +32,7 @@ const BELT_RANKS: BeltRank[] = [
   {
     color: "white",
     name: "Beginner",
-    emoji: "🤍",
+    imageUrl: "/lovable-uploads/belt-white.png",
     minPercentage: -Infinity,
     maxPercentage: 40,
     className: "bg-gray-100 text-gray-800 border-gray-300",
@@ -42,7 +42,7 @@ const BELT_RANKS: BeltRank[] = [
   {
     color: "yellow",
     name: "Novice",
-    emoji: "💛",
+    imageUrl: "/lovable-uploads/belt-yellow.png",
     minPercentage: 40,
     maxPercentage: 50,
     className: "bg-yellow-100 text-yellow-800 border-yellow-300",
@@ -52,7 +52,7 @@ const BELT_RANKS: BeltRank[] = [
   {
     color: "orange",
     name: "Apprentice",
-    emoji: "🧡",
+    imageUrl: "/lovable-uploads/belt-orange.png",
     minPercentage: 50,
     maxPercentage: 60,
     className: "bg-orange-100 text-orange-800 border-orange-300",
@@ -62,7 +62,7 @@ const BELT_RANKS: BeltRank[] = [
   {
     color: "green",
     name: "Skilled",
-    emoji: "💚",
+    imageUrl: "/lovable-uploads/belt-green.png",
     minPercentage: 60,
     maxPercentage: 70,
     className: "bg-green-100 text-green-800 border-green-300",
@@ -72,7 +72,7 @@ const BELT_RANKS: BeltRank[] = [
   {
     color: "blue",
     name: "Advanced",
-    emoji: "💙",
+    imageUrl: "/lovable-uploads/belt-blue.png",
     minPercentage: 70,
     maxPercentage: 80,
     className: "bg-blue-100 text-blue-800 border-blue-300",
@@ -82,7 +82,7 @@ const BELT_RANKS: BeltRank[] = [
   {
     color: "purple",
     name: "Expert",
-    emoji: "💜",
+    imageUrl: "/lovable-uploads/belt-purple.png",
     minPercentage: 80,
     maxPercentage: 85,
     className: "bg-purple-100 text-purple-800 border-purple-300",
@@ -92,7 +92,7 @@ const BELT_RANKS: BeltRank[] = [
   {
     color: "brown",
     name: "Master",
-    emoji: "🤎",
+    imageUrl: "/lovable-uploads/belt-brown.png",
     minPercentage: 85,
     maxPercentage: 90,
     className: "bg-amber-100 text-amber-800 border-amber-300",
@@ -102,7 +102,7 @@ const BELT_RANKS: BeltRank[] = [
   {
     color: "black",
     name: "Grandmaster",
-    emoji: "🖤",
+    imageUrl: "/lovable-uploads/belt-black.png",
     minPercentage: 90,
     maxPercentage: Infinity,
     className: "bg-gray-900 text-gray-100 border-gray-700",

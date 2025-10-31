@@ -99,10 +99,14 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-2 clay-element-with-transition px-3 py-2 rounded-xl cursor-pointer hover:scale-105">
-              <span className="text-2xl">{stats.currentBelt.emoji}</span>
+              <img 
+                src={stats.currentBelt.imageUrl} 
+                alt={`${stats.currentBelt.name} Belt`}
+                className="w-8 h-8"
+              />
               <div className="flex flex-col">
                 <span className="text-sm font-bold text-foreground">
-                  {stats.averageEfficiency?.toFixed(1)}%
+                  {stats.averageEfficiency?.toFixed(1)}% Efficiency
                 </span>
                 {stats.hasEnoughData && (
                   <TrendIcon efficiency={stats.averageEfficiency || 0} />
@@ -143,7 +147,11 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
             {/* Belt Display */}
             <div className="relative">
               <div className={`w-24 h-24 clay-element-with-transition rounded-full flex items-center justify-center ${stats.averageEfficiency && stats.averageEfficiency > 80 ? 'animate-pulse' : ''}`}>
-                <span className="text-6xl">{stats.currentBelt.emoji}</span>
+                <img 
+                  src={stats.currentBelt.imageUrl} 
+                  alt={`${stats.currentBelt.name} Belt`}
+                  className="w-24 h-24"
+                />
               </div>
             </div>
 
@@ -157,16 +165,9 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
                   {stats.currentBelt.name} Belt
                 </Badge>
                 <span className="text-4xl font-bold text-foreground">
-                  {stats.averageEfficiency?.toFixed(1)}%
+                  {stats.averageEfficiency?.toFixed(1)}% Efficiency
                 </span>
               </div>
-              
-              {!stats.hasEnoughData && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                  <Info className="w-4 h-4" />
-                  <span>{stats.completionCount}/30 missions complete</span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -216,7 +217,11 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
                 }`}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <span className="text-3xl">{belt.emoji}</span>
+                  <img 
+                    src={belt.imageUrl} 
+                    alt={`${belt.name} Belt`}
+                    className="w-12 h-12"
+                  />
                   <span className="text-xs font-semibold text-center">{belt.name}</span>
                   <span className="text-[10px] text-muted-foreground">
                     {belt.minPercentage}-{belt.maxPercentage}%
@@ -243,7 +248,11 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
         {/* Belt Display */}
         <div className="relative">
           <div className={`w-20 h-20 clay-element-with-transition rounded-full flex items-center justify-center ${stats.averageEfficiency && stats.averageEfficiency > 80 ? 'animate-bounce' : ''} glow-jade`}>
-            <span className="text-6xl drop-shadow-lg">{stats.currentBelt.emoji}</span>
+            <img 
+              src={stats.currentBelt.imageUrl} 
+              alt={`${stats.currentBelt.name} Belt`}
+              className="w-20 h-20 drop-shadow-lg"
+            />
           </div>
         </div>
 
@@ -257,16 +266,9 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
               {stats.currentBelt.name}
             </Badge>
             <span className="text-3xl font-bold text-foreground drop-shadow-md">
-              {stats.averageEfficiency?.toFixed(1)}%
+              {stats.averageEfficiency?.toFixed(1)}% Efficiency
             </span>
           </div>
-          
-          {!stats.hasEnoughData && (
-            <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground mt-2">
-              <Info className="w-4 h-4" />
-              <span>{stats.completionCount}/30 missions complete</span>
-            </div>
-          )}
         </div>
       </div>
 
