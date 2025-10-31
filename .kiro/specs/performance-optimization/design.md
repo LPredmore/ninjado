@@ -1,188 +1,330 @@
-# Performance Optimization Design Document
+# Performance Optimization Design
 
 ## Overview
 
-This design outlines a systematic approach to improving the NinjaDo application's performance through debug code removal, bundle optimization, and runtime performance improvements. The optimization will focus on production efficiency while maintaining development debugging capabilities.
+This design outlines a comprehensive performance optimization strategy for the ninja-themed productivity app. The optimizations focus on React Query caching, component memoization, localStorage management, code splitting, efficiency calculation optimization, and timer management improvements. All optimizations maintain existing functionality while significantly improving performance.
 
 ## Architecture
 
-### Current Performance Issues Identified
+### Performance Optimization Layers
 
-1. **Debug Logging in Production**
-   - Reports page has debug useEffect logging metrics data
-   - Main.tsx has periodic update check logging every 60 seconds
-   - Various console.log statements throughout PWA utilities
+```mermaid
+graph TB
+    A[User Interface Layer] --> B[Component Optimization Layer]
+    B --> C[State Management Layer]
+    C --> D[Caching Layer]
+    D --> E[Storage Layer]
+    E --> F[Performance Monitoring Layer]
+    
+    B --> G[Memoization Utils]
+    C --> H[Timer Manager]
+    D --> I[Query Optimization]
+    E --> J[Storage Manager]
+    F --> K[Performance Metrics]
+```
 
-2. **Bundle Size Optimization Opportunities**
-   - Lucide React icons imported individually but could be optimized
-   - Some wildcard imports that could be more specific
-   - Inline styles that could be moved to CSS classes
+### Optimization Strategy
 
-3. **Runtime Performance Opportunities**
-   - Efficient data structures already in use (Map for O(1) lookups)
-   - Some array operations that could be optimized
-   - Memoization already implemented in key areas
-
-### Target Performance Improvements
-
-1. **Reduced Bundle Size**: Remove debug code and optimize imports
-2. **Faster Runtime**: Eliminate unnecessary logging and optimize data operations
-3. **Better User Experience**: Faster load times and smoother interactions
+1. **React Query Optimization**: Implement intelligent caching strategies with optimized stale times and selective invalidation
+2. **Component Memoization**: Add strategic memoization to prevent unnecessary re-renders
+3. **Storage Optimization**: Centralize localStorage operations with batching and cleanup
+4. **Code Splitting**: Implement lazy loading for routes and heavy components
+5. **Calculation Optimization**: Optimize efficiency calculations with caching and batching
+6. **Timer Optimization**: Consolidate timer management and reduce localStorage writes
 
 ## Components and Interfaces
 
-### Debug Code Removal Strategy
+### 1. Query Configuration Manager
 
-#### 1. Reports Page Debug Logging
-- **Location**: `src/pages/Reports.tsx` lines 93-98
-- **Action**: Remove debug useEffect that logs metrics, tasks, and enrichedMetrics
-- **Impact**: Eliminates unnecessary console output and useEffect execution
+```typescript
+interface QueryConfig {
+  staleTime: number;
+  cacheTime: number;
+  refetchOnWindowFocus: boolean;
+  retry: number | ((failureCount: number, error: Error) => boolean);
+}
 
-#### 2. Main.tsx Periodic Logging
-- **Location**: `src/main.tsx` lines 15-17, 22-24
-- **Action**: Remove console.log statements from update checks
-- **Impact**: Reduces console noise while maintaining update functionality
+interface OptimizedQueryKeys {
+  routines: (userId: string) => readonly string[];
+  tasks: (routineId: string | null) => readonly string[];
+  efficiencyStats: (userId: string) => readonly string[];
+  taskPerformance: (userId: string) => readonly string[];
+}
+```
 
-#### 3. PWA Utility Logging
-- **Location**: `src/utils/pwa.ts` multiple locations
-- **Action**: Wrap console.log statements in development checks
-- **Impact**: Maintains useful PWA debugging in development, removes in production
+### 2. Memoization Utilities
 
-### Bundle Optimization Strategy
+```typescript
+interface MemoizationConfig {
+  shouldMemoize: boolean;
+  dependencies: readonly unknown[];
+  equalityFn?: (prev: unknown[], next: unknown[]) => boolean;
+}
 
-#### 1. Lucide React Import Optimization
-- **Current**: Individual imports like `import { Plus, List } from "lucide-react"`
-- **Optimization**: Already optimized - tree-shaking friendly
-- **Action**: No changes needed, imports are already efficient
+interface ComponentMemoProps {
+  children: React.ReactNode;
+  dependencies: readonly unknown[];
+  displayName?: string;
+}
+```
 
-#### 2. React Wildcard Import Review
-- **Current**: `import * as React from "react"` in some UI components
-- **Optimization**: Keep as-is for UI components (standard pattern)
-- **Action**: No changes needed, these are appropriate
+### 3. Storage Manager
 
-#### 3. Inline Style Optimization
-- **Current**: Some inline styles for animations and dynamic values
-- **Optimization**: Keep dynamic styles inline, move static ones to CSS
-- **Action**: Review and optimize where beneficial
+```typescript
+interface StorageManager {
+  get<T>(key: string, defaultValue?: T): T | null;
+  set<T>(key: string, value: T): void;
+  remove(key: string): void;
+  batchSet(operations: Array<{ key: string; value: unknown }>): void;
+  cleanup(pattern: RegExp): void;
+  getStorageSize(): number;
+}
 
-### Performance Optimization Strategy
+interface StorageConfig {
+  prefix: string;
+  maxSize: number;
+  cleanupThreshold: number;
+  batchDelay: number;
+}
+```
 
-#### 1. Data Structure Efficiency
-- **Current**: Already using Map for O(1) lookups in Routines page
-- **Status**: Well optimized
-- **Action**: No changes needed
+### 4. Performance Monitor
 
-#### 2. Array Operation Optimization
-- **Current**: Multiple .map(), .filter(), .reduce() operations
-- **Optimization**: Combine operations where possible
-- **Action**: Optimize chained operations in Reports page
+```typescript
+interface PerformanceMetrics {
+  renderTime: number;
+  componentCount: number;
+  memoryUsage: number;
+  cacheHitRate: number;
+  storageOperations: number;
+}
 
-#### 3. Re-render Prevention
-- **Current**: Good use of useMemo and useCallback
-- **Status**: Already optimized
-- **Action**: No changes needed
+interface PerformanceMonitor {
+  startMeasurement(name: string): void;
+  endMeasurement(name: string): number;
+  getMetrics(): PerformanceMetrics;
+  reportBottlenecks(): string[];
+}
+```
+
+### 5. Timer Manager
+
+```typescript
+interface TimerManager {
+  createTimer(id: string, duration: number, callback: () => void): void;
+  pauseTimer(id: string): void;
+  resumeTimer(id: string): void;
+  removeTimer(id: string): void;
+  batchUpdate(updates: Array<{ id: string; timeLeft: number }>): void;
+  getActiveTimers(): string[];
+}
+```
 
 ## Data Models
 
-No data model changes required - optimizations are focused on code efficiency and bundle size.
+### Optimized Query Structures
+
+```typescript
+// Optimized query key factory
+const queryKeys = {
+  all: ['app'] as const,
+  routines: (userId: string) => [...queryKeys.all, 'routines', userId] as const,
+  routine: (routineId: string) => [...queryKeys.all, 'routine', routineId] as const,
+  tasks: (routineId: string | null) => [...queryKeys.all, 'tasks', routineId] as const,
+  efficiencyStats: (userId: string) => [...queryKeys.all, 'efficiency', userId] as const,
+  taskPerformance: (userId: string) => [...queryKeys.all, 'performance', userId] as const,
+} as const;
+
+// Optimized query configurations
+const queryConfigs = {
+  routines: {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+  },
+  tasks: {
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    cacheTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  },
+  efficiencyStats: {
+    staleTime: 1 * 60 * 1000, // 1 minute
+    cacheTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
+  },
+} as const;
+```
+
+### Memoization Patterns
+
+```typescript
+// Component memoization wrapper
+const MemoizedComponent = React.memo(Component, (prevProps, nextProps) => {
+  // Custom equality check for complex props
+  return shallowEqual(prevProps, nextProps);
+});
+
+// Hook memoization patterns
+const useOptimizedCalculation = (data: unknown[], dependencies: readonly unknown[]) => {
+  return useMemo(() => {
+    return expensiveCalculation(data);
+  }, dependencies);
+};
+
+const useOptimizedCallback = (fn: Function, dependencies: readonly unknown[]) => {
+  return useCallback(fn, dependencies);
+};
+```
 
 ## Error Handling
 
-### Production vs Development Logging
+### Performance Monitoring Error Handling
 
-#### Keep in Production
-- Error logging through `logError` utility
-- PWA service worker status messages (user-facing value)
-- Critical error console.error statements
-
-#### Remove from Production
-- Debug console.log statements
-- Development-only logging
-- Verbose update check logging
-
-### Environment-Based Logging Strategy
 ```typescript
-// Development only logging
-if (import.meta.env.DEV) {
-  console.log('[Debug] Development info');
+class PerformanceError extends Error {
+  constructor(
+    message: string,
+    public readonly metric: string,
+    public readonly threshold: number,
+    public readonly actual: number
+  ) {
+    super(message);
+    this.name = 'PerformanceError';
+  }
 }
 
-// Production error logging (keep)
-console.error('[Error] Critical issue:', error);
+const handlePerformanceIssue = (error: PerformanceError) => {
+  console.warn(`Performance issue detected: ${error.message}`, {
+    metric: error.metric,
+    threshold: error.threshold,
+    actual: error.actual,
+  });
+  
+  // Report to monitoring service if available
+  if (window.performance && window.performance.mark) {
+    window.performance.mark(`performance-issue-${error.metric}`);
+  }
+};
+```
+
+### Storage Error Handling
+
+```typescript
+const handleStorageError = (error: Error, operation: string, key: string) => {
+  console.error(`Storage operation failed: ${operation}`, { key, error });
+  
+  // Fallback to memory storage if localStorage fails
+  if (error.name === 'QuotaExceededError') {
+    // Trigger cleanup and retry
+    storageManager.cleanup(/^routine-.*-temp$/);
+    return true; // Indicate retry should be attempted
+  }
+  
+  return false;
+};
 ```
 
 ## Testing Strategy
 
-### Performance Measurement
-1. **Bundle Size Analysis**
-   - Measure before and after optimization
-   - Use build tools to analyze bundle composition
-   - Target 5-10% reduction in bundle size
+### Performance Testing
 
-2. **Runtime Performance Testing**
-   - Measure page load times
-   - Test interaction responsiveness
-   - Monitor memory usage patterns
+1. **Render Performance Tests**
+   - Measure component render times using React DevTools Profiler
+   - Test memoization effectiveness with prop change scenarios
+   - Validate re-render prevention in optimized components
 
-3. **Functionality Validation**
-   - Ensure all features work identically
-   - Test in both development and production builds
-   - Verify PWA functionality remains intact
+2. **Query Performance Tests**
+   - Test cache hit rates for common query patterns
+   - Validate stale-while-revalidate behavior
+   - Test selective invalidation effectiveness
 
-### Optimization Validation
-1. **Development Experience**
-   - Ensure debugging capabilities remain in development
-   - Verify error logging still works
-   - Test PWA development workflow
+3. **Storage Performance Tests**
+   - Measure localStorage operation times
+   - Test batch operation efficiency
+   - Validate cleanup mechanism effectiveness
 
-2. **Production Performance**
-   - Confirm debug code is removed in production builds
-   - Validate performance improvements
-   - Test user-facing functionality
+4. **Memory Leak Tests**
+   - Test timer cleanup on component unmount
+   - Validate query cache cleanup
+   - Test storage cleanup mechanisms
 
-## Implementation Approach
+### Benchmark Tests
 
-### Phase 1: Debug Code Cleanup
-1. Remove Reports page debug logging
-2. Clean up main.tsx update check logging
-3. Add environment checks to PWA logging
+```typescript
+// Example performance benchmark
+const benchmarkComponent = async (Component: React.ComponentType, props: any) => {
+  const startTime = performance.now();
+  
+  render(<Component {...props} />);
+  
+  const renderTime = performance.now() - startTime;
+  
+  expect(renderTime).toBeLessThan(16); // 60fps threshold
+};
 
-### Phase 2: Bundle Optimization
-1. Review and optimize import statements
-2. Move appropriate inline styles to CSS classes
-3. Analyze bundle size impact
+// Query performance test
+const benchmarkQuery = async (queryFn: () => Promise<any>) => {
+  const startTime = performance.now();
+  
+  await queryFn();
+  
+  const queryTime = performance.now() - startTime;
+  
+  expect(queryTime).toBeLessThan(100); // 100ms threshold
+};
+```
 
-### Phase 3: Performance Optimization
-1. Optimize array operations in Reports page
-2. Review and improve data transformation efficiency
-3. Validate performance improvements
+### Integration Tests
 
-### Phase 4: Validation and Testing
-1. Comprehensive functionality testing
-2. Performance measurement and comparison
-3. Production build validation
+1. **End-to-End Performance Tests**
+   - Test complete routine execution performance
+   - Validate efficiency calculation performance with large datasets
+   - Test app performance under heavy usage scenarios
 
-## Success Criteria
+2. **Cross-Browser Performance Tests**
+   - Test performance optimizations across different browsers
+   - Validate localStorage performance on various devices
+   - Test timer accuracy across different environments
 
-1. **Bundle Size**: Measurable reduction in JavaScript bundle size
-2. **Runtime Performance**: Faster page loads and smoother interactions
-3. **Clean Production**: No debug logging in production builds
-4. **Maintained Functionality**: All features work identically
-5. **Development Experience**: Debugging capabilities preserved in development
+## Implementation Phases
 
-## Risk Mitigation
+### Phase 1: Query Optimization
+- Implement optimized query configurations
+- Add selective invalidation patterns
+- Optimize query key structures
 
-### Low Risk
-- Removing debug console.log statements
-- Environment-based logging conditions
-- Static inline style optimization
+### Phase 2: Component Memoization
+- Add React.memo to frequently re-rendering components
+- Implement useMemo for expensive calculations
+- Add useCallback for stable function references
 
-### Medium Risk
-- Modifying PWA logging (affects user experience)
-- Changing data transformation logic
+### Phase 3: Storage Optimization
+- Create centralized storage manager
+- Implement batching for storage operations
+- Add automated cleanup mechanisms
 
-### Mitigation Strategies
-1. **Incremental Changes**: Make one optimization at a time
-2. **Environment Testing**: Test both development and production builds
-3. **Functionality Validation**: Comprehensive testing after each change
-4. **Performance Monitoring**: Measure impact of each optimization
+### Phase 4: Code Splitting
+- Implement lazy loading for route components
+- Add dynamic imports for heavy components
+- Optimize bundle splitting configuration
+
+### Phase 5: Calculation Optimization
+- Optimize efficiency calculation algorithms
+- Add caching for intermediate results
+- Implement batching for multiple calculations
+
+### Phase 6: Timer Optimization
+- Consolidate timer management
+- Reduce localStorage write frequency
+- Optimize visibility change handling
+
+## Performance Targets
+
+- **Initial Load Time**: < 2 seconds on 3G connection
+- **Component Render Time**: < 16ms (60fps)
+- **Query Response Time**: < 100ms for cached data
+- **Storage Operation Time**: < 5ms for batch operations
+- **Memory Usage**: < 50MB for typical usage
+- **Bundle Size Reduction**: 20-30% through code splitting
+- **Re-render Reduction**: 40-60% through memoization
+- **Cache Hit Rate**: > 80% for frequently accessed data

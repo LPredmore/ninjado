@@ -19,7 +19,7 @@ interface TaskListProps {
   userId: string;
 }
 
-const TaskList = ({ 
+const TaskList = React.memo(({ 
   tasks,
   onTaskComplete,
   isRoutineStarted,
@@ -203,6 +203,24 @@ const TaskList = ({
       />
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom equality check for TaskList props
+  return (
+    prevProps.isRoutineStarted === nextProps.isRoutineStarted &&
+    prevProps.isPaused === nextProps.isPaused &&
+    prevProps.userId === nextProps.userId &&
+    prevProps.tasks.length === nextProps.tasks.length &&
+    prevProps.tasks.every((task, index) => 
+      task.id === nextProps.tasks[index]?.id &&
+      task.title === nextProps.tasks[index]?.title &&
+      task.duration === nextProps.tasks[index]?.duration &&
+      task.isCompleted === nextProps.tasks[index]?.isCompleted &&
+      task.isActive === nextProps.tasks[index]?.isActive &&
+      task.type === nextProps.tasks[index]?.type
+    )
+  );
+});
+
+TaskList.displayName = 'TaskList';
 
 export default TaskList;

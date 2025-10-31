@@ -1,5 +1,9 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { storageManager } from '@/lib/storageManager';
+import { timerManager } from '@/lib/timerManager';
+import { useIntelligentRoutineStorage } from '@/hooks/useIntelligentRoutineStorage';
+import { usePerformanceMeasurement, performanceMonitor } from '@/lib/performanceMonitor';
 
 interface RoutineState {
   isRoutineStarted: boolean;
@@ -21,50 +25,76 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
   const [cumulativeTimeSaved, setCumulativeTimeSaved] = useState<number>(0);
   const [cumulativeSpeedTaskDuration, setCumulativeSpeedTaskDuration] = useState<number>(0);
   
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const routineTimerIdRef = useRef<string | null>(null);
+  
+  // Track routine state performance
+  usePerformanceMeasurement('routine-state-management', [
+    isRoutineStarted,
+    isPaused,
+    Object.keys(timers).length,
+    completedTaskIds.length,
+  ]);
+  
+  // Use intelligent storage for optimized persistence
+  const { forceSave, clearRoutineStorage } = useIntelligentRoutineStorage({
+    routineId: selectedRoutineId,
+    state: {
+      isRoutineStarted,
+      isPaused,
+      timers,
+      completedTaskIds,
+      lastUpdated,
+      pausedAt,
+      cumulativeSpeedTaskDuration,
+    },
+    cumulativeTimeSaved,
+  });
 
-  // Load state from localStorage when component mounts or routine changes
+  // Load state from storage when component mounts or routine changes
   useEffect(() => {
     if (selectedRoutineId) {
-      const savedState = localStorage.getItem(`routineState_${selectedRoutineId}`);
-      const savedCumulativeTime = localStorage.getItem(`routine-${selectedRoutineId}-cumulative-time`);
-      const savedSpeedTaskDuration = localStorage.getItem(`routine-${selectedRoutineId}-speed-duration`);
+      const savedState = storageManager.get<RoutineState>(`routineState_${selectedRoutineId}`);
+      const savedCumulativeTime = storageManager.get<number>(`routine-${selectedRoutineId}-cumulative-time`, 0);
+      const savedSpeedTaskDuration = storageManager.get<number>(`routine-${selectedRoutineId}-speed-duration`, 0);
       
       if (savedState) {
-        const parsed = JSON.parse(savedState) as RoutineState;
-        setIsRoutineStarted(parsed.isRoutineStarted);
-        setIsPaused(parsed.isPaused || false);
-        setTimers(parsed.timers);
-        setCompletedTaskIds(parsed.completedTaskIds);
-        setLastUpdated(parsed.lastUpdated || Date.now());
-        setPausedAt(parsed.pausedAt);
-        setCumulativeTimeSaved(savedCumulativeTime ? parseInt(savedCumulativeTime) : 0);
-        setCumulativeSpeedTaskDuration(parsed.cumulativeSpeedTaskDuration || (savedSpeedTaskDuration ? parseInt(savedSpeedTaskDuration) : 0));
+        setIsRoutineStarted(savedState.isRoutineStarted);
+        setIsPaused(savedState.isPaused || false);
+        setTimers(savedState.timers);
+        setCompletedTaskIds(savedState.completedTaskIds);
+        setLastUpdated(savedState.lastUpdated || Date.now());
+        setPausedAt(savedState.pausedAt);
+        setCumulativeTimeSaved(savedCumulativeTime);
+        setCumulativeSpeedTaskDuration(savedState.cumulativeSpeedTaskDuration || savedSpeedTaskDuration);
         
         // If routine was started but not paused, calculate elapsed time since last update
-        if (parsed.isRoutineStarted && !parsed.isPaused) {
+        if (savedState.isRoutineStarted && !savedState.isPaused) {
           const now = Date.now();
-          const elapsedSeconds = Math.floor((now - parsed.lastUpdated) / 1000);
+          const elapsedSeconds = Math.floor((now - savedState.lastUpdated) / 1000);
           
           if (elapsedSeconds > 0) {
-            // Update timers to account for elapsed time
+            // Track timer synchronization performance
+            performanceMonitor.startMeasurement('timer-sync-after-resume');
+            
+            // Optimized timer update - only update the active task to reduce calculation overhead
             setTimers(prevTimers => {
-              const newTimers = { ...prevTimers };
-              let activeTaskFound = false;
+              const taskIds = Object.keys(prevTimers);
+              const activeTaskIndex = taskIds.findIndex(taskId => 
+                !savedState.completedTaskIds.includes(taskId)
+              );
               
-              // Find the first non-completed task
-              Object.keys(newTimers).some(taskId => {
-                if (!parsed.completedTaskIds.includes(taskId) && !activeTaskFound) {
-                  activeTaskFound = true;
-                  // For focus tasks, continue counting into negative
-                  newTimers[taskId] = Math.max(newTimers[taskId] - elapsedSeconds, -999);
-                  return false;
-                }
-                return false;
-              });
+              if (activeTaskIndex !== -1) {
+                const activeTaskId = taskIds[activeTaskIndex];
+                return {
+                  ...prevTimers,
+                  [activeTaskId]: Math.max(prevTimers[activeTaskId] - elapsedSeconds, -999)
+                };
+              }
               
-              return newTimers;
+              return prevTimers;
             });
+            
+            performanceMonitor.endMeasurement('timer-sync-after-resume');
           }
         }
       } else {
@@ -80,100 +110,93 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
       }
     }
     
-    // Clean up interval on unmount
+    // Clean up timer on unmount and force save
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      if (routineTimerIdRef.current) {
+        timerManager.removeTimer(routineTimerIdRef.current);
+        routineTimerIdRef.current = null;
       }
+      // Force save any pending state before unmounting
+      forceSave();
     };
   }, [selectedRoutineId]);
 
-  // Set up timer with visibility change detection
+  // Set up consolidated timer management
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isRoutineStarted && !isPaused) {
-        const now = Date.now();
-        const lastTime = lastUpdated;
-        const elapsedSeconds = Math.floor((now - lastTime) / 1000);
-        
-        if (elapsedSeconds > 0) {
+    // Clean up existing timer if routine changes
+    if (routineTimerIdRef.current) {
+      timerManager.removeTimer(routineTimerIdRef.current);
+      routineTimerIdRef.current = null;
+    }
+
+    if (selectedRoutineId && isRoutineStarted) {
+      const timerId = `routine-${selectedRoutineId}-timer`;
+      routineTimerIdRef.current = timerId;
+
+      // Create a consolidated timer for the routine
+      timerManager.createTimer({
+        id: timerId,
+        duration: 1, // 1 second tick
+        onTick: () => {
+          const now = Date.now();
           setLastUpdated(now);
           
+          // Optimized timer update - only update the active task to minimize re-renders
           setTimers(prevTimers => {
-            const newTimers = { ...prevTimers };
-            let activeTaskFound = false;
+            const taskIds = Object.keys(prevTimers);
+            const activeTaskIndex = taskIds.findIndex(taskId => 
+              !completedTaskIds.includes(taskId)
+            );
             
-            // Find the first non-completed task
-            Object.keys(newTimers).some(taskId => {
-              if (!completedTaskIds.includes(taskId) && !activeTaskFound) {
-                activeTaskFound = true;
-                // For focus tasks, continue counting into negative
-                newTimers[taskId] = Math.max(newTimers[taskId] - elapsedSeconds, -999);
-                return false;
+            if (activeTaskIndex !== -1) {
+              const activeTaskId = taskIds[activeTaskIndex];
+              const currentTime = prevTimers[activeTaskId];
+              const newTime = Math.max(currentTime - 1, -999);
+              
+              // Only update if the time actually changed to prevent unnecessary re-renders
+              if (newTime !== currentTime) {
+                return {
+                  ...prevTimers,
+                  [activeTaskId]: newTime
+                };
               }
-              return false;
-            });
-            
-            return newTimers;
-          });
-        }
-      }
-    };
-    
-    // Add visibility change listener
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Clean up function
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [isRoutineStarted, isPaused, lastUpdated, completedTaskIds]);
-
-  // Timer countdown effect
-  useEffect(() => {
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    if (isRoutineStarted && !isPaused) {
-      // Start a new interval
-      intervalRef.current = setInterval(() => {
-        const now = Date.now();
-        setLastUpdated(now);
-        
-        setTimers(prevTimers => {
-          const newTimers = { ...prevTimers };
-          let activeTaskFound = false;
-
-          // Find the first non-completed task
-          Object.keys(newTimers).some(taskId => {
-            if (!completedTaskIds.includes(taskId) && !activeTaskFound) {
-              activeTaskFound = true;
-              // For focus tasks, continue counting into negative
-              newTimers[taskId] = Math.max(newTimers[taskId] - 1, -999);
-              return false;
             }
-            return false;
+            
+            return prevTimers;
           });
+        },
+        autoStart: !isPaused,
+      });
 
-          return newTimers;
-        });
-      }, 1000);
+      // Handle pause/resume
+      if (isPaused) {
+        timerManager.pauseTimer(timerId);
+      } else {
+        timerManager.startTimer(timerId);
+      }
     }
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      if (routineTimerIdRef.current) {
+        timerManager.removeTimer(routineTimerIdRef.current);
+        routineTimerIdRef.current = null;
       }
     };
-  }, [isRoutineStarted, isPaused, completedTaskIds]);
+  }, [selectedRoutineId, isRoutineStarted, isPaused, completedTaskIds]);
+
+  // Handle pause/resume state changes
+  useEffect(() => {
+    if (routineTimerIdRef.current) {
+      if (isPaused) {
+        timerManager.pauseTimer(routineTimerIdRef.current);
+      } else if (isRoutineStarted) {
+        timerManager.resumeTimer(routineTimerIdRef.current);
+      }
+    }
+  }, [isPaused, isRoutineStarted]);
 
   // Custom setter for pause state that also tracks pause timestamp
-  const setPauseState = (paused: boolean) => {
+  const setPauseState = useCallback((paused: boolean) => {
     setIsPaused(paused);
     if (paused) {
       setPausedAt(Date.now());
@@ -181,29 +204,23 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
       setPausedAt(null);
       setLastUpdated(Date.now());
     }
-  };
+  }, []);
 
-  // Save state to localStorage whenever it changes
-  useEffect(() => {
-    if (selectedRoutineId && isRoutineStarted) {
-      const state: RoutineState = {
-        isRoutineStarted,
-        isPaused,
-        timers,
-        completedTaskIds,
-        lastUpdated,
-        pausedAt,
-        cumulativeSpeedTaskDuration,
-      };
-      localStorage.setItem(`routineState_${selectedRoutineId}`, JSON.stringify(state));
-    }
-  }, [selectedRoutineId, isRoutineStarted, isPaused, timers, completedTaskIds, lastUpdated, pausedAt, cumulativeSpeedTaskDuration]);
+  // Note: Storage operations are now handled by useIntelligentRoutineStorage hook
+  // which provides optimized batching and activity-based scheduling
 
-  const resetRoutineState = () => {
+  const resetRoutineState = useCallback(() => {
     if (selectedRoutineId) {
-      localStorage.removeItem(`routineState_${selectedRoutineId}`);
-      localStorage.removeItem(`routine-${selectedRoutineId}-cumulative-time`);
-      localStorage.removeItem(`routine-${selectedRoutineId}-speed-duration`);
+      // Remove timer
+      if (routineTimerIdRef.current) {
+        timerManager.removeTimer(routineTimerIdRef.current);
+        routineTimerIdRef.current = null;
+      }
+      
+      // Clear storage using intelligent storage system
+      clearRoutineStorage();
+      
+      // Reset state
       setIsRoutineStarted(false);
       setIsPaused(false);
       setTimers({});
@@ -213,7 +230,7 @@ export const useRoutineState = (selectedRoutineId: string | null) => {
       setCumulativeTimeSaved(0);
       setCumulativeSpeedTaskDuration(0);
     }
-  };
+  }, [selectedRoutineId, clearRoutineStorage]);
 
   return {
     isRoutineStarted,

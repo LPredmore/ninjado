@@ -21,7 +21,7 @@ interface RoutineProgressProps {
   cumulativeTimeSaved: number;
 }
 
-const RoutineProgress = ({
+const RoutineProgress = React.memo(({
   routineTitle,
   completedTasks,
   totalTasks,
@@ -105,6 +105,25 @@ const RoutineProgress = ({
       />
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom equality check for RoutineProgress props
+  return (
+    prevProps.routineTitle === nextProps.routineTitle &&
+    prevProps.completedTasks === nextProps.completedTasks &&
+    prevProps.totalTasks === nextProps.totalTasks &&
+    prevProps.isRoutineStarted === nextProps.isRoutineStarted &&
+    prevProps.isPaused === nextProps.isPaused &&
+    prevProps.userId === nextProps.userId &&
+    prevProps.routineStartTime === nextProps.routineStartTime &&
+    prevProps.cumulativeTimeSaved === nextProps.cumulativeTimeSaved &&
+    prevProps.tasks.length === nextProps.tasks.length &&
+    prevProps.tasks.every((task, index) => 
+      task.id === nextProps.tasks[index]?.id &&
+      task.duration === nextProps.tasks[index]?.duration
+    )
+  );
+});
+
+RoutineProgress.displayName = 'RoutineProgress';
 
 export default RoutineProgress;

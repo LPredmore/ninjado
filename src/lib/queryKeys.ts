@@ -1,5 +1,9 @@
 import { QueryClient } from "@tanstack/react-query";
 
+/**
+ * @deprecated Use queryKeys from queryConfig.ts instead
+ * Maintained for backward compatibility during migration
+ */
 export const queryKeys = {
   routines: (userId: string) => ["routines", userId] as const,
   tasks: (routineId: string | null) => ["tasks", routineId] as const,
@@ -7,6 +11,7 @@ export const queryKeys = {
 };
 
 /**
+ * @deprecated Use QueryInvalidationManager from queryConfig.ts instead
  * Utility to invalidate all routine-related queries for a user
  * This ensures cache consistency across all components
  */

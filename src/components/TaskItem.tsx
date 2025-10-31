@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +6,8 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from "sonner";
 import EditTaskDialog from './EditTaskDialog';
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateRoutineQueries, queryKeys } from "@/lib/queryKeys";
+import { invalidateRoutineQueries, queryKeys as legacyQueryKeys } from "@/lib/queryKeys";
+import { queryKeys, createQueryInvalidationManager } from "@/lib/queryConfig";
 import { logError } from "@/lib/errorLogger";
 import type { RoutineTask } from "@/types";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -22,7 +23,7 @@ interface TaskItemProps {
   isLast: boolean;
 }
 
-const TaskItem = ({ task, supabase, userId, index, onMoveUp, onMoveDown, isFirst, isLast }: TaskItemProps) => {
+const TaskItem = React.memo(({ task, supabase, userId, index, onMoveUp, onMoveDown, isFirst, isLast }: TaskItemProps) => {
   const queryClient = useQueryClient();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
@@ -45,7 +46,8 @@ const TaskItem = ({ task, supabase, userId, index, onMoveUp, onMoveDown, isFirst
       if (error) throw error;
 
       toast.success('Task deleted');
-      invalidateRoutineQueries(queryClient, userId);
+      const invalidationManager = createQueryInvalidationManager(queryClient);
+      invalidationManager.invalidateRoutineQueries(userId);
     } catch (error) {
       // Rollback on error
       queryClient.setQueryData(queryKeys.allRoutineTasks(userId), previousTasks);
@@ -135,6 +137,20 @@ const TaskItem = ({ task, supabase, userId, index, onMoveUp, onMoveDown, isFirst
       />
     </>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom equality check for TaskItem props
+  return (
+    prevProps.task.id === nextProps.task.id &&
+    prevProps.task.title === nextProps.task.title &&
+    prevProps.task.duration === nextProps.task.duration &&
+    prevProps.task.type === nextProps.task.type &&
+    prevProps.userId === nextProps.userId &&
+    prevProps.index === nextProps.index &&
+    prevProps.isFirst === nextProps.isFirst &&
+    prevProps.isLast === nextProps.isLast
+  );
+});
+
+TaskItem.displayName = 'TaskItem';
 
 export default TaskItem;

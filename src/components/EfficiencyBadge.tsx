@@ -1,3 +1,4 @@
+import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -19,14 +20,18 @@ import {
 import { TrendingUp, TrendingDown, Minus, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
+import { storageManager } from "@/lib/storageManager";
+import { realTimeCalculationFeedback } from "@/lib/realTimeCalculationFeedback";
 
 interface EfficiencyBadgeProps {
   userId: string;
   variant?: "hero" | "full" | "compact";
 }
 
-export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgeProps) => {
+export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: EfficiencyBadgeProps) => {
   const [lastBeltRank, setLastBeltRank] = useState<string | null>(null);
+  const [realtimeEfficiency, setRealtimeEfficiency] = useState<number | null>(null);
+  const [isEstimated, setIsEstimated] = useState(false);
 
   // Fetch username from profiles
   const { data: profile } = useQuery({
@@ -52,11 +57,25 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
     refetchOnWindowFocus: false,
   });
 
+  // Set up real-time efficiency updates
+  useEffect(() => {
+    const badgeUpdater = realTimeCalculationFeedback.createEfficiencyBadgeUpdater(
+      (efficiency, estimated) => {
+        setRealtimeEfficiency(efficiency);
+        setIsEstimated(estimated);
+      }
+    );
+    
+    return () => {
+      badgeUpdater.cleanup();
+    };
+  }, []);
+
   // Check for belt rank achievement and trigger celebration
   useEffect(() => {
     if (!stats) return;
     
-    const storedBelt = localStorage.getItem(`last-belt-${userId}`);
+    const storedBelt = storageManager.get<string>(`last-belt-${userId}`);
     
     if (storedBelt && storedBelt !== stats.currentBelt.name) {
       // Belt rank increased - celebrate!
@@ -76,7 +95,7 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
     }
     
     setLastBeltRank(stats.currentBelt.name);
-    localStorage.setItem(`last-belt-${userId}`, stats.currentBelt.name);
+    storageManager.set(`last-belt-${userId}`, stats.currentBelt.name);
   }, [stats, userId]);
 
   if (isLoading) {
@@ -89,15 +108,22 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
 
   const username = profile?.username || "Ninja";
   
-  // Ensure efficiency value is valid for new scoring system
-  const safeEfficiency = stats.averageEfficiency !== null && !isNaN(stats.averageEfficiency) 
-    ? stats.averageEfficiency 
-    : 0;
+  // Memoize efficiency calculations to prevent unnecessary recalculations
+  const { safeEfficiency, progressToNext, displayEfficiency } = useMemo(() => {
+    // Use real-time efficiency if available, otherwise use stats
+    const baseEfficiency = stats.averageEfficiency !== null && !isNaN(stats.averageEfficiency) 
+      ? stats.averageEfficiency 
+      : 0;
     
-  const progressToNext = getBeltProgressPercentage(
-    safeEfficiency, 
-    stats.currentBelt
-  );
+    const currentEfficiency = realtimeEfficiency !== null ? realtimeEfficiency : baseEfficiency;
+    const progress = getBeltProgressPercentage(currentEfficiency, stats.currentBelt);
+    
+    return {
+      safeEfficiency: baseEfficiency,
+      progressToNext: progress,
+      displayEfficiency: currentEfficiency
+    };
+  }, [stats.averageEfficiency, stats.currentBelt, realtimeEfficiency]);
 
   if (variant === "compact") {
     return (
@@ -111,11 +137,12 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
                 className="w-8 h-8"
               />
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-foreground">
-                  {safeEfficiency.toFixed(1)}% Efficiency
+                <span className={`text-sm font-bold ${isEstimated ? 'text-muted-foreground' : 'text-foreground'}`}>
+                  {displayEfficiency.toFixed(1)}% Efficiency
+                  {isEstimated && <span className="text-xs ml-1">(est.)</span>}
                 </span>
                 {stats.hasEnoughData && (
-                  <TrendIcon efficiency={safeEfficiency} />
+                  <TrendIcon efficiency={displayEfficiency} />
                 )}
               </div>
             </div>
@@ -170,8 +197,9 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
                 <Badge className={`text-lg px-4 py-1 ${stats.currentBelt.badgeClass}`}>
                   {stats.currentBelt.name} Belt
                 </Badge>
-                <span className="text-4xl font-bold text-foreground">
-                  {safeEfficiency.toFixed(1)}% Efficiency
+                <span className={`text-4xl font-bold ${isEstimated ? 'text-muted-foreground' : 'text-foreground'}`}>
+                  {displayEfficiency.toFixed(1)}% Efficiency
+                  {isEstimated && <span className="text-lg ml-2 opacity-70">(estimated)</span>}
                 </span>
               </div>
             </div>
@@ -271,8 +299,9 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
             <Badge className={`text-base px-3 py-1 ${stats.currentBelt.badgeClass}`}>
               {stats.currentBelt.name}
             </Badge>
-            <span className="text-3xl font-bold text-foreground drop-shadow-md">
-              {safeEfficiency.toFixed(1)}% Efficiency
+            <span className={`text-3xl font-bold drop-shadow-md ${isEstimated ? 'text-muted-foreground' : 'text-foreground'}`}>
+              {displayEfficiency.toFixed(1)}% Efficiency
+              {isEstimated && <span className="text-sm ml-2 opacity-70">(est.)</span>}
             </span>
           </div>
         </div>
@@ -290,7 +319,15 @@ export const EfficiencyBadge = ({ userId, variant = "hero" }: EfficiencyBadgePro
       )}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom equality check for EfficiencyBadge props
+  return (
+    prevProps.userId === nextProps.userId &&
+    prevProps.variant === nextProps.variant
+  );
+});
+
+EfficiencyBadge.displayName = 'EfficiencyBadge';
 
 const TrendIcon = ({ efficiency }: { efficiency: number }) => {
   // Updated thresholds for new efficiency scoring system

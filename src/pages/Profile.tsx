@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { logError } from "@/lib/errorLogger";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys, queryConfigs } from "@/lib/queryConfig";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +46,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
 
   // Fetch user profile data
   const { data: profile, isLoading: isLoadingProfile, error: profileError } = useQuery({
-    queryKey: ["profile", user.id],
+    queryKey: queryKeys.profile(user.id),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -79,7 +80,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
 
       return data;
     },
-    retry: 1, // Only retry once to avoid infinite loops
+    ...queryConfigs.profile,
   });
 
   const handleSignOut = async () => {
@@ -133,7 +134,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
       }
 
       // Update the query cache
-      queryClient.setQueryData(["profile", user.id], (old: any) => ({
+      queryClient.setQueryData(queryKeys.profile(user.id), (old: any) => ({
         ...old,
         username: trimmedName,
       }));

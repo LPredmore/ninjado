@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys as legacyQueryKeys } from "@/lib/queryKeys";
+import { queryKeys, queryConfigs } from "@/lib/queryConfig";
 import { supabase } from '@/integrations/supabase/client';
 import SidebarLayout from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
@@ -13,7 +15,7 @@ import { queryKeys } from '@/lib/queryKeys';
 import { RoutineTask } from '@/types';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useEffect } from 'react';
-import { EfficiencyBadge } from '@/components/EfficiencyBadge';
+import LazyEfficiencyBadge from '@/components/LazyEfficiencyBadge';
 import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 
 const Reports = () => {
@@ -34,15 +36,13 @@ const Reports = () => {
   const queryClient = useQueryClient();
 
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
-    queryKey: ['task-performance-metrics', user?.id],
+    queryKey: queryKeys.taskPerformance(user?.id || ''),
     queryFn: async () => {
       if (!user) return [];
       return await getAllTaskPerformanceMetrics(user.id);
     },
     enabled: !!user,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: 'always',
+    ...queryConfigs.taskPerformance,
   });
 
   const { data: tasks, isLoading: tasksLoading, refetch } = useQuery({
@@ -58,9 +58,7 @@ const Reports = () => {
       return data as RoutineTask[];
     },
     enabled: !!user,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: 'always',
+    ...queryConfigs.tasks,
   });
 
   const handleSignOut = async () => {
@@ -126,7 +124,7 @@ const Reports = () => {
                 <span className="text-3xl">🥋</span>
                 Your Efficiency Belt Ranking
               </h2>
-              <EfficiencyBadge userId={user.id} variant="full" />
+              <LazyEfficiencyBadge userId={user.id} variant="full" />
             </div>
           )}
 

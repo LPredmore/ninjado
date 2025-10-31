@@ -20,7 +20,7 @@ interface RoutineContainerProps {
   cumulativeTimeSaved: number;
 }
 
-const RoutineContainer = ({
+const RoutineContainer = React.memo(({
   routineTitle,
   tasks,
   completedTasks,
@@ -74,6 +74,26 @@ const RoutineContainer = ({
       </div>
     </NinjaScrollCard>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom equality check for complex props
+  return (
+    prevProps.routineTitle === nextProps.routineTitle &&
+    prevProps.completedTasks === nextProps.completedTasks &&
+    prevProps.isRoutineStarted === nextProps.isRoutineStarted &&
+    prevProps.isPaused === nextProps.isPaused &&
+    prevProps.userId === nextProps.userId &&
+    prevProps.routineStartTime === nextProps.routineStartTime &&
+    prevProps.cumulativeTimeSaved === nextProps.cumulativeTimeSaved &&
+    prevProps.tasks.length === nextProps.tasks.length &&
+    prevProps.tasks.every((task, index) => 
+      task.id === nextProps.tasks[index]?.id &&
+      task.title === nextProps.tasks[index]?.title &&
+      task.isCompleted === nextProps.tasks[index]?.isCompleted &&
+      task.isActive === nextProps.tasks[index]?.isActive
+    )
+  );
+});
+
+RoutineContainer.displayName = 'RoutineContainer';
 
 export default RoutineContainer;

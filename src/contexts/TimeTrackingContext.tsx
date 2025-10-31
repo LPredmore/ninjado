@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ const TimeTrackingContext = createContext<TimeTrackingContextType | undefined>(u
 export function TimeTrackingProvider({ children, user }: { children: React.ReactNode; user: User }) {
   const [totalTimeSaved, setTotalTimeSaved] = useState(0);
 
-  const fetchTotalTimeSaved = async () => {
+  const fetchTotalTimeSaved = useCallback(async () => {
     const { data: timeData, error: timeError } = await supabase
       .from('task_completions')
       .select('time_saved')
@@ -43,9 +43,9 @@ export function TimeTrackingProvider({ children, user }: { children: React.React
 
     // Set the net time saved (total saved minus total spent)
     setTotalTimeSaved(totalSaved - totalSpent);
-  };
+  }, [user.id]);
 
-  const recordTaskCompletion = async (taskTitle: string, timeSaved: number) => {
+  const recordTaskCompletion = useCallback(async (taskTitle: string, timeSaved: number) => {
     const { error } = await supabase
       .from('task_completions')
       .insert([
@@ -69,7 +69,7 @@ export function TimeTrackingProvider({ children, user }: { children: React.React
     }
     
     await fetchTotalTimeSaved();
-  };
+  }, [user.id, fetchTotalTimeSaved]);
 
   useEffect(() => {
     fetchTotalTimeSaved();

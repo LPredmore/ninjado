@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys, queryConfigs } from "@/lib/queryConfig";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 
 interface RewardsProps {
@@ -20,7 +21,7 @@ const Rewards = ({ user, supabase }: RewardsProps) => {
   const { totalTimeSaved } = useTimeTracking();
 
   const { data: rewards, refetch: refetchRewards, isLoading } = useQuery({
-    queryKey: ["rewards"],
+    queryKey: queryKeys.rewards(),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("rewards")
@@ -30,6 +31,7 @@ const Rewards = ({ user, supabase }: RewardsProps) => {
       if (error) throw error;
       return data;
     },
+    ...queryConfigs.rewards,
   });
 
   const handleSignOut = async () => {

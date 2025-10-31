@@ -9,6 +9,7 @@ import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 import { toast } from '@/hooks/use-toast';
 import bcrypt from 'bcryptjs';
 import { logError } from '@/lib/errorLogger';
+import { storageManager } from '@/lib/storageManager';
 interface ParentProps {
   user: User;
   supabase: SupabaseClient;
@@ -48,7 +49,9 @@ const Parent = ({
   };
 
   const migrateFromLocalStorage = async () => {
-    const localPin = localStorage.getItem(`ninja_pin_${user.id}`);
+    // Check both old localStorage and new storage manager for PIN
+    const localPin = localStorage.getItem(`ninja_pin_${user.id}`) || 
+                     storageManager.get<string>(`ninja_pin_${user.id}`);
     if (!localPin) return;
 
     try {
@@ -68,7 +71,10 @@ const Parent = ({
             is_active: true
           });
 
+        // Remove from both old localStorage and new storage manager
         localStorage.removeItem(`ninja_pin_${user.id}`);
+        storageManager.remove(`ninja_pin_${user.id}`);
+        
         toast({
           title: "PIN Migrated",
           description: "Your PIN has been securely migrated to the cloud for cross-device sync.",

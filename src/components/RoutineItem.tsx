@@ -11,6 +11,7 @@ import EditRoutineDialog from './EditRoutineDialog';
 import { Badge } from "@/components/ui/badge";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRoutineQueries } from "@/lib/queryKeys";
+import { createQueryInvalidationManager } from "@/lib/queryConfig";
 import { logError } from "@/lib/errorLogger";
 import { calculateEndTime, formatDuration } from "@/lib/timeUtils";
 import type { RoutineTask } from "@/types";
@@ -65,7 +66,8 @@ const RoutineItem = ({
       });
 
       if (error) throw error;
-      invalidateRoutineQueries(queryClient, userId);
+      const invalidationManager = createQueryInvalidationManager(queryClient);
+      invalidationManager.invalidateRoutineQueries(userId);
     } catch (error) {
       logError("Failed to move task up", error, {
         component: "RoutineItem",
@@ -98,7 +100,8 @@ const RoutineItem = ({
       });
 
       if (error) throw error;
-      invalidateRoutineQueries(queryClient, userId);
+      const invalidationManager = createQueryInvalidationManager(queryClient);
+      invalidationManager.invalidateRoutineQueries(userId);
     } catch (error) {
       logError("Failed to move task down", error, {
         component: "RoutineItem",
@@ -121,6 +124,14 @@ const RoutineItem = ({
   const endTime = useMemo(() => {
     return calculateEndTime(routine.start_time || null, totalDurationMinutes);
   }, [routine.start_time, totalDurationMinutes]);
+
+  // Memoize task type counts for badges
+  const taskTypeCounts = useMemo(() => {
+    return {
+      speed: localTasks.filter(t => t.type === 'regular').length,
+      focus: localTasks.filter(t => t.type === 'focus').length
+    };
+  }, [localTasks]);
   
   return (
     <div className="clay-element-with-transition p-3 md:p-4 bg-card border-2 border-border/30 clay-hover hover:border-accent/30 max-w-full overflow-hidden">
@@ -169,10 +180,10 @@ const RoutineItem = ({
                   {formatDuration(totalDurationMinutes)}
                 </Badge>
                 <Badge variant="speed" className="text-xs">
-                  {localTasks.filter(t => t.type === 'regular').length} speed
+                  {taskTypeCounts.speed} speed
                 </Badge>
                 <Badge variant="focus" className="text-xs">
-                  {localTasks.filter(t => t.type === 'focus').length} focus
+                  {taskTypeCounts.focus} focus
                 </Badge>
               </>
             ) : (

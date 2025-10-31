@@ -9,7 +9,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AddRoutineDialog } from "@/components/AddRoutineDialog";
 import RoutineItem from "@/components/RoutineItem";
 import { toast } from "sonner";
-import { queryKeys, invalidateRoutineQueries } from "@/lib/queryKeys";
+import { queryKeys as legacyQueryKeys, invalidateRoutineQueries } from "@/lib/queryKeys";
+import { queryKeys, queryConfigs, createQueryInvalidationManager } from "@/lib/queryConfig";
 import { logError } from "@/lib/errorLogger";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -62,7 +63,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
       if (error) throw error;
       return data;
     },
-    refetchOnWindowFocus: true,
+    ...queryConfigs.routines,
   });
 
   // Fetch all tasks for user's routines - optimized to use routines data
@@ -83,7 +84,7 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
       return data || [];
     },
     enabled: !!routines && routines.length > 0,
-    refetchOnWindowFocus: true,
+    ...queryConfigs.tasks,
   });
 
   // Create a Map for O(1) task lookup by routine_id (eliminates N+1 filtering)
@@ -138,7 +139,8 @@ const Routines = ({ user, supabase }: RoutinesProps) => {
           },
         },
       });
-      invalidateRoutineQueries(queryClient, user.id);
+      const invalidationManager = createQueryInvalidationManager(queryClient);
+      invalidationManager.invalidateRoutineQueries(user.id);
     } catch (error) {
       // Rollback on error
       queryClient.setQueryData(queryKeys.routines(user.id), previousRoutines);

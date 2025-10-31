@@ -172,6 +172,7 @@ export interface OverallEfficiencyResult {
 export function calculateRoutineEfficiency(
   tasks: TaskCompletion[]
 ): RoutineEfficiencyResult {
+
   let totalRegularPlanned = 0;
   let totalRegularActual = 0;
 
@@ -234,6 +235,7 @@ export function calculateRoutineEfficiency(
 export function calculateOverallEfficiency(
   routineEfficiencies: number[]
 ): OverallEfficiencyResult {
+
   // Calculate average efficiency from all routine scores
   const averageEfficiency = routineEfficiencies.length > 0
     ? routineEfficiencies.reduce((sum, efficiency) => sum + efficiency, 0) / routineEfficiencies.length
@@ -318,7 +320,7 @@ export function calculateOverrunPenalty(
 
 /**
  * Fetch user's efficiency stats from last 30 routine completions
- * Uses new ratio-based calculation with Grace System for overall user rating
+ * Uses optimized historical data processing with caching and batching
  * Handles backward compatibility with existing data that may have null efficiency values
  * @param userId - User ID
  * @returns Efficiency statistics with Grace System penalty applied
@@ -326,82 +328,147 @@ export function calculateOverrunPenalty(
 export async function fetchUserEfficiencyStats(
   userId: string
 ): Promise<EfficiencyStats> {
-  const { data, error } = await supabase
-    .from("routine_completions")
-    .select("completed_at, efficiency_percentage, total_time_saved, total_routine_duration")
-    .eq("user_id", userId)
-    .eq("has_regular_tasks", true)
-    .order("completed_at", { ascending: false })
-    .limit(30);
+  // Import here to avoid circular dependency
+  const { historicalDataProcessor } = await import('./historicalDataProcessor');
+  
+  try {
+    // Use optimized historical data processing
+    const optimizedResult = await historicalDataProcessor.processEfficiencyDataOptimized(
+      userId,
+      30, // Last 30 days
+      { useCache: true, priority: 'high' }
+    );
+    
+    // Fetch raw completion data for backward compatibility
+    const { data, error } = await supabase
+      .from("routine_completions")
+      .select("completed_at, efficiency_percentage, total_time_saved, total_routine_duration")
+      .eq("user_id", userId)
+      .eq("has_regular_tasks", true)
+      .order("completed_at", { ascending: false })
+      .limit(30);
 
-  if (error) {
-    console.error("Error fetching efficiency stats:", error);
-    return {
-      averageEfficiency: null,
-      finalEfficiency: null,
-      graceSystemPenalty: 0,
-      negativeRoutineCount: 0,
-      completionCount: 0,
-      currentBelt: BELT_RANKS[0],
-      hasEnoughData: false,
-      last30Days: [],
-    };
-  }
-
-  const completions = data || [];
-  const totalCompletions = completions.length;
-  const hasEnoughData = totalCompletions >= 30;
-
-  // Handle backward compatibility: calculate efficiency for records with null efficiency_percentage
-  // but valid total_time_saved and total_routine_duration
-  const processedCompletions = completions.map((completion) => {
-    if (completion.efficiency_percentage === null && 
-        completion.total_time_saved !== null && 
-        completion.total_routine_duration !== null &&
-        completion.total_routine_duration > 0) {
-      // Use legacy formula for backward compatibility: (time_saved / routine_duration) * 100
-      const legacyEfficiency = (completion.total_time_saved / completion.total_routine_duration) * 100;
+    if (error) {
+      console.error("Error fetching efficiency stats:", error);
       return {
-        ...completion,
-        efficiency_percentage: legacyEfficiency,
+        averageEfficiency: null,
+        finalEfficiency: null,
+        graceSystemPenalty: 0,
+        negativeRoutineCount: 0,
+        completionCount: 0,
+        currentBelt: BELT_RANKS[0],
+        hasEnoughData: false,
+        last30Days: [],
       };
     }
-    return completion;
-  });
 
-  // Get valid efficiency scores for Grace System calculation
-  const validEfficiencies = processedCompletions
-    .map((c) => c.efficiency_percentage)
-    .filter((e): e is number => e !== null);
+    const completions = data || [];
+    const totalCompletions = completions.length;
+    const hasEnoughData = totalCompletions >= 30;
 
-  if (validEfficiencies.length === 0) {
+    // Handle backward compatibility: calculate efficiency for records with null efficiency_percentage
+    const processedCompletions = completions.map((completion) => {
+      if (completion.efficiency_percentage === null && 
+          completion.total_time_saved !== null && 
+          completion.total_routine_duration !== null &&
+          completion.total_routine_duration > 0) {
+        // Use legacy formula for backward compatibility
+        const legacyEfficiency = (completion.total_time_saved / completion.total_routine_duration) * 100;
+        return {
+          ...completion,
+          efficiency_percentage: legacyEfficiency,
+        };
+      }
+      return completion;
+    });
+
+    const currentBelt = getBeltRank(optimizedResult.finalEfficiency, hasEnoughData);
+
     return {
-      averageEfficiency: null,
-      finalEfficiency: null,
-      graceSystemPenalty: 0,
-      negativeRoutineCount: 0,
+      averageEfficiency: optimizedResult.finalEfficiency,
+      finalEfficiency: optimizedResult.finalEfficiency,
+      graceSystemPenalty: optimizedResult.graceSystemPenalty,
+      negativeRoutineCount: optimizedResult.negativeRoutineCount,
       completionCount: totalCompletions,
-      currentBelt: BELT_RANKS[0],
+      currentBelt,
+      hasEnoughData,
+      last30Days: processedCompletions,
+    };
+  } catch (error) {
+    console.error("Error in optimized efficiency calculation:", error);
+    
+    // Fallback to original implementation
+    const { data, error: fetchError } = await supabase
+      .from("routine_completions")
+      .select("completed_at, efficiency_percentage, total_time_saved, total_routine_duration")
+      .eq("user_id", userId)
+      .eq("has_regular_tasks", true)
+      .order("completed_at", { ascending: false })
+      .limit(30);
+
+    if (fetchError) {
+      console.error("Error fetching efficiency stats (fallback):", fetchError);
+      return {
+        averageEfficiency: null,
+        finalEfficiency: null,
+        graceSystemPenalty: 0,
+        negativeRoutineCount: 0,
+        completionCount: 0,
+        currentBelt: BELT_RANKS[0],
+        hasEnoughData: false,
+        last30Days: [],
+      };
+    }
+
+    const completions = data || [];
+    const totalCompletions = completions.length;
+    const hasEnoughData = totalCompletions >= 30;
+
+    const processedCompletions = completions.map((completion) => {
+      if (completion.efficiency_percentage === null && 
+          completion.total_time_saved !== null && 
+          completion.total_routine_duration !== null &&
+          completion.total_routine_duration > 0) {
+        const legacyEfficiency = (completion.total_time_saved / completion.total_routine_duration) * 100;
+        return {
+          ...completion,
+          efficiency_percentage: legacyEfficiency,
+        };
+      }
+      return completion;
+    });
+
+    const validEfficiencies = processedCompletions
+      .map((c) => c.efficiency_percentage)
+      .filter((e): e is number => e !== null);
+
+    if (validEfficiencies.length === 0) {
+      return {
+        averageEfficiency: null,
+        finalEfficiency: null,
+        graceSystemPenalty: 0,
+        negativeRoutineCount: 0,
+        completionCount: totalCompletions,
+        currentBelt: BELT_RANKS[0],
+        hasEnoughData,
+        last30Days: processedCompletions,
+      };
+    }
+
+    const graceSystemResult = calculateOverallEfficiency(validEfficiencies);
+    const currentBelt = getBeltRank(graceSystemResult.finalEfficiency, hasEnoughData);
+
+    return {
+      averageEfficiency: graceSystemResult.finalEfficiency,
+      finalEfficiency: graceSystemResult.finalEfficiency,
+      graceSystemPenalty: graceSystemResult.graceSystemPenalty,
+      negativeRoutineCount: graceSystemResult.negativeRoutineCount,
+      completionCount: totalCompletions,
+      currentBelt,
       hasEnoughData,
       last30Days: processedCompletions,
     };
   }
-
-  // Apply Grace System calculation for overall user rating
-  const graceSystemResult = calculateOverallEfficiency(validEfficiencies);
-
-  const currentBelt = getBeltRank(graceSystemResult.finalEfficiency, hasEnoughData);
-
-  return {
-    averageEfficiency: graceSystemResult.finalEfficiency,
-    finalEfficiency: graceSystemResult.finalEfficiency,
-    graceSystemPenalty: graceSystemResult.graceSystemPenalty,
-    negativeRoutineCount: graceSystemResult.negativeRoutineCount,
-    completionCount: totalCompletions,
-    currentBelt,
-    hasEnoughData,
-    last30Days: processedCompletions,
-  };
 }
 
 /**
@@ -414,6 +481,7 @@ export function getBeltProgressPercentage(
   currentEfficiency: number,
   currentBelt: BeltRank
 ): number {
+
   const beltIndex = BELT_RANKS.findIndex((b) => b.color === currentBelt.color);
   
   // If at max belt (Black Belt), return 100%
@@ -421,7 +489,6 @@ export function getBeltProgressPercentage(
     return 100;
   }
 
-  const nextBelt = BELT_RANKS[beltIndex + 1];
   const currentMin = currentBelt.minPercentage;
   const currentMax = currentBelt.maxPercentage;
   const range = currentMax - currentMin;

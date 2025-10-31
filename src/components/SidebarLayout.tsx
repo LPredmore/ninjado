@@ -3,7 +3,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { AppSidebar } from './AppSidebar';
 import TimeTracker from './TimeTracker';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { EfficiencyBadge } from './EfficiencyBadge';
+import LazyEfficiencyBadge from './LazyEfficiencyBadge';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
@@ -29,7 +29,7 @@ const SidebarLayout = ({ children, onSignOut, totalTimeSaved, userId }: SidebarL
                 <SidebarTrigger className="clay-element rounded-xl p-3 text-foreground hover:bg-accent/20 min-w-[44px] min-h-[44px] flex items-center justify-center" />
               )}
               <div className="flex-1 flex justify-end items-center gap-3">
-                {userId && !isMobile && <EfficiencyBadge userId={userId} variant="compact" />}
+                {userId && !isMobile && <LazyEfficiencyBadge userId={userId} variant="compact" />}
                 <TimeTracker totalTimeSaved={totalTimeSaved} />
               </div>
             </header>

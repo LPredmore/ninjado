@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { SupabaseClient } from '@supabase/supabase-js';
 import SidebarLayout from '@/components/SidebarLayout';
@@ -12,11 +12,16 @@ import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
-import { queryKeys } from "@/lib/queryKeys";
+import { queryKeys, queryConfigs, createQueryInvalidationManager } from "@/lib/queryConfig";
 import { updateTaskPerformanceMetrics } from '@/lib/taskPerformance';
-import { EfficiencyBadge } from '@/components/EfficiencyBadge';
-import { calculateEfficiencyPercentage, calculateRoutineEfficiency, TaskCompletion } from '@/lib/efficiencyUtils';
+import LazyEfficiencyBadge from '@/components/LazyEfficiencyBadge';
+import { TaskCompletion } from '@/lib/efficiencyUtils';
+import { efficiencyCalculationOptimizer } from '@/lib/efficiencyCalculationOptimizer';
+import { useRealTimeCalculationFeedback } from '@/lib/realTimeCalculationFeedback';
 import { useQueryClient } from '@tanstack/react-query';
+import { storageManager } from '@/lib/storageManager';
+import { performanceFlowTracker, CRITICAL_FLOWS, FLOW_STEPS, trackFlowStep } from '@/lib/performanceFlowTracker';
+import { usePerformanceMeasurement } from '@/lib/performanceMonitor';
 
 interface IndexProps {
   user: User;
@@ -27,11 +32,16 @@ const Index = ({ user, supabase }: IndexProps) => {
   const queryClient = useQueryClient();
   const { totalTimeSaved, recordTaskCompletion } = useTimeTracking();
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(
-    () => localStorage.getItem('selectedRoutineId')
+    () => storageManager.get<string>('selectedRoutineId')
   );
   const [orderedTasks, setOrderedTasks] = useState<Task[]>([]);
   const [taskStartTimes, setTaskStartTimes] = useState<{ [taskId: string]: number }>({});
   const [taskCompletions, setTaskCompletions] = useState<TaskCompletion[]>([]);
+  const [currentCalculationId, setCurrentCalculationId] = useState<string | null>(null);
+  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
+
+  // Track component render performance
+  usePerformanceMeasurement('index-page-render');
   
   const {
     isRoutineStarted,
@@ -50,6 +60,23 @@ const Index = ({ user, supabase }: IndexProps) => {
     setCumulativeSpeedTaskDuration,
   } = useRoutineState(selectedRoutineId);
 
+  // Real-time calculation feedback
+  const {
+    startTracking,
+    updateProgress,
+    completeCalculation,
+    cleanup: cleanupRealTimeTracking,
+  } = useRealTimeCalculationFeedback(
+    (update) => {
+      // Handle real-time efficiency updates
+      if (update.type === 'intermediate' && update.data.estimatedFinalEfficiency !== null) {
+        // Could update UI with estimated efficiency here
+        console.log(`Estimated efficiency: ${update.data.estimatedFinalEfficiency.toFixed(1)}%`);
+      }
+    },
+    'high'
+  );
+
   const { data: routines } = useQuery({
     queryKey: queryKeys.routines(user.id),
     queryFn: async () => {
@@ -61,6 +88,7 @@ const Index = ({ user, supabase }: IndexProps) => {
       if (error) throw error;
       return data;
     },
+    ...queryConfigs.routines,
   });
 
   const { data: tasks } = useQuery({
@@ -77,6 +105,7 @@ const Index = ({ user, supabase }: IndexProps) => {
       if (error) throw error;
       return data;
     },
+    ...queryConfigs.tasks,
   });
 
 
@@ -88,19 +117,28 @@ const Index = ({ user, supabase }: IndexProps) => {
 
   useEffect(() => {
     if (selectedRoutineId) {
-      localStorage.setItem('selectedRoutineId', selectedRoutineId);
+      storageManager.set('selectedRoutineId', selectedRoutineId);
     } else {
-      localStorage.removeItem('selectedRoutineId');
+      storageManager.remove('selectedRoutineId');
     }
   }, [selectedRoutineId]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut();
-  };
+  }, [supabase]);
 
-  const handleTaskComplete = async (taskId: string, timeSaved: number) => {
+  const handleTaskComplete = useCallback(async (taskId: string, timeSaved: number) => {
     const task = orderedTasks.find(t => t.id === taskId);
     if (!task) return;
+
+    // Track task completion in performance flow
+    if (currentFlowId) {
+      performanceFlowTracker.addFlowStep(currentFlowId, FLOW_STEPS.TASK_COMPLETE, {
+        taskId,
+        taskTitle: task.title,
+        timeSaved,
+      });
+    }
 
     // Calculate actual completion time
     const startTime = taskStartTimes[taskId];
@@ -120,12 +158,17 @@ const Index = ({ user, supabase }: IndexProps) => {
     setTaskCompletions(prev => [...prev, taskCompletion]);
     setCompletedTaskIds(prev => [...prev, taskId]);
     
+    // Update real-time calculation feedback
+    if (currentCalculationId) {
+      updateProgress(currentCalculationId, taskCompletion);
+    }
+    
     // Track speed task duration (regular tasks only) - keep for backward compatibility
     if (taskType === 'regular') {
       setCumulativeSpeedTaskDuration(prev => {
         const newTotal = prev + (task.duration * 60);
         if (selectedRoutineId) {
-          localStorage.setItem(`routine-${selectedRoutineId}-speed-duration`, newTotal.toString());
+          storageManager.set(`routine-${selectedRoutineId}-speed-duration`, newTotal);
         }
         return newTotal;
       });
@@ -136,7 +179,7 @@ const Index = ({ user, supabase }: IndexProps) => {
     setCumulativeTimeSaved(prev => {
       const newTotal = prev + timeSaved;
       if (selectedRoutineId) {
-        localStorage.setItem(`routine-${selectedRoutineId}-cumulative-time`, newTotal.toString());
+        storageManager.set(`routine-${selectedRoutineId}-cumulative-time`, newTotal);
       }
       return newTotal;
     });
@@ -150,11 +193,29 @@ const Index = ({ user, supabase }: IndexProps) => {
     const updatedTaskCompletions = [...taskCompletions, taskCompletion];
     
     if (orderedTasks && updatedCompletedTasks.length === orderedTasks.length) {
-      // Calculate efficiency using new ratio-based formula
-      const hasRegularTasks = orderedTasks.some(t => (t.type || 'regular') === 'regular');
+      // Track efficiency calculation in performance flow
+      if (currentFlowId) {
+        performanceFlowTracker.addFlowStep(currentFlowId, FLOW_STEPS.EFFICIENCY_CALC, {
+          taskCount: orderedTasks.length,
+        });
+      }
       
-      if (hasRegularTasks && selectedRoutine) {
-        const efficiencyResult = calculateRoutineEfficiency(updatedTaskCompletions);
+      // Complete real-time calculation tracking
+      if (currentCalculationId) {
+        await completeCalculation(currentCalculationId);
+        setCurrentCalculationId(null);
+      }
+      
+      // Calculate efficiency using optimized calculation
+      const currentHasRegularTasks = orderedTasks.some(t => (t.type || 'regular') === 'regular');
+      const currentSelectedRoutine = routines?.find(routine => routine.id === selectedRoutineId);
+      
+      if (currentHasRegularTasks && currentSelectedRoutine) {
+        const efficiencyResult = await trackFlowStep(
+          currentFlowId || 'efficiency-calc-fallback',
+          'efficiency-calculation',
+          async () => efficiencyCalculationOptimizer.calculateRoutineEfficiencyOptimized(updatedTaskCompletions)
+        );
         
         // Calculate backward compatibility values for database storage
         // For regular tasks: time saved = planned - actual
@@ -193,18 +254,33 @@ const Index = ({ user, supabase }: IndexProps) => {
             .insert({
               user_id: user.id,
               routine_id: selectedRoutineId,
-              routine_title: selectedRoutine.title,
+              routine_title: currentSelectedRoutine.title,
               user_email: user.email || '',
               total_time_saved: totalTimeSaved,
               total_routine_duration: totalRoutineDuration,
               efficiency_percentage: efficiencyPercentage,
-              has_regular_tasks: hasRegularTasks,
+              has_regular_tasks: currentHasRegularTasks,
             });
           
           if (error) throw error;
           
           // Invalidate efficiency stats to refresh badge
-          queryClient.invalidateQueries({ queryKey: ['efficiency-stats', user.id] });
+          const currentInvalidationManager = createQueryInvalidationManager(queryClient);
+          currentInvalidationManager.invalidateEfficiencyQueries(user.id);
+          
+          // Complete performance flow tracking
+          if (currentFlowId) {
+            performanceFlowTracker.addFlowStep(currentFlowId, FLOW_STEPS.ROUTINE_COMPLETE, {
+              efficiencyPercentage,
+              totalTimeSaved,
+              totalRoutineDuration,
+            });
+            performanceFlowTracker.completeFlow(currentFlowId, {
+              success: true,
+              efficiencyPercentage,
+            });
+            setCurrentFlowId(null);
+          }
           
           // Enhanced toast based on efficiency - Updated thresholds for new scoring system
           const efficiencyPercent = efficiencyPercentage || 0;
@@ -224,7 +300,7 @@ const Index = ({ user, supabase }: IndexProps) => {
         } catch (error) {
           console.error('Failed to log routine completion:', error);
         }
-      } else if (!hasRegularTasks && selectedRoutine) {
+      } else if (!currentHasRegularTasks && currentSelectedRoutine) {
         // Handle routines with only focus tasks - no efficiency calculation
         try {
           const { error } = await supabase
@@ -232,7 +308,7 @@ const Index = ({ user, supabase }: IndexProps) => {
             .insert({
               user_id: user.id,
               routine_id: selectedRoutineId,
-              routine_title: selectedRoutine.title,
+              routine_title: currentSelectedRoutine.title,
               user_email: user.email || '',
               total_time_saved: 0,
               total_routine_duration: 0,
@@ -251,12 +327,48 @@ const Index = ({ user, supabase }: IndexProps) => {
       // Reset state including new tracking variables
       setTaskStartTimes({});
       setTaskCompletions([]);
+      setCurrentCalculationId(null);
+      setCurrentFlowId(null);
+      cleanupRealTimeTracking();
       resetRoutineState();
       setSelectedRoutineId(null);
     }
-  };
+  }, [
+    orderedTasks,
+    taskStartTimes,
+    taskCompletions,
+    completedTaskIds,
+    setCompletedTaskIds,
+    setCumulativeSpeedTaskDuration,
+    setCumulativeTimeSaved,
+    selectedRoutineId,
+    recordTaskCompletion,
+    updateTaskPerformanceMetrics,
+    user.id,
+    user.email,
+    routines,
+    supabase,
+    queryClient,
+    resetRoutineState,
+    setTaskStartTimes,
+    setTaskCompletions,
+    setSelectedRoutineId,
+    currentFlowId,
+    currentCalculationId,
+    cleanupRealTimeTracking,
+    completeCalculation,
+    updateProgress
+  ]);
 
-  const handleStartRoutine = () => {
+  const handleStartRoutine = useCallback(() => {
+    // Track routine start in performance flow
+    if (currentFlowId) {
+      performanceFlowTracker.addFlowStep(currentFlowId, FLOW_STEPS.ROUTINE_START, {
+        taskCount: orderedTasks.length,
+        selectedRoutineId,
+      });
+    }
+    
     const initialTimers: { [key: string]: number } = {};
     const initialStartTimes: { [key: string]: number } = {};
     const currentTime = Date.now();
@@ -269,44 +381,76 @@ const Index = ({ user, supabase }: IndexProps) => {
     
     setTimers(initialTimers);
     setTaskStartTimes(initialStartTimes);
-    setTaskCompletions([]); // Reset task completions for new routine
+    setTaskCompletions([]);
+    
+    // Start real-time calculation tracking
+    const calculationId = `routine-${selectedRoutineId}-${Date.now()}`;
+    setCurrentCalculationId(calculationId);
+    startTracking(calculationId, []);
+    
     setIsRoutineStarted(true);
     setIsPaused(false);
-  };
+  }, [orderedTasks, selectedRoutineId, setTimers, setIsRoutineStarted, setIsPaused, startTracking, currentFlowId]);
 
-  const handlePauseRoutine = () => {
+  const handlePauseRoutine = useCallback(() => {
     setIsPaused(!isPaused);
-  };
+  }, [isPaused, setIsPaused]);
 
-  const handleRoutineSelect = (routineId: string) => {
+  const handleRoutineSelect = useCallback((routineId: string) => {
+    // Track routine selection as part of routine execution flow
+    const flowId = performanceFlowTracker.startFlow(CRITICAL_FLOWS.ROUTINE_EXECUTION, {
+      routineId,
+      userId: user.id,
+    });
+    setCurrentFlowId(flowId);
+    
+    performanceFlowTracker.addFlowStep(flowId, FLOW_STEPS.ROUTINE_SELECT, { routineId });
+    
     resetRoutineState();
     setTaskStartTimes({});
-    setTaskCompletions([]); // Reset task completions when selecting new routine
+    setTaskCompletions([]);
+    setCurrentCalculationId(null);
+    cleanupRealTimeTracking();
     setSelectedRoutineId(routineId);
-  };
+  }, [resetRoutineState, cleanupRealTimeTracking, user.id]);
 
-  const handleTaskReorder = (reorderedTasks: Task[]) => {
+  const handleTaskReorder = useCallback((reorderedTasks: Task[]) => {
     setOrderedTasks(reorderedTasks);
-  };
+  }, []);
 
-  const processedTasks: Task[] = orderedTasks.map((task, index) => ({
-    ...task,
-    isCompleted: completedTaskIds.includes(task.id),
-    isActive: isRoutineStarted && 
-              !completedTaskIds.includes(task.id) && 
-              completedTaskIds.length === index,
-    timeLeft: timers[task.id]
-  }));
+  // Memoize processed tasks calculation to prevent unnecessary re-renders
+  const processedTasks: Task[] = useMemo(() => {
+    return orderedTasks.map((task, index) => ({
+      ...task,
+      isCompleted: completedTaskIds.includes(task.id),
+      isActive: isRoutineStarted && 
+                !completedTaskIds.includes(task.id) && 
+                completedTaskIds.length === index,
+      timeLeft: timers[task.id]
+    }));
+  }, [orderedTasks, completedTaskIds, isRoutineStarted, timers]);
 
-  // Find the selected routine to get its title
-  const selectedRoutine = routines?.find(routine => routine.id === selectedRoutineId);
+  // Memoize selected routine lookup
+  const selectedRoutine = useMemo(() => {
+    return routines?.find(routine => routine.id === selectedRoutineId);
+  }, [routines, selectedRoutineId]);
+
+  // Memoize whether current routine has regular tasks for efficiency calculation
+  const hasRegularTasks = useMemo(() => {
+    return orderedTasks.some(t => (t.type || 'regular') === 'regular');
+  }, [orderedTasks]);
+
+  // Memoize query invalidation manager creation
+  const invalidationManager = useMemo(() => {
+    return createQueryInvalidationManager(queryClient);
+  }, [queryClient]);
 
   return (
     <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved} userId={user.id}>
       <div className="space-y-4 md:space-y-6 p-3 md:p-6 max-w-full overflow-hidden">
         
         {/* Efficiency Badge - Hero Display */}
-        <EfficiencyBadge userId={user.id} variant="hero" />
+        <LazyEfficiencyBadge userId={user.id} variant="hero" />
         
         {/* Routine Selector - Ninja Scroll Style */}
         <div className="clay-element-with-transition">
