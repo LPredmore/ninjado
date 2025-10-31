@@ -50,8 +50,12 @@ const PinPrompt = ({ isOpen, onClose, onSuccess, title, description, userId }: P
       }
 
       if (data === true) {
-        onSuccess();
-        handleClose();
+        toast({
+          title: "Access Granted",
+          description: "Authorization successful!",
+        });
+        setPin('');
+        onSuccess(); // Parent component handles closing - no navigation
       } else {
         toast({
           title: "Access Denied",
