@@ -98,14 +98,6 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
     storageManager.set(`last-belt-${userId}`, stats.currentBelt.name);
   }, [stats, userId]);
 
-  if (isLoading) {
-    return <EfficiencyBadgeSkeleton variant={variant} />;
-  }
-
-  if (error || !stats) {
-    return null;
-  }
-
   // Memoize efficiency calculations BEFORE early returns (hooks must be unconditional)
   const { safeEfficiency, progressToNext, displayEfficiency } = useMemo(() => {
     if (!stats) {
