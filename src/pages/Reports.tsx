@@ -13,9 +13,12 @@ import { queryKeys } from '@/lib/queryKeys';
 import { RoutineTask } from '@/types';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useEffect } from 'react';
+import { EfficiencyBadge } from '@/components/EfficiencyBadge';
+import { useTimeTracking } from '@/contexts/TimeTrackingContext';
 
 const Reports = () => {
   const [user, setUser] = useState<any>(null);
+  const { totalTimeSaved } = useTimeTracking();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -106,7 +109,7 @@ const Reports = () => {
 
   return (
     <ErrorBoundary>
-      <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={0}>
+      <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved} userId={user?.id || ''}>
         <div className="space-y-6 p-4 md:p-6 max-w-full overflow-hidden">
           
           <div className="clay-element-with-transition p-6">
@@ -119,6 +122,25 @@ const Reports = () => {
                 <p className="text-muted-foreground">Track your task completion efficiency</p>
               </div>
             </div>
+          </div>
+
+          {/* Efficiency Belt Ranking Section */}
+          {user && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+                <span className="text-3xl">🥋</span>
+                Your Efficiency Belt Ranking
+              </h2>
+              <EfficiencyBadge userId={user.id} variant="full" />
+            </div>
+          )}
+
+          {/* Task Performance Metrics */}
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+              <span className="text-3xl">📈</span>
+              Task Performance Metrics
+            </h2>
           </div>
 
           {isLoading && (

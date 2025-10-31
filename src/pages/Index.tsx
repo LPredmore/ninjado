@@ -14,6 +14,9 @@ import { toast } from 'sonner';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { queryKeys } from "@/lib/queryKeys";
 import { updateTaskPerformanceMetrics } from '@/lib/taskPerformance';
+import { EfficiencyBadge } from '@/components/EfficiencyBadge';
+import { calculateEfficiencyPercentage } from '@/lib/efficiencyUtils';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface IndexProps {
   user: User;
@@ -21,6 +24,7 @@ interface IndexProps {
 }
 
 const Index = ({ user, supabase }: IndexProps) => {
+  const queryClient = useQueryClient();
   const { totalTimeSaved, recordTaskCompletion } = useTimeTracking();
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(
     () => localStorage.getItem('selectedRoutineId')
@@ -149,7 +153,21 @@ const Index = ({ user, supabase }: IndexProps) => {
           
           if (error) throw error;
           
-          toast.success('Routine completed! 🎉');
+          // Invalidate efficiency stats to refresh badge
+          queryClient.invalidateQueries({ queryKey: ['efficiency-stats', user.id] });
+          
+          // Enhanced toast based on efficiency
+          const efficiencyPercent = totalSpeedDuration > 0 
+            ? ((cumulativeTimeSaved + timeSaved) / totalSpeedDuration) * 100 
+            : 0;
+          
+          if (efficiencyPercent >= 80) {
+            toast.success(`🏆 Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}%`);
+          } else if (efficiencyPercent >= 60) {
+            toast.success(`⚡ Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}%`);
+          } else {
+            toast.success(`🎯 Routine complete! Efficiency: ${efficiencyPercent.toFixed(1)}%`);
+          }
         } catch (error) {
           console.error('Failed to log routine completion:', error);
         }
@@ -197,8 +215,11 @@ const Index = ({ user, supabase }: IndexProps) => {
   const selectedRoutine = routines?.find(routine => routine.id === selectedRoutineId);
 
   return (
-    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
+    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved} userId={user.id}>
       <div className="space-y-4 md:space-y-6 p-3 md:p-6 max-w-full overflow-hidden">
+        
+        {/* Efficiency Badge - Hero Display */}
+        <EfficiencyBadge userId={user.id} variant="hero" />
         
         {/* Routine Selector - Ninja Scroll Style */}
         <div className="clay-element-with-transition">

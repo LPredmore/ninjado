@@ -8,6 +8,8 @@ export interface BeltRank {
   minPercentage: number;
   maxPercentage: number;
   className: string; // Tailwind classes for styling
+  gradientClass: string; // Background gradient classes
+  badgeClass: string; // Badge styling classes
 }
 
 export interface EfficiencyStats {
@@ -15,7 +17,7 @@ export interface EfficiencyStats {
   rawAverageEfficiency: number | null; // Before penalty
   penalty: number; // Penalty amount deducted
   overrunCount: number; // Number of overruns detected
-  totalCompletions: number;
+  completionCount: number; // Total completions in last 30 days
   currentBelt: BeltRank;
   hasEnoughData: boolean;
   last30Days: Array<{
@@ -34,6 +36,8 @@ const BELT_RANKS: BeltRank[] = [
     minPercentage: -Infinity,
     maxPercentage: 40,
     className: "bg-gray-100 text-gray-800 border-gray-300",
+    gradientClass: "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900",
+    badgeClass: "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200",
   },
   {
     color: "yellow",
@@ -42,6 +46,8 @@ const BELT_RANKS: BeltRank[] = [
     minPercentage: 40,
     maxPercentage: 50,
     className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    gradientClass: "bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900/30 dark:to-yellow-800/30",
+    badgeClass: "bg-yellow-200 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200",
   },
   {
     color: "orange",
@@ -50,6 +56,8 @@ const BELT_RANKS: BeltRank[] = [
     minPercentage: 50,
     maxPercentage: 60,
     className: "bg-orange-100 text-orange-800 border-orange-300",
+    gradientClass: "bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30",
+    badgeClass: "bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200",
   },
   {
     color: "green",
@@ -58,6 +66,8 @@ const BELT_RANKS: BeltRank[] = [
     minPercentage: 60,
     maxPercentage: 70,
     className: "bg-green-100 text-green-800 border-green-300",
+    gradientClass: "bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30",
+    badgeClass: "bg-green-200 text-green-800 dark:bg-green-900/50 dark:text-green-200",
   },
   {
     color: "blue",
@@ -66,6 +76,8 @@ const BELT_RANKS: BeltRank[] = [
     minPercentage: 70,
     maxPercentage: 80,
     className: "bg-blue-100 text-blue-800 border-blue-300",
+    gradientClass: "bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30",
+    badgeClass: "bg-blue-200 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200",
   },
   {
     color: "purple",
@@ -74,6 +86,8 @@ const BELT_RANKS: BeltRank[] = [
     minPercentage: 80,
     maxPercentage: 85,
     className: "bg-purple-100 text-purple-800 border-purple-300",
+    gradientClass: "bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30",
+    badgeClass: "bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200",
   },
   {
     color: "brown",
@@ -82,6 +96,8 @@ const BELT_RANKS: BeltRank[] = [
     minPercentage: 85,
     maxPercentage: 90,
     className: "bg-amber-100 text-amber-800 border-amber-300",
+    gradientClass: "bg-gradient-to-br from-amber-200 to-amber-300 dark:from-amber-900/30 dark:to-amber-800/30",
+    badgeClass: "bg-amber-300 text-amber-900 dark:bg-amber-900/50 dark:text-amber-200",
   },
   {
     color: "black",
@@ -90,6 +106,8 @@ const BELT_RANKS: BeltRank[] = [
     minPercentage: 90,
     maxPercentage: Infinity,
     className: "bg-gray-900 text-gray-100 border-gray-700",
+    gradientClass: "bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-100 dark:to-gray-300",
+    badgeClass: "bg-gray-900 text-gray-100 dark:bg-gray-100 dark:text-gray-900",
   },
 ];
 
@@ -181,7 +199,7 @@ export async function fetchUserEfficiencyStats(
       rawAverageEfficiency: null,
       penalty: 0,
       overrunCount: 0,
-      totalCompletions: 0,
+      completionCount: 0,
       currentBelt: BELT_RANKS[0],
       hasEnoughData: false,
       last30Days: [],
@@ -216,7 +234,7 @@ export async function fetchUserEfficiencyStats(
     rawAverageEfficiency,
     penalty,
     overrunCount,
-    totalCompletions,
+    completionCount: totalCompletions,
     currentBelt,
     hasEnoughData,
     last30Days: completions,

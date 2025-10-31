@@ -115,7 +115,7 @@ const Profile = ({ user, supabase }: ProfileProps) => {
   };
 
   return (
-    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved}>
+    <SidebarLayout onSignOut={handleSignOut} totalTimeSaved={totalTimeSaved} userId={user.id}>
       <div className="container mx-auto p-4 md:p-6 max-w-3xl space-y-6 md:space-y-8">
         
         {/* Profile Header */}

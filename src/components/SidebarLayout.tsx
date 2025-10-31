@@ -3,14 +3,16 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { AppSidebar } from './AppSidebar';
 import TimeTracker from './TimeTracker';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { EfficiencyBadge } from './EfficiencyBadge';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
   onSignOut: () => Promise<void>;
   totalTimeSaved: number;
+  userId?: string;
 }
 
-const SidebarLayout = ({ children, onSignOut, totalTimeSaved }: SidebarLayoutProps) => {
+const SidebarLayout = ({ children, onSignOut, totalTimeSaved, userId }: SidebarLayoutProps) => {
   const isMobile = useIsMobile();
 
   return (
@@ -26,7 +28,8 @@ const SidebarLayout = ({ children, onSignOut, totalTimeSaved }: SidebarLayoutPro
               {isMobile && (
                 <SidebarTrigger className="clay-element rounded-xl p-3 text-foreground hover:bg-accent/20 min-w-[44px] min-h-[44px] flex items-center justify-center" />
               )}
-              <div className="flex-1 flex justify-end">
+              <div className="flex-1 flex justify-end items-center gap-3">
+                {userId && !isMobile && <EfficiencyBadge userId={userId} variant="compact" />}
                 <TimeTracker totalTimeSaved={totalTimeSaved} />
               </div>
             </header>
