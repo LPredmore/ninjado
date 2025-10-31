@@ -1,12 +1,15 @@
 # User Name Functionality Implementation Plan
 
 - [ ] 1. Create custom signup component
-  - [ ] 1.1 Create SignupForm component
+  - [x] 1.1 Create SignupForm component
+
+
     - Create new component `src/components/SignupForm.tsx`
     - Implement form with name, email, and password fields
     - Add client-side validation for all fields
     - Style component to match existing NinjaDo design
     - _Requirements: 1.1, 1.5_
+
 
   - [ ] 1.2 Implement signup logic
     - Add signup handler using Supabase auth.signUp()
@@ -14,16 +17,20 @@
     - Add loading states during signup process
     - _Requirements: 1.1, 1.4_
 
+
   - [ ] 1.3 Add profile creation after signup
     - Listen for auth state changes after successful signup
     - Create profile record in public.profiles table with username
     - Handle profile creation errors gracefully
     - _Requirements: 1.2, 1.3_
 
-- [ ] 2. Update Login page to include custom signup
+- [x] 2. Update Login page to include custom signup
+
+
   - [ ] 2.1 Modify Login page layout
     - Add tab or toggle between login and signup modes
     - Integrate custom SignupForm component
+
     - Maintain existing Supabase Auth UI for login
     - Ensure responsive design on all screen sizes
     - _Requirements: 4.1_
@@ -33,6 +40,10 @@
     - Show success message for completed signup
     - Handle edge cases and error scenarios
     - _Requirements: 1.1, 4.1_
+
+
+
+
 
 - [ ] 3. Add profile data fetching to Profile page
   - [ ] 3.1 Implement profile data queries
@@ -44,18 +55,22 @@
   - [ ] 3.2 Handle users without profiles
     - Create profile record for existing users who don't have one
     - Handle graceful fallback when profile doesn't exist
+
     - Ensure backward compatibility with existing users
     - _Requirements: 4.3, 4.4_
 
 - [ ] 4. Implement name display and editing in Profile page
-  - [ ] 4.1 Add name display section
+  - [x] 4.1 Add name display section
+
     - Add username field to profile page layout
     - Display current username or placeholder if empty
     - Integrate with existing profile page design
     - _Requirements: 2.2, 2.3, 2.4_
 
+
   - [ ] 4.2 Implement name editing functionality
     - Create editable input field for username
+
     - Add save and cancel buttons for name editing
     - Implement inline editing with proper UX
     - _Requirements: 3.1, 3.2_

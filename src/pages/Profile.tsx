@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTimeTracking } from "@/contexts/TimeTrackingContext";
 import { NinjaScrollCard } from "@/components/ninja/NinjaScrollCard";
-import { Mail, Lock, MessageSquare, Trash2, ExternalLink } from "lucide-react";
+import { Mail, Lock, MessageSquare, Trash2, ExternalLink, User as UserIcon, Edit, Save, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { logError } from "@/lib/errorLogger";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -35,11 +36,109 @@ const Profile = ({ user, supabase }: ProfileProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [isUpdatingName, setIsUpdatingName] = useState(false);
   const { totalTimeSaved } = useTimeTracking();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Fetch user profile data
+  const { data: profile, isLoading: isLoadingProfile, error: profileError } = useQuery({
+    queryKey: ["profile", user.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      // If no profile exists, create one
+      if (!data) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            username: null,
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          throw createError;
+        }
+
+        return newProfile;
+      }
+
+      return data;
+    },
+  });
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+  };
+
+  const handleEditName = () => {
+    setEditedName(profile?.username || "");
+    setIsEditingName(true);
+  };
+
+  const handleCancelEditName = () => {
+    setIsEditingName(false);
+    setEditedName("");
+  };
+
+  const handleSaveName = async () => {
+    if (!editedName.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+
+    if (editedName.trim().length < 2) {
+      toast.error("Name must be at least 2 characters");
+      return;
+    }
+
+    if (editedName.trim().length > 50) {
+      toast.error("Name must be less than 50 characters");
+      return;
+    }
+
+    setIsUpdatingName(true);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ username: editedName.trim() })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update the query cache
+      queryClient.setQueryData(["profile", user.id], (old: any) => ({
+        ...old,
+        username: editedName.trim(),
+      }));
+
+      toast.success("Name updated successfully");
+      setIsEditingName(false);
+    } catch (error) {
+      logError("Error updating username", error, { 
+        component: "Profile", 
+        action: "handleSaveName", 
+        userId: user.id 
+      });
+      toast.error("Failed to update name. Please try again.");
+    } finally {
+      setIsUpdatingName(false);
+    }
   };
 
   const handlePasswordUpdate = async () => {
@@ -136,6 +235,71 @@ const Profile = ({ user, supabase }: ProfileProps) => {
         {/* Account Information */}
         <NinjaScrollCard title="🔧 Account Settings" variant="default">
           <div className="space-y-6">
+            {/* Name Display and Edit */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-foreground font-medium">
+                <UserIcon className="w-4 h-4 text-accent" />
+                Name
+              </Label>
+              {isEditingName ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="clay-element-with-transition flex-1"
+                    disabled={isUpdatingName}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSaveName();
+                      } else if (e.key === 'Escape') {
+                        handleCancelEditName();
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={handleSaveName}
+                    disabled={isUpdatingName}
+                    variant="clay-jade"
+                    size="icon"
+                  >
+                    {isUpdatingName ? (
+                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                  </Button>
+                  <Button
+                    onClick={handleCancelEditName}
+                    disabled={isUpdatingName}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    value={isLoadingProfile ? "Loading..." : (profile?.username || "No name set")}
+                    disabled
+                    className="clay-element bg-muted/50 border-border/50 flex-1"
+                  />
+                  <Button
+                    onClick={handleEditName}
+                    variant="outline"
+                    size="icon"
+                    disabled={isLoadingProfile}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              {profileError && (
+                <p className="text-sm text-red-500">Failed to load profile data</p>
+              )}
+            </div>
+
             {/* Email Display */}
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2 text-foreground font-medium">
