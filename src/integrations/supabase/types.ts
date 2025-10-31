@@ -136,30 +136,42 @@ export type Database = {
       routine_completions: {
         Row: {
           completed_at: string
+          efficiency_percentage: number | null
+          has_regular_tasks: boolean
           id: string
           ip_address: unknown
           routine_id: string
           routine_title: string
+          total_routine_duration: number
+          total_time_saved: number
           user_agent: string | null
           user_email: string
           user_id: string
         }
         Insert: {
           completed_at?: string
+          efficiency_percentage?: number | null
+          has_regular_tasks?: boolean
           id?: string
           ip_address?: unknown
           routine_id: string
           routine_title: string
+          total_routine_duration?: number
+          total_time_saved?: number
           user_agent?: string | null
           user_email: string
           user_id: string
         }
         Update: {
           completed_at?: string
+          efficiency_percentage?: number | null
+          has_regular_tasks?: boolean
           id?: string
           ip_address?: unknown
           routine_id?: string
           routine_title?: string
+          total_routine_duration?: number
+          total_time_saved?: number
           user_agent?: string | null
           user_email?: string
           user_id?: string
