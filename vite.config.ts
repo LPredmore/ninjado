@@ -25,8 +25,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    ...(mode === 'development' ? [componentTagger()] : []),
     VitePWA({
       injectRegister: false,
       includeAssets: ['favicon.ico', 'ninjado-logo-180.png', 'ninjado-logo-192.png', 'ninjado-logo-512.png', 'logo.png'],
@@ -53,14 +52,13 @@ export default defineConfig(({ mode }) => ({
         ]
       }
     }),
-    // Bundle analyzer - generates stats.html after build
-    process.env.ANALYZE && visualizer({
+    ...(process.env.ANALYZE ? [visualizer({
       filename: 'dist/stats.html',
       open: true,
       gzipSize: true,
       brotliSize: true,
-    })
-  ].filter(Boolean),
+    }) as any] : [])
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

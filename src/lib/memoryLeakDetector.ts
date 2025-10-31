@@ -1,4 +1,5 @@
 import { performanceMonitor } from './performanceMonitor';
+import React from 'react';
 
 /**
  * Memory leak detection system for identifying and preventing memory issues

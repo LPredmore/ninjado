@@ -7,7 +7,7 @@ const defaultQueryOptions: DefaultOptions = {
   queries: {
     // Global defaults - can be overridden by specific query configs
     staleTime: 2 * 60 * 1000, // 2 minutes default
-    cacheTime: 5 * 60 * 1000, // 5 minutes default
+    gcTime: 5 * 60 * 1000, // 5 minutes default (formerly cacheTime)
     refetchOnWindowFocus: false,
     retry: (failureCount, error) => {
       // Don't retry on 4xx errors (client errors)

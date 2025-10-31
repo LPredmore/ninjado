@@ -3,6 +3,8 @@
  * Provides insights into bundle size optimization and loading performance
  */
 
+import React from 'react';
+
 export interface BundleInfo {
   name: string;
   size: number;

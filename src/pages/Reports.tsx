@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys as legacyQueryKeys } from "@/lib/queryKeys";
 import { queryKeys, queryConfigs } from "@/lib/queryConfig";
 import { supabase } from '@/integrations/supabase/client';
 import SidebarLayout from '@/components/SidebarLayout';
@@ -11,7 +10,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { TrendingUp, TrendingDown, Target, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAllTaskPerformanceMetrics, resetTaskPerformanceMetrics } from '@/lib/taskPerformance';
-import { queryKeys } from '@/lib/queryKeys';
 import { RoutineTask } from '@/types';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useEffect } from 'react';
