@@ -7,11 +7,6 @@ const UpdatePrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    // Check if running in Capacitor (don't show for native apps)
-    if ((window as any).Capacitor) {
-      return;
-    }
-
     // Set up callback for when update is available
     onUpdateAvailable(() => {
       console.log('[UpdatePrompt] Update available callback triggered');
