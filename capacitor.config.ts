@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false,
   server: {
-    url: 'https://0aa89cf8-0910-4f94-89bb-07221f4071b0.lovableproject.com?forceHideBadge=true',
+    url: 'https://ninjado.bestselfs.com',
     cleartext: true
   },
   ios: {
