@@ -21,6 +21,8 @@ const ScheduleTracker = ({
   const remainingExpectedSeconds = remainingTasks.reduce((sum, task) => sum + task.duration * 60, 0);
 
   // Determine overall status
+  // Note: Time bank represents cumulative time saved from regular tasks
+  // Focus tasks only contribute negative time if they overrun their planned duration
   const isAhead = cumulativeTimeSaved > 0;
   const isBehind = cumulativeTimeSaved < 0;
   const isOnTrack = cumulativeTimeSaved === 0;
@@ -50,9 +52,9 @@ const ScheduleTracker = ({
       }
     }
     if (isAhead) {
-      return `⚡ Amazing pace! You've banked ${formatTime(cumulativeTimeSaved)} of extra time. Keep up the excellent work!`;
+      return `⚡ Amazing pace! You've banked ${formatTime(cumulativeTimeSaved)} of extra time from regular tasks. Keep it up!`;
     } else if (isBehind) {
-      return `💪 You're ${formatTime(cumulativeTimeSaved)} behind, but you can still catch up! Focus and speed through the next tasks!`;
+      return `💪 You're ${formatTime(cumulativeTimeSaved)} behind schedule. Focus and push through the remaining tasks!`;
     } else {
       return "🎯 You're exactly on schedule! Maintain this perfect pace!";
     }

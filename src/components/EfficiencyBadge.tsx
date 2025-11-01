@@ -30,8 +30,7 @@ interface EfficiencyBadgeProps {
 
 export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: EfficiencyBadgeProps) => {
   const [lastBeltRank, setLastBeltRank] = useState<string | null>(null);
-  const [realtimeEfficiency, setRealtimeEfficiency] = useState<number | null>(null);
-  const [isEstimated, setIsEstimated] = useState(false);
+  // Real-time efficiency updates removed - efficiency now only shows after routine completion
 
   // Fetch username from profiles
   const { data: profile } = useQuery({
@@ -57,19 +56,8 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
     refetchOnWindowFocus: false,
   });
 
-  // Set up real-time efficiency updates
-  useEffect(() => {
-    const badgeUpdater = realTimeCalculationFeedback.createEfficiencyBadgeUpdater(
-      (efficiency, estimated) => {
-        setRealtimeEfficiency(efficiency);
-        setIsEstimated(estimated);
-      }
-    );
-    
-    return () => {
-      badgeUpdater.cleanup();
-    };
-  }, []);
+  // Real-time efficiency updates removed - efficiency updates only after routine completion
+  // This ensures efficiency is shown as an overall routine rating, not a live value
 
   // Check for belt rank achievement and trigger celebration
   useEffect(() => {
@@ -98,30 +86,26 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
     storageManager.set(`last-belt-${userId}`, stats.currentBelt.name);
   }, [stats, userId]);
 
-  // Memoize efficiency calculations BEFORE early returns (hooks must be unconditional)
-  const { safeEfficiency, progressToNext, displayEfficiency } = useMemo(() => {
+  // Memoize efficiency calculations - no real-time updates, only from stats
+  const { safeEfficiency, progressToNext } = useMemo(() => {
     if (!stats) {
       return {
         safeEfficiency: 0,
         progressToNext: 0,
-        displayEfficiency: 0
       };
     }
     
-    // Use real-time efficiency if available, otherwise use stats
     const baseEfficiency = stats.averageEfficiency !== null && !isNaN(stats.averageEfficiency) 
       ? stats.averageEfficiency 
       : 0;
     
-    const currentEfficiency = realtimeEfficiency !== null ? realtimeEfficiency : baseEfficiency;
-    const progress = getBeltProgressPercentage(currentEfficiency, stats.currentBelt);
+    const progress = getBeltProgressPercentage(baseEfficiency, stats.currentBelt);
     
     return {
       safeEfficiency: baseEfficiency,
       progressToNext: progress,
-      displayEfficiency: currentEfficiency
     };
-  }, [stats, realtimeEfficiency]);
+  }, [stats]);
 
   if (isLoading) {
     return <EfficiencyBadgeSkeleton variant={variant} />;
@@ -145,12 +129,11 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
                 className="w-8 h-8"
               />
               <div className="flex flex-col">
-                <span className={`text-sm font-bold ${isEstimated ? 'text-muted-foreground' : 'text-foreground'}`}>
-                  {displayEfficiency.toFixed(1)}% Efficiency
-                  {isEstimated && <span className="text-xs ml-1">(est.)</span>}
+                <span className="text-sm font-bold text-foreground">
+                  {safeEfficiency.toFixed(1)}% Efficiency
                 </span>
                 {stats.hasEnoughData && (
-                  <TrendIcon efficiency={displayEfficiency} />
+                  <TrendIcon efficiency={safeEfficiency} />
                 )}
               </div>
             </div>
@@ -205,9 +188,8 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
                 <Badge className={`text-lg px-4 py-1 ${stats.currentBelt.badgeClass}`}>
                   {stats.currentBelt.name} Belt
                 </Badge>
-                <span className={`text-4xl font-bold ${isEstimated ? 'text-muted-foreground' : 'text-foreground'}`}>
-                  {displayEfficiency.toFixed(1)}% Efficiency
-                  {isEstimated && <span className="text-lg ml-2 opacity-70">(estimated)</span>}
+                <span className="text-4xl font-bold text-foreground">
+                  {safeEfficiency.toFixed(1)}% Efficiency
                 </span>
               </div>
             </div>
@@ -304,9 +286,8 @@ export const EfficiencyBadge = React.memo(({ userId, variant = "hero" }: Efficie
             <Badge className={`text-base px-3 py-1 ${stats.currentBelt.badgeClass}`}>
               {stats.currentBelt.name}
             </Badge>
-            <span className={`text-3xl font-bold drop-shadow-md ${isEstimated ? 'text-muted-foreground' : 'text-foreground'}`}>
-              {displayEfficiency.toFixed(1)}% Efficiency
-              {isEstimated && <span className="text-sm ml-2 opacity-70">(est.)</span>}
+            <span className="text-3xl font-bold drop-shadow-md text-foreground">
+              {safeEfficiency.toFixed(1)}% Efficiency
             </span>
           </div>
         </div>

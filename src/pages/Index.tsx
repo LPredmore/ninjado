@@ -174,8 +174,10 @@ const Index = ({ user, supabase }: IndexProps) => {
       });
     }
     
-    // Update cumulative time saved for this routine session - keep for backward compatibility
-    // Note: For focus tasks that go over time, this will be negative (penalty)
+    // Update cumulative time saved for this routine session
+    // Regular tasks: time saved = planned duration - actual duration (can be positive or negative)
+    // Focus tasks: only overruns count as penalties (negative time saved)
+    // This creates a "time bank" that shows how much ahead or behind the user is
     setCumulativeTimeSaved(prev => {
       const newTotal = prev + timeSaved;
       if (selectedRoutineId) {
