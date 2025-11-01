@@ -23,46 +23,41 @@ export const initializePWA = (): void => {
     deferredPrompt = e as BeforeInstallPromptEvent;
   });
 
-  // Register service worker
+  // Service worker is auto-registered by Vite-PWA, we just need to listen for updates
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((registration) => {
-        swRegistration = registration;
+    // Get the registration when it's ready
+    navigator.serviceWorker.ready.then((registration) => {
+      swRegistration = registration;
 
-        // Check for updates on registration
-        registration.update();
+      // Listen for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
 
-        // Listen for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New service worker installed and old one is still controlling
-                if (updateAvailableCallback) {
-                  updateAvailableCallback();
-                }
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New service worker installed and old one is still controlling
+              if (updateAvailableCallback) {
+                updateAvailableCallback();
               }
-            });
-          }
-        });
-
-        // Reload page when new service worker takes control
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (refreshing) return;
-          refreshing = true;
-          window.location.reload();
-        });
-      })
-      .catch((registrationError) => {
-        logError('Service worker registration failed', registrationError, {
-          component: 'pwa',
-          action: 'initializePWA',
-        });
+            }
+          });
+        }
       });
+
+      // Check for updates periodically
+      setInterval(() => {
+        registration.update();
+      }, 60000);
+    });
+
+    // Reload page when new service worker takes control
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
   }
 };
 

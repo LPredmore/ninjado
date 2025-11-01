@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     ...(mode === 'development' ? [componentTagger()] : []),
     VitePWA({
-      injectRegister: false,
+      injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'ninjado-logo-180.png', 'ninjado-logo-192.png', 'ninjado-logo-512.png', 'logo.png'],
       manifest: {
         name: 'NinjaDo - Master Your Routine',
