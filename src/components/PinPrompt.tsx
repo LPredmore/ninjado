@@ -101,7 +101,7 @@ const PinPrompt = ({ isOpen, onClose, onSuccess, title, description, userId }: P
           </div>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
           <div className="relative">
             <label className="text-sm font-medium text-foreground mb-2 block">
               Enter Parental PIN
@@ -114,6 +114,8 @@ const PinPrompt = ({ isOpen, onClose, onSuccess, title, description, userId }: P
                 placeholder="Enter PIN"
                 className="pr-10 text-center text-lg tracking-widest"
                 autoFocus
+                autoComplete="one-time-code"
+                name="pin"
               />
               <Button
                 type="button"
